@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sobreviventes Medievais - Vampire Survivors Era Medieval</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22><text y=%2226%22 font-size=%2228%22>⚔️</text></svg>">
+</head>
+<body>
+  <div id="game-container">
+    <!-- Main Game Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Top & Bottom HUD Overlay -->
+    <div id="hud-overlay">
+      <!-- Top HUD Header (Centered Timer + HP + Kills/Actions) -->
+      <div class="top-hud-bar">
+        <!-- Top Left: Player HP -->
+        <div class="top-left-stats">
+          <div class="stat-group">
+            <span class="icon">❤️</span>
+            <div class="hp-bar-hud">
+              <div class="hp-bar-fill" id="hp-fill"></div>
+              <div class="hp-text" id="hp-text">120 / 120 HP</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Center: Survival Timer (Centralized) -->
+        <div class="top-center-timer">
+          <div class="stat-group timer-box">
+            <span class="timer-icon">⏳</span>
+            <span class="timer-item" id="timer-text">00:00</span>
+          </div>
+        </div>
+
+        <!-- Top Right: Kills, Gold & Quick Actions -->
+        <div class="top-right-stats">
+          <div class="stat-group">
+            <div class="stat-item" title="Inimigos Derrotados">
+              <span class="icon">💀</span>
+              <span id="kills-text">0</span>
+            </div>
+
+            <div class="stat-item" title="Ouro Coletado nesta Partida">
+              <span class="icon">💰</span>
+              <span id="gold-text">0</span>
+            </div>
+
+            <div class="hud-actions">
+              <button class="hud-btn" id="btn-mouse-aim" title="Alternar controle de mira com o mouse">🎯 Mira: Mouse</button>
+              <button class="hud-btn" id="btn-sound-toggle">🔊 Som: Ligado</button>
+              <button class="hud-btn" id="btn-pause">⏸️ Pausa</button>
+              <button class="hud-btn" id="btn-main-menu">📜 Menu</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Boss Warning Banner -->
+      <div id="boss-warning">
+        <h2>⚠️ ALERTA DE CATACLISMO! ⚠️</h2>
+        <p><span id="boss-name">O Carrasco Carmesim</span> despertou das catacumbas!</p>
+      </div>
+
+      <!-- Controls Hint -->
+      <div class="controls-hint">
+        <span>Mover / Mirar: <span class="key-badge">W</span> <span class="key-badge">A</span> <span class="key-badge">S</span> <span class="key-badge">D</span> ou <span class="key-badge">Mouse</span></span>
+        <span>Ataque: <strong>Automático na Direção da Seta</strong></span>
+        <span>Pausa: <span class="key-badge">ESC</span> / <span class="key-badge">P</span></span>
+      </div>
+
+      <!-- Bottom HUD Section (Equipment + XP Bar at the Bottom) -->
+      <div class="bottom-hud-section">
+        <!-- Equipment Bar -->
+        <div class="bottom-equipment-bar">
+          <div class="equipment-container">
+            <!-- Weapons Row -->
+            <div class="equipment-row">
+              <div class="equipment-label">Armas:</div>
+              <div id="weapon-slots" style="display:flex; gap:8px;"></div>
+            </div>
+            <!-- Passives Row -->
+            <div class="equipment-row">
+              <div class="equipment-label">Passivas:</div>
+              <div id="passive-slots" style="display:flex; gap:8px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- XP Progress Bar (Moved to the bottom of the screen!) -->
+        <div class="xp-bar-container">
+          <div class="level-badge" id="level-badge">NÍVEL 1</div>
+          <div class="xp-bar-track">
+            <div class="xp-bar-fill" id="xp-fill"></div>
+            <div class="xp-text" id="xp-text">0 / 18 XP</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Subir de Nível (Level Up) -->
+    <div class="modal-overlay" id="level-up-modal">
+      <div class="modal-box">
+        <h1 class="modal-title">SUBIU DE NÍVEL!</h1>
+        <p class="modal-subtitle">Escolha uma nova bênção, armamento ou aprimoramento de combate:</p>
+        <div class="level-up-cards" id="level-up-cards">
+          <!-- Dynamically populated cards -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Baú de Tesouro (Mini-Boss Reward) -->
+    <div class="modal-overlay" id="chest-modal">
+      <div class="modal-box chest-box">
+        <h1 class="modal-title" style="color:#f1c40f;">BAÚ DO VENCEDOR!</h1>
+        <p class="modal-subtitle">O campeão derrotou um mini-chefe e saqueou seu tesouro:</p>
+        <div class="chest-animation-area">📦</div>
+        <div class="chest-rewards" id="chest-rewards">
+          <!-- Dynamically populated rewards -->
+        </div>
+        <button class="btn-primary" id="btn-collect-chest">Coletar Recompensas</button>
+      </div>
+    </div>
+
+    <!-- MODAL: Seleção de Classes (Expandível) -->
+    <div class="modal-overlay" id="class-modal">
+      <div class="modal-box">
+        <h1 class="modal-title">ESCOLHA SEU COMBATENTE</h1>
+        <p class="modal-subtitle">Cada classe possui estatísticas únicas, armamento inicial e atributos de combate:</p>
+        <div class="class-grid" id="class-grid">
+          <!-- Dynamically populated class cards -->
+        </div>
+        <button class="btn-primary btn-restart" style="margin-top:12px;">Iniciar Partida</button>
+      </div>
+    </div>
+
+    <!-- MODAL: Pausa -->
+    <div class="modal-overlay" id="pause-modal">
+      <div class="modal-box" style="max-width: 480px;">
+        <h1 class="modal-title">JOGO PAUSADO</h1>
+        <p class="modal-subtitle">Descanse sua lâmina guerreiro...</p>
+        <div style="display:flex; flex-direction:column; gap:14px; margin: 24px 0;">
+          <button class="btn-primary" id="btn-resume">Continuar Batalha</button>
+          <button class="btn-primary btn-restart" style="background:linear-gradient(180deg,#7f8c8d,#2c3e50);">Reiniciar Partida</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Fim de Jogo (Game Over) -->
+    <div class="modal-overlay" id="game-over-modal">
+      <div class="modal-box" style="max-width: 650px;">
+        <h1 class="modal-title" style="color:#e74c3c;">SUA ALMA FOI REIVINDICADA</h1>
+        <p class="modal-subtitle">Você caiu em batalha perante a escuridão incessante.</p>
+
+        <div class="gameover-stats-grid">
+          <div class="stat-box">
+            <span class="title">Tempo Sobrevivido</span>
+            <span class="val" id="stat-time">00:00</span>
+          </div>
+          <div class="stat-box">
+            <span class="title">Nível Alcançado</span>
+            <span class="val" id="stat-level">1</span>
+          </div>
+          <div class="stat-box">
+            <span class="title">Inimigos Derrotados</span>
+            <span class="val" id="stat-kills">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="title">Ouro Acumulado</span>
+            <span class="val" id="stat-gold" style="color:#ffeaa7;">+0 💰</span>
+          </div>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.4); border-radius:8px; padding:12px; margin-bottom:20px; text-align:left;">
+          <div style="font-size:0.85rem; color:#f0c05a; font-weight:700; margin-bottom:8px; text-transform:uppercase;">Eficácia das Armas:</div>
+          <div id="weapon-breakdown"></div>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:16px;">
+          <button class="btn-primary btn-restart">Jogar Novamente</button>
+          <button class="btn-primary" id="btn-gameover-forge" style="background:linear-gradient(180deg,#8e44ad,#2c3e50);">🔨 Forja (Gastar Ouro)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Vitória Real (15 Minutos Concluídos!) -->
+    <div class="modal-overlay" id="victory-modal">
+      <div class="modal-box victory-box" style="max-width: 650px;">
+        <h1 class="modal-title victory-title">🏆 VITÓRIA GLORIOSA! 🏆</h1>
+        <p class="modal-subtitle">Você resistiu bravamente aos 15 minutos e triunfou perante as hordas da escuridão!</p>
+
+        <div class="gameover-stats-grid">
+          <div class="stat-box">
+            <span class="title">Tempo Sobrevivido</span>
+            <span class="val" style="color:#2ecc71;">15:00 (MÁXIMO)</span>
+          </div>
+          <div class="stat-box">
+            <span class="title">Bônus da Coroa</span>
+            <span class="val" style="color:#ffeaa7;">+500 OURO 👑</span>
+          </div>
+          <div class="stat-box">
+            <span class="title">Inimigos Eliminados</span>
+            <span class="val" id="victory-kills">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="title">Ouro Total da Batalha</span>
+            <span class="val" id="victory-gold" style="color:#f1c40f;">0 💰</span>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:16px; margin-top:20px;">
+          <button class="btn-primary" id="btn-victory-forge">🔨 Ir para a Forja</button>
+          <button class="btn-primary btn-restart">Jogar Novamente</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: Menu Principal e Central de Valoria -->
+    <div class="modal-overlay" id="main-menu-modal">
+      <div class="modal-box main-menu-box">
+        <!-- Header -->
+        <div class="main-menu-header">
+          <div class="main-title-wrap">
+            <h1>⚔️ SOBREVIVENTES MEDIEVAIS ⚔️</h1>
+            <p>Crônicas da Escuridão • Sobrevivência & Forja Real</p>
+          </div>
+          <div class="gold-pill">
+            <span>Tesouro Real:</span>
+            <span id="menu-gold-val">0</span>
+            <span>💰</span>
+          </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="menu-nav-tabs">
+          <button class="tab-btn active" data-tab="play">⚔️ Iniciar Batalha</button>
+          <button class="tab-btn" data-tab="heroes">🛡️ Combatentes</button>
+          <button class="tab-btn" data-tab="forge">🔨 Forja (Aprimoramentos)</button>
+          <button class="tab-btn" data-tab="codex">📜 Códice & Bestiário</button>
+          <button class="tab-btn" data-tab="history">📊 Histórico de Runs</button>
+          <button class="tab-btn" data-tab="settings">⚙️ Opções</button>
+        </div>
+
+        <!-- Dynamic Content Body -->
+        <div class="menu-tab-body" id="menu-tab-content">
+          <!-- Populated by ui.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/classes.js"></script>
+  <script src="js/passives.js"></script>
+  <script src="js/weapons.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/enemies.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.MedievalSurvivors.game = new window.MedievalSurvivors.Game();
+      // Abre o menu principal de imediato para o jogador ver as novidades, forja e códice!
+      window.MedievalSurvivors.game.ui.openMainMenu('play');
+    });
+  </script>
+</body>
+</html>
