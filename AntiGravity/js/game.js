@@ -33,12 +33,22 @@ class Game {
       // Only process mouse aim if enabled in settings
       const mouseAimEnabled = this.saveManager ? this.saveManager.data.settings.mouseAim : true;
       if (this.state === 'PLAYING' && this.player && this.renderer && mouseAimEnabled) {
-        const mouseWorldX = e.clientX + this.renderer.cameraX;
-        const mouseWorldY = e.clientY + this.renderer.cameraY;
-        this.player.facingAngle = Math.atan2(mouseWorldY - this.player.y, mouseWorldX - this.player.x);
-        this.player.aimingWithMouse = true;
-        if (Math.cos(this.player.facingAngle) > 0.1) this.player.facingDir = 1;
-        else if (Math.cos(this.player.facingAngle) < -0.1) this.player.facingDir = -1;
+        if (this.renderer.getMouseWorldPosition) {
+          const mouseWorld = this.renderer.getMouseWorldPosition(e.clientX, e.clientY);
+          if (mouseWorld) {
+            this.player.facingAngle = Math.atan2(mouseWorld.y - this.player.y, mouseWorld.x - this.player.x);
+            this.player.aimingWithMouse = true;
+            if (Math.cos(this.player.facingAngle) > 0.1) this.player.facingDir = 1;
+            else if (Math.cos(this.player.facingAngle) < -0.1) this.player.facingDir = -1;
+          }
+        } else {
+          const mouseWorldX = e.clientX + this.renderer.cameraX;
+          const mouseWorldY = e.clientY + this.renderer.cameraY;
+          this.player.facingAngle = Math.atan2(mouseWorldY - this.player.y, mouseWorldX - this.player.x);
+          this.player.aimingWithMouse = true;
+          if (Math.cos(this.player.facingAngle) > 0.1) this.player.facingDir = 1;
+          else if (Math.cos(this.player.facingAngle) < -0.1) this.player.facingDir = -1;
+        }
       }
     });
 
@@ -95,6 +105,11 @@ class Game {
     this.gameTime = 0;
     this.waveDirector.reset();
     this.state = 'PLAYING';
+
+    // Start New 3D Run with Generative Procedural Map & Biome!
+    if (this.renderer && this.renderer.startNewRun) {
+      this.renderer.startNewRun(this);
+    }
 
     this.ui.updateHUD(this.player, this.gameTime);
     this.ui.updateMouseAimButton();

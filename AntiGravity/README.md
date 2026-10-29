@@ -1,6 +1,41 @@
-# ⚔️ Sobreviventes Medievais (Medieval Survivors)
+# ⚔️ Sobreviventes Medievais (Medieval Survivors 3D)
 
-Um jogo completo no estilo **Vampire Survivors** ambientado em um cenário de fantasia medieval gótica, desenvolvido em **HTML5 Canvas**, **CSS3** e **JavaScript modular** com sintetizador de áudio via **Web Audio API** (sem dependências externas, roda direto no navegador).
+Um jogo completo no estilo **Vampire Survivors** ambientado em um cenário de fantasia medieval gótica, desenvolvido com **gráficos 3D em tempo real via Three.js / WebGL**, **mapa generativo procedural aleatório para cada run**, **modelos 3D estilizados e articulados para todos os heróis e inimigos**, iluminação dinâmica, física de projéteis e sintetizador de áudio via **Web Audio API** (100% autônomo, roda direto no navegador).
+
+---
+
+## 🌟 Novidades da Versão 3D & Mapa Procedural
+
+1. **Gráficos 3D Completos (Three.js WebGL):**
+   - Câmera isométrica fluida que segue o herói com vibração de impacto (*camera shake*).
+   - Iluminação dinâmica com sombras suaves, nevoeiro gótico atmosférico e tocha acoplada ao herói com oscilação de chama real.
+   - Projéteis, arcos de corte da espada, virotes de besta, machados giratórios, poças de fogo sagrado e anéis de aura divina renderizados em 3D.
+   - Partículas 3D para faíscas de impacto, sangue, fogueiras e orbes de almas.
+
+2. **Mapa Generativo Procedural Aleatório por Run:**
+   - Cada partida gera um reino único com semente aleatória e biomas temáticos variados:
+     * 🏰 **Ruínas de Valoria:** Pilares góticos caídos, arcos quebrados, braseiros de ferro fundido com chamas douradas e estátuas imperiais.
+     * ⚰️ **Necrópole dos Reis Esquecidos:** Lápides esculpidas com cruzes, sarcófagos de pedra ancestral, pilares de cripta e braseiros de fogo espectral esmeralda.
+     * 🌲 **Floresta Sombria de Morghul:** Árvores secas e retorcidas, círculos de pedras druídicas (menires), paliçadas de madeira e névoa profunda.
+     * 🔥 **Fortaleza do Carrasco Carmesim:** Barricadas pontiagudas, obeliscos de obsidiana, piso de basalto em chamas e névoa vulcânica.
+   - *Streaming* procedural infinito de *chunks* ao redor do jogador com preservação de santuário seguro no ponto inicial.
+   - Braseiros com fontes de luz pontual 3D real que iluminam o chão e os inimigos em tempo real.
+
+3. **Modelos 3D Articulados e Bem Trabalhados:**
+   - **Heróis:**
+     * **Cavaleiro Real (Knight):** Armadura de placas de aço, elmo com visor escuro e pluma vermelha imponente, capa ondulante, escudo brasonado e espada longa.
+     * **Arqueira das Sombras (Ranger):** Capuz florestal com olhos esmeralda brilhantes, túnica de couro, aljava com flechas e besta mecânica.
+     * **Feiticeiro das Cinzas (Pyromancer):** Mantos de mago com orla dourada, capuz arcano, olhos de brasa, cajado místico com cristal flutuante e orbe de chamas.
+     * **Paladino da Alvorada (Paladin):** Armadura dourada cerimonial, auréola santa flutuante (halo), ombreiras aladas, martelo de guerra rúnico e escudo torre.
+   - **Inimigos & Mini-Chefes:**
+     * **Rato da Peste:** Corpo arqueado, cauda articulada oscilante, focinho, olhos rubros e 4 patas velozes.
+     * **Esqueleto:** Crânio tridimensional com órbitas brilhantes, caixa torácica articulada, cimitarra enferrujada e broquel.
+     * **Aldeão Amaldiçoado:** Postura corcunda assimétrica, túnica camponesa esfarrapada e forquilha afiada.
+     * **Cavaleiro Negro:** Armadura pesada de obsidiana, elmo com chifres pontiagudos e visor vermelho demoníaco, empunhando espada colossal com runas violetas.
+     * **Bruxa das Catacumbas:** Flutua pelo ar com túnicas ondulantes, chapéu pontudo clássico e cajado encimado por crânio espectral venenoso.
+     * **Carrasco Carmesim (Mini-Chefe):** Brutamontes colossal com capuz de carrasco, avental ensanguentado, correntes de ferro nos punhos e machado de guerra gigante de duas lâminas.
+     * **Golem de Pedra (Mini-Chefe):** Gigante monolítico de blocos de rocha e musgo, ombros flutuantes, núcleo rúnico ciano pulsante e punhos de pedra.
+     * **Barão da Morte (Mini-Chefe):** Lorde lich real com asas esqueléticas, coroa gótica dourada, mantos imperiais flutuantes e foice necrótica.
 
 ---
 

@@ -569,6 +569,9 @@ class ParticleSystem {
   }
 
   createBloodSparks(x, y, count = 3, color = '#e63946') {
+    if (window.MedievalSurvivors.game && window.MedievalSurvivors.game.renderer && window.MedievalSurvivors.game.renderer.spawn3DParticle) {
+      window.MedievalSurvivors.game.renderer.spawn3DParticle(x, 10, y, 0xe63946, count, 35);
+    }
     if (this.particles.length >= this.maxParticles) return;
     const limit = Math.min(count, this.maxParticles - this.particles.length);
     for (let i = 0; i < limit; i++) {
@@ -588,6 +591,9 @@ class ParticleSystem {
   }
 
   createSpark(x, y, color = '#f39c12') {
+    if (window.MedievalSurvivors.game && window.MedievalSurvivors.game.renderer && window.MedievalSurvivors.game.renderer.spawn3DParticle) {
+      window.MedievalSurvivors.game.renderer.spawn3DParticle(x, 10, y, 0xf39c12, 1, 20);
+    }
     if (this.particles.length >= this.maxParticles) return;
     this.particles.push({
       x: x + (Math.random() - 0.5) * 8,
@@ -602,6 +608,9 @@ class ParticleSystem {
   }
 
   createExplosionWave(x, y, radius, color = '#e67e22') {
+    if (window.MedievalSurvivors.game && window.MedievalSurvivors.game.renderer && window.MedievalSurvivors.game.renderer.spawn3DParticle) {
+      window.MedievalSurvivors.game.renderer.spawn3DParticle(x, 10, y, 0xff6600, 16, radius * 1.5);
+    }
     if (this.particles.length >= this.maxParticles) return;
     const count = 12;
     for (let i = 0; i < count; i++) {

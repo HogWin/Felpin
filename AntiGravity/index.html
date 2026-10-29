@@ -9,8 +9,9 @@
 </head>
 <body>
   <div id="game-container">
-    <!-- Main Game Canvas -->
+    <!-- Main Game Canvas (WebGL 3D) & 2D HUD/Effects Overlay -->
     <canvas id="game-canvas"></canvas>
+    <canvas id="overlay-canvas"></canvas>
 
     <!-- Top & Bottom HUD Overlay -->
     <div id="hud-overlay">
@@ -260,7 +261,8 @@
     </div>
   </div>
 
-  <!-- Game Scripts -->
+  <!-- 3D Engine & Game Scripts -->
+  <script src="js/three.min.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/save.js"></script>
   <script src="js/classes.js"></script>
@@ -268,6 +270,8 @@
   <script src="js/weapons.js"></script>
   <script src="js/entities.js"></script>
   <script src="js/enemies.js"></script>
+  <script src="js/models3d.js"></script>
+  <script src="js/map3d.js"></script>
   <script src="js/renderer.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/game.js"></script>
