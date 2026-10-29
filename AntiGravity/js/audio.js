@@ -98,8 +98,60 @@ class SoundEngine {
     osc.stop(t + 0.1);
   }
 
-  // Throwing Axe whoosh
+  // Throwing Axe heavy spinning air-slice
   playAxeThrow() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+
+    // 1. Air-cutting rotational swoosh (filtered noise)
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.22);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const env = Math.sin((i / bufferSize) * Math.PI);
+      data[i] = (Math.random() * 2 - 1) * env * 0.7;
+    }
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(380, t);
+    filter.frequency.exponentialRampToValueAtTime(1150, t + 0.09);
+    filter.frequency.exponentialRampToValueAtTime(280, t + 0.22);
+    filter.Q.setValueAtTime(2.2, t);
+
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.28, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.22);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(this.ctx.destination);
+    noise.start(t);
+
+    // 2. Deep metallic blade hum
+    const osc = this.ctx.createOscillator();
+    const oscGain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(260, t);
+    osc.frequency.exponentialRampToValueAtTime(115, t + 0.19);
+
+    oscGain.gain.setValueAtTime(0.18, t);
+    oscGain.gain.exponentialRampToValueAtTime(0.005, t + 0.19);
+
+    osc.connect(oscGain);
+    oscGain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.19);
+  }
+
+  // Guardian Spear metallic thrust & shockwave
+  playSpearThrust() {
     if (this.muted) return;
     this.init();
     if (!this.ctx) return;
@@ -108,19 +160,39 @@ class SoundEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(180, t);
-    osc.frequency.linearRampToValueAtTime(320, t + 0.06);
-    osc.frequency.linearRampToValueAtTime(90, t + 0.18);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(720, t);
+    osc.frequency.exponentialRampToValueAtTime(160, t + 0.14);
 
-    gain.gain.setValueAtTime(0.2, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.18);
+    gain.gain.setValueAtTime(0.22, t);
+    gain.gain.exponentialRampToValueAtTime(0.005, t + 0.14);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-
     osc.start(t);
-    osc.stop(t + 0.18);
+    osc.stop(t + 0.14);
+  }
+
+  // Reroll dice sound
+  playReroll() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const freqs = [440, 554.37, 659.25];
+    freqs.forEach((f, idx) => {
+      const t = this.ctx.currentTime + idx * 0.045;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, t);
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.005, t + 0.1);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.1);
+    });
   }
 
   // Holy Fire / Molotov burst

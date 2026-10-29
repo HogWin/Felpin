@@ -118,24 +118,26 @@ class BroadswordWeapon extends BaseWeapon {
     const effectiveArea = this.area * player.areaMultiplier;
     const baseReach = 95 * effectiveArea;
     const facingAngle = player.facingAngle || 0;
+    const totalCount = this.count + (player.bonusProjectiles || 0);
 
     const arcs = [];
-    if (this.count === 1) {
+    if (totalCount === 1) {
       arcs.push(facingAngle);
-    } else if (this.count === 2) {
+    } else if (totalCount === 2) {
       arcs.push(facingAngle);
       arcs.push(facingAngle + Math.PI); // Costas
-    } else if (this.count === 3) {
+    } else if (totalCount === 3) {
       arcs.push(facingAngle - 0.45);
       arcs.push(facingAngle);
       arcs.push(facingAngle + 0.45);
     } else {
       // 4 ou mais: Círculo completo
-      for (let i = 0; i < this.count; i++) {
-        arcs.push(facingAngle + (i * Math.PI * 2 / this.count));
+      for (let i = 0; i < totalCount; i++) {
+        arcs.push(facingAngle + (i * Math.PI * 2 / totalCount));
       }
     }
 
+    const arcSpreadHalf = (Math.PI * 0.65) / 2;
     arcs.forEach(angle => {
       this.slashEffects.push({
         x: player.x,
@@ -148,25 +150,27 @@ class BroadswordWeapon extends BaseWeapon {
       });
 
       // Hit detection in conical slice
-      const arcSpread = Math.PI * 0.65;
-      enemies.forEach(enemy => {
-        if (!enemy.alive) return;
+      for (let i = 0, len = enemies.length; i < len; i++) {
+        const enemy = enemies[i];
+        if (!enemy.alive) continue;
         const dx = enemy.x - player.x;
         const dy = enemy.y - player.y;
-        const dist = Math.hypot(dx, dy);
+        const maxDist = baseReach + enemy.radius;
+        const distSq = dx * dx + dy * dy;
 
-        if (dist <= baseReach + enemy.radius) {
+        if (distSq <= maxDist * maxDist) {
           const enemyAngle = Math.atan2(dy, dx);
           let diff = Math.abs(enemyAngle - angle);
           while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
 
-          if (diff <= arcSpread / 2) {
+          if (diff <= arcSpreadHalf) {
+            const dist = Math.sqrt(distSq) || 1;
             const dealt = enemy.takeDamage(effectiveDamage, dx / dist, dy / dist, 14);
             this.totalDamageDealt += dealt;
-            particles.createBloodSparks(enemy.x, enemy.y, 4, '#e63946');
+            particles.createBloodSparks(enemy.x, enemy.y, 3, '#e63946');
           }
         }
-      });
+      }
     });
   }
 
@@ -193,8 +197,6 @@ class BroadswordWeapon extends BaseWeapon {
       ctx.lineWidth = 14 * (1 - progress * 0.5);
       ctx.strokeStyle = effect.color;
       ctx.globalAlpha = alpha * 0.85;
-      ctx.shadowColor = effect.color;
-      ctx.shadowBlur = 15;
       ctx.stroke();
 
       // Blade trail
@@ -239,19 +241,23 @@ class CrossbowWeapon extends BaseWeapon {
   attack(player, enemies, projectiles, particles) {
     if (enemies.length === 0) return;
 
-    // Filter alive enemies and sort by distance
-    const targets = enemies
-      .filter(e => e.alive)
-      .map(e => ({ enemy: e, dist: Math.hypot(e.x - player.x, e.y - player.y) }))
-      .sort((a, b) => a.dist - b.dist);
-
+    // Filter alive enemies and sort by squared distance
+    const targets = [];
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const e = enemies[i];
+      if (!e.alive) continue;
+      const dx = e.x - player.x;
+      const dy = e.y - player.y;
+      targets.push({ enemy: e, distSq: dx * dx + dy * dy });
+    }
     if (targets.length === 0) return;
+    targets.sort((a, b) => a.distSq - b.distSq);
 
     window.MedievalSurvivors.sound.playCrossbow();
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-    const bolts = Math.min(this.count, targets.length);
+    const totalCount = this.count + (player.bonusProjectiles || 0);
 
-    for (let i = 0; i < this.count; i++) {
+    for (let i = 0; i < totalCount; i++) {
       // Pick nearest targets or fan out
       const target = targets[i % targets.length].enemy;
       const angle = Math.atan2(target.y - player.y, target.x - player.x) + (Math.random() - 0.5) * 0.15;
@@ -292,21 +298,25 @@ class CrossbowBolt {
     this.x += this.vx * dt;
     this.y += this.vy * dt;
 
-    if (this.isEvolved && Math.random() < 0.4) {
+    if (this.isEvolved && Math.random() < 0.25) {
       particles.createSpark(this.x, this.y, '#f39c12');
     }
 
-    enemies.forEach(enemy => {
-      if (!enemy.alive || this.hitEnemies.has(enemy.id)) return;
-      const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
-      if (dist <= this.radius + enemy.radius) {
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const enemy = enemies[i];
+      if (!enemy.alive || this.hitEnemies.has(enemy.id)) continue;
+      const dx = enemy.x - this.x;
+      const dy = enemy.y - this.y;
+      const r = this.radius + enemy.radius;
+      if (dx * dx + dy * dy <= r * r) {
         this.hitEnemies.add(enemy.id);
         const dealt = enemy.takeDamage(this.damage, this.vx / this.speed, this.vy / this.speed, 8);
         this.weapon.totalDamageDealt += dealt;
-        particles.createBloodSparks(this.x, this.y, 3, '#f0c05a');
+        particles.createBloodSparks(this.x, this.y, 2, '#f0c05a');
         this.pierce--;
+        if (this.pierce <= 0) break;
       }
-    });
+    }
 
     return this.life > 0 && this.pierce > 0;
   }
@@ -338,8 +348,8 @@ class HolyFireWeapon extends BaseWeapon {
     super({
       id: 'holy_fire',
       name: 'Fogo Sagrado',
-      icon: '🧪',
-      description: 'Lança frascos alquímicos que estouram no solo em poças de chamas santas, calcinando grupos inteiros.',
+      icon: '🔥',
+      description: 'Lança chamas alquímicas que estouram no solo em poças de fogo santo, calcinando grupos inteiros.',
       maxLevel: 8,
       damage: 16,
       cooldown: 2.8,
@@ -362,8 +372,9 @@ class HolyFireWeapon extends BaseWeapon {
     window.MedievalSurvivors.sound.playFireBurst();
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
+    const totalCount = this.count + (player.bonusProjectiles || 0);
 
-    for (let i = 0; i < this.count; i++) {
+    for (let i = 0; i < totalCount; i++) {
       // Pick random location around player or target enemies
       let targetX = player.x + (Math.random() - 0.5) * 380;
       let targetY = player.y + (Math.random() - 0.5) * 380;
@@ -437,22 +448,25 @@ class HolyFireFlask {
     this.burnTimer -= dt;
     this.tickTimer += dt;
 
-    if (Math.random() < 0.3) {
-      const rx = this.x + (Math.random() - 0.5) * this.radius * 1.5;
-      const ry = this.y + (Math.random() - 0.5) * this.radius * 1.5;
+    if (Math.random() < 0.2) {
+      const rx = this.x + (Math.random() - 0.5) * this.radius * 1.4;
+      const ry = this.y + (Math.random() - 0.5) * this.radius * 1.4;
       particles.createSpark(rx, ry, this.isEvolved ? '#00e5ff' : '#ff4500');
     }
 
     if (this.tickTimer >= this.tickRate) {
       this.tickTimer = 0;
-      enemies.forEach(enemy => {
-        if (!enemy.alive) return;
-        const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
-        if (dist <= this.radius + enemy.radius) {
+      for (let i = 0, len = enemies.length; i < len; i++) {
+        const enemy = enemies[i];
+        if (!enemy.alive) continue;
+        const dx = enemy.x - this.x;
+        const dy = enemy.y - this.y;
+        const r = this.radius + enemy.radius;
+        if (dx * dx + dy * dy <= r * r) {
           const dealt = enemy.takeDamage(this.damage, 0, 0, 1);
           this.weapon.totalDamageDealt += dealt;
         }
-      });
+      }
     }
 
     return this.burnTimer > 0;
@@ -462,16 +476,19 @@ class HolyFireFlask {
     if (this.state === 'flying') {
       ctx.save();
       ctx.translate(this.x, this.y);
-      ctx.fillStyle = '#e67e22';
+      ctx.fillStyle = '#ff6b00';
       ctx.beginPath();
-      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.arc(0, 0, 6.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff275';
+      ctx.beginPath();
+      ctx.arc(0, 0, 3, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     } else {
       // Burning zone on the ground
       ctx.save();
       ctx.translate(this.x, this.y);
-      const alpha = Math.min(1, this.burnTimer);
 
       ctx.fillStyle = this.isEvolved ? 'rgba(0, 229, 255, 0.25)' : 'rgba(230, 81, 0, 0.3)';
       ctx.beginPath();
@@ -496,7 +513,7 @@ class WhirlingAxesWeapon extends BaseWeapon {
       id: 'whirling_axes',
       name: 'Machados Vorazes',
       icon: '🪓',
-      description: 'Arremessa machados pesados em parábolas aéreas que despencam perfurando todos os inimigos no caminho.',
+      description: 'Arremessa machados de guerra duplos em parábolas que retalham todos os inimigos no caminho.',
       maxLevel: 8,
       damage: 38,
       cooldown: 1.8,
@@ -518,10 +535,11 @@ class WhirlingAxesWeapon extends BaseWeapon {
     window.MedievalSurvivors.sound.playAxeThrow();
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
+    const totalCount = this.count + (player.bonusProjectiles || 0);
 
-    for (let i = 0; i < this.count; i++) {
-      const spreadX = (Math.random() - 0.5) * 320;
-      const vy = -(380 + Math.random() * 120);
+    for (let i = 0; i < totalCount; i++) {
+      const spreadX = (Math.random() - 0.5) * 340;
+      const vy = -(390 + Math.random() * 120);
 
       projectiles.push(new ThrownAxe({
         x: player.x,
@@ -530,7 +548,7 @@ class WhirlingAxesWeapon extends BaseWeapon {
         vy: vy,
         gravity: 600,
         damage: effectiveDamage,
-        size: 16 * effectiveArea,
+        size: 18 * effectiveArea,
         isEvolved: this.level >= 8,
         weapon: this
       }));
@@ -549,8 +567,8 @@ class ThrownAxe {
     this.size = cfg.size;
     this.isEvolved = cfg.isEvolved;
     this.weapon = cfg.weapon;
-    this.angle = 0;
-    this.spinSpeed = 14;
+    this.angle = Math.random() * Math.PI * 2;
+    this.spinSpeed = (this.vx >= 0 ? 1 : -1) * 15;
     this.life = 2.4;
     this.hitCooldowns = new Map();
   }
@@ -568,33 +586,97 @@ class ThrownAxe {
       else this.hitCooldowns.set(id, time - dt);
     }
 
-    enemies.forEach(enemy => {
-      if (!enemy.alive || this.hitCooldowns.has(enemy.id)) return;
-      const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
-      if (dist <= this.size + enemy.radius) {
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const enemy = enemies[i];
+      if (!enemy.alive || this.hitCooldowns.has(enemy.id)) continue;
+      const dx = enemy.x - this.x;
+      const dy = enemy.y - this.y;
+      const r = this.size + enemy.radius;
+      if (dx * dx + dy * dy <= r * r) {
         this.hitCooldowns.set(enemy.id, 0.25);
         const dealt = enemy.takeDamage(this.damage, this.vx > 0 ? 1 : -1, 0.2, 10);
         this.weapon.totalDamageDealt += dealt;
-        particles.createBloodSparks(enemy.x, enemy.y, 4, '#f0c05a');
+        particles.createBloodSparks(enemy.x, enemy.y, 3, '#f0c05a');
       }
-    });
+    }
 
     return this.life > 0;
   }
 
   render(ctx) {
+    const s = this.size;
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
 
-    ctx.fillStyle = this.isEvolved ? '#c0392b' : '#95a5a6';
-    // Axe handle
-    ctx.fillRect(-3, -this.size, 6, this.size * 2);
-    // Double blade
-    ctx.fillStyle = this.isEvolved ? '#f1c40f' : '#bdc3c7';
+    // 1. Rotational air-slash ring trail
+    ctx.strokeStyle = this.isEvolved ? 'rgba(231, 76, 60, 0.4)' : 'rgba(220, 230, 240, 0.25)';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.arc(8, -this.size * 0.4, this.size * 0.6, -Math.PI / 2, Math.PI / 2);
-    ctx.arc(-8, -this.size * 0.4, this.size * 0.6, Math.PI / 2, 3 * Math.PI / 2);
+    ctx.arc(0, 0, s * 0.95, 0, Math.PI * 1.4);
+    ctx.stroke();
+
+    // 2. Hardwood battle shaft with leather grip wraps
+    ctx.fillStyle = this.isEvolved ? '#3b1212' : '#6e472b';
+    ctx.fillRect(-s * 0.14, -s * 0.95, s * 0.28, s * 1.9);
+
+    // Leather grip bands on lower shaft
+    ctx.fillStyle = '#261710';
+    ctx.fillRect(-s * 0.16, s * 0.2, s * 0.32, s * 0.12);
+    ctx.fillRect(-s * 0.16, s * 0.45, s * 0.32, s * 0.12);
+
+    // Golden/Iron Pommel & Top Spike
+    ctx.fillStyle = this.isEvolved ? '#f1c40f' : '#d4af37';
+    ctx.beginPath();
+    ctx.arc(0, s * 0.95, s * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = this.isEvolved ? '#ff5252' : '#dfe6e9';
+    ctx.beginPath();
+    ctx.moveTo(0, -s * 1.2);
+    ctx.lineTo(-s * 0.15, -s * 0.9);
+    ctx.lineTo(s * 0.15, -s * 0.9);
+    ctx.closePath();
+    ctx.fill();
+
+    // 3. Twin Crescent War-Axe Blades (Left & Right)
+    const headY = -s * 0.32;
+    const drawBlade = (dir) => {
+      ctx.save();
+      ctx.scale(dir, 1);
+
+      // Inner dark forged steel body
+      ctx.fillStyle = this.isEvolved ? '#8b0000' : '#485460';
+      ctx.beginPath();
+      ctx.moveTo(s * 0.1, headY - s * 0.22);
+      ctx.quadraticCurveTo(s * 0.65, headY - s * 0.55, s * 0.88, headY - s * 0.58);
+      ctx.quadraticCurveTo(s * 1.08, headY, s * 0.88, headY + s * 0.58);
+      ctx.quadraticCurveTo(s * 0.65, headY + s * 0.55, s * 0.1, headY + s * 0.22);
+      ctx.closePath();
+      ctx.fill();
+
+      // Razor-sharp gleaming outer bevel edge
+      ctx.fillStyle = this.isEvolved ? '#f1c40f' : '#ecf0f1';
+      ctx.beginPath();
+      ctx.moveTo(s * 0.72, headY - s * 0.52);
+      ctx.quadraticCurveTo(s * 0.96, headY, s * 0.72, headY + s * 0.52);
+      ctx.lineTo(s * 0.88, headY + s * 0.58);
+      ctx.quadraticCurveTo(s * 1.12, headY, s * 0.88, headY - s * 0.58);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    };
+
+    drawBlade(1);
+    drawBlade(-1);
+
+    // Central iron collar & golden rivet
+    ctx.fillStyle = '#2d3436';
+    ctx.fillRect(-s * 0.22, headY - s * 0.22, s * 0.44, s * 0.44);
+    ctx.fillStyle = '#f0c05a';
+    ctx.beginPath();
+    ctx.arc(0, headY, s * 0.1, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
@@ -634,20 +716,42 @@ class HolyAuraWeapon extends BaseWeapon {
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const radius = 80 * this.area * player.areaMultiplier;
 
-    enemies.forEach(enemy => {
-      if (!enemy.alive) return;
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const enemy = enemies[i];
+      if (!enemy.alive) continue;
       const dx = enemy.x - player.x;
       const dy = enemy.y - player.y;
-      const dist = Math.hypot(dx, dy);
+      const maxD = radius + enemy.radius;
+      const distSq = dx * dx + dy * dy;
 
-      if (dist <= radius + enemy.radius) {
-        const nx = dist > 0 ? dx / dist : 0;
-        const ny = dist > 0 ? dy / dist : 0;
-        const dealt = enemy.takeDamage(effectiveDamage, nx, ny, 6);
+      if (distSq <= maxD * maxD) {
+        const dist = Math.sqrt(distSq) || 1;
+        const dealt = enemy.takeDamage(effectiveDamage, dx / dist, dy / dist, 6);
         this.totalDamageDealt += dealt;
         particles.createSpark(enemy.x, enemy.y, '#f0c05a');
       }
-    });
+    }
+
+    // Bonus projectiles launch sacred light bolts from the aura
+    const extraBolts = player.bonusProjectiles || 0;
+    if (extraBolts > 0 && enemies.length > 0) {
+      for (let b = 0; b < extraBolts; b++) {
+        const randEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+        if (randEnemy && randEnemy.alive) {
+          const ang = Math.atan2(randEnemy.y - player.y, randEnemy.x - player.x);
+          projectiles.push(new CrossbowBolt({
+            x: player.x,
+            y: player.y,
+            angle: ang,
+            speed: 550,
+            damage: effectiveDamage,
+            pierce: 2,
+            isEvolved: true,
+            weapon: this
+          }));
+        }
+      }
+    }
   }
 
   update(dt, player, enemies, projectiles, particles) {
@@ -691,51 +795,58 @@ class HolyAuraWeapon extends BaseWeapon {
   }
 }
 
-// 6. LANÇA DO GUARDIÃO (Guardian Spear)
+// 6. LANÇA DO GUARDIÃO REFORMULADA (Royal Halberd / Guardian Spear)
 class GuardianSpearWeapon extends BaseWeapon {
   constructor() {
     super({
       id: 'guardian_spear',
       name: 'Lança do Guardião',
       icon: '🔱',
-      description: 'Estoca uma imensa lança etérea na direção do movimento, perfurando colunas inteiras de inimigos.',
+      description: 'Desfere estocadas imperiais velozes que disparam ondas perfurantes e causam dano crítico letal na ponta da lança.',
       maxLevel: 8,
-      damage: 42,
-      cooldown: 1.5,
+      damage: 45,
+      cooldown: 1.35,
       area: 1.0,
       count: 1,
       levelsConfig: [
-        { damage: 42, cooldown: 1.5, area: 1.0, count: 1, description: 'Estocada penetrante frontal.' },
-        { damage: 60, area: 1.25, description: 'Dano: 42 ➔ 60 | +25% Alcance' },
-        { count: 2, cooldown: 1.3, description: 'Estocada Frontal e Traseira Simultânea!' },
-        { damage: 85, area: 1.5, description: 'Dano: 60 ➔ 85 | Lança Colossal' },
-        { cooldown: 1.0, description: 'Recarga: 1.3s ➔ 1.0s' },
-        { count: 4, damage: 110, description: 'Estocada em 4 Direções em Cruz (N, S, L, O) | Dano: 110' },
-        { damage: 155, cooldown: 0.8, description: 'Dano: 110 ➔ 155 | Recarga: 0.8s' },
-        { damage: 240, area: 2.0, count: 4, cooldown: 0.65, description: 'EVOLUÇÃO: Lança Divina de Longinus (240 dano em 4 eixos com onda de choque)' }
+        { damage: 45, cooldown: 1.35, area: 1.0, count: 1, description: 'Estocada imperial com Onda Perfurante e Crítico na ponta (1.5x).' },
+        { damage: 64, area: 1.2, description: 'Dano: 45 ➔ 64 | +20% Alcance da Lança' },
+        { count: 2, cooldown: 1.15, description: 'Estocada Dupla em Leque + Ondas Perfurantes!' },
+        { damage: 90, area: 1.4, description: 'Dano: 64 ➔ 90 | +20% Alcance e Largura' },
+        { count: 3, cooldown: 0.98, description: 'Falange Tripla (3 Lanças Simultâneas) | Recarga: 0.98s' },
+        { damage: 125, area: 1.6, description: 'Dano: 90 ➔ 125 | Impacto Demolidor' },
+        { count: 4, damage: 165, cooldown: 0.82, description: 'Falange Quádrupla Imperial | Dano: 165' },
+        { damage: 245, area: 1.9, count: 5, cooldown: 0.65, description: 'EVOLUÇÃO: Lança Divina de Longinus (5 lanças sagradas + rajadas de relâmpago dourado)' }
       ]
     });
     this.thrustEffects = [];
   }
 
   attack(player, enemies, projectiles, particles) {
-    window.MedievalSurvivors.sound.playSwordSlash();
+    if (window.MedievalSurvivors.sound.playSpearThrust) {
+      window.MedievalSurvivors.sound.playSpearThrust();
+    } else {
+      window.MedievalSurvivors.sound.playSwordSlash();
+    }
+
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
-    const reach = 170 * effectiveArea;
-    const thickness = 28 * effectiveArea;
-    const facing = player.facingAngle || 0;
+    const reach = 185 * effectiveArea;
+    const thickness = 30 * effectiveArea;
+    const baseAngle = player.facingAngle || 0;
+    const totalCount = this.count + (player.bonusProjectiles || 0);
+    const isEvolved = this.level >= 8;
 
+    // Build tactical fan of spear thrusts centered on player's aim
     const directions = [];
-    if (this.count === 1) directions.push(facing);
-    else if (this.count === 2) {
-      directions.push(facing);
-      directions.push(facing + Math.PI);
+    if (totalCount === 1) {
+      directions.push(baseAngle);
     } else {
-      directions.push(facing);
-      directions.push(facing + Math.PI / 2);
-      directions.push(facing + Math.PI);
-      directions.push(facing - Math.PI / 2);
+      const fanSpread = Math.min(Math.PI * 1.2, (totalCount - 1) * 0.28);
+      for (let i = 0; i < totalCount; i++) {
+        const offset = -fanSpread / 2 + (fanSpread * (i / (totalCount - 1)));
+        directions.push(baseAngle + offset);
+      }
     }
 
     directions.forEach(ang => {
@@ -745,32 +856,55 @@ class GuardianSpearWeapon extends BaseWeapon {
         angle: ang,
         reach: reach,
         thickness: thickness,
-        duration: 0.18,
-        maxDuration: 0.18
+        duration: 0.24,
+        maxDuration: 0.24,
+        isEvolved: isEvolved
       });
 
-      const spearTipX = player.x + Math.cos(ang) * reach;
-      const spearTipY = player.y + Math.sin(ang) * reach;
+      const cosA = Math.cos(ang);
+      const sinA = Math.sin(ang);
+      const spearTipX = player.x + cosA * reach;
+      const spearTipY = player.y + sinA * reach;
 
-      // Line hit detection
-      enemies.forEach(enemy => {
-        if (!enemy.alive) return;
-        // Distance from point to line segment
+      // Launch piercing crescent shockwave from the spear tip
+      projectiles.push(new SpearShockwave({
+        x: player.x + cosA * (reach * 0.45),
+        y: player.y + sinA * (reach * 0.45),
+        angle: ang,
+        speed: isEvolved ? 640 : 500,
+        damage: Math.round(effectiveDamage * 0.65),
+        radius: thickness * 0.65,
+        pierce: isEvolved ? 8 : 4,
+        isEvolved: isEvolved,
+        weapon: this
+      }));
+
+      // Line hit detection with Tip Sweetspot (1.5x damage on outer 35% of spear!)
+      for (let i = 0, len = enemies.length; i < len; i++) {
+        const enemy = enemies[i];
+        if (!enemy.alive) continue;
         const d = distToSegment(enemy.x, enemy.y, player.x, player.y, spearTipX, spearTipY);
         if (d <= enemy.radius + thickness / 2) {
-          const dealt = enemy.takeDamage(effectiveDamage, Math.cos(ang), Math.sin(ang), 16);
+          const distFromPlayer = Math.hypot(enemy.x - player.x, enemy.y - player.y);
+          const isTipHit = distFromPlayer >= reach * 0.62;
+          const finalDmg = isTipHit ? Math.round(effectiveDamage * 1.5) : effectiveDamage;
+          const dealt = enemy.takeDamage(finalDmg, cosA, sinA, isTipHit ? 22 : 14);
           this.totalDamageDealt += dealt;
-          particles.createBloodSparks(enemy.x, enemy.y, 4, '#38ef7d');
+          particles.createBloodSparks(enemy.x, enemy.y, 3, isEvolved ? '#f1c40f' : '#00d2d3');
         }
-      });
+      }
     });
   }
 
   update(dt, player, enemies, projectiles, particles) {
     super.update(dt, player, enemies, projectiles, particles);
     for (let i = this.thrustEffects.length - 1; i >= 0; i--) {
-      this.thrustEffects[i].duration -= dt;
-      if (this.thrustEffects[i].duration <= 0) {
+      const eff = this.thrustEffects[i];
+      // Follow player slightly during thrust
+      eff.x = player.x;
+      eff.y = player.y;
+      eff.duration -= dt;
+      if (eff.duration <= 0) {
         this.thrustEffects.splice(i, 1);
       }
     }
@@ -779,26 +913,130 @@ class GuardianSpearWeapon extends BaseWeapon {
   renderOver(ctx, player) {
     this.thrustEffects.forEach(eff => {
       const p = 1 - (eff.duration / eff.maxDuration);
+      // Fast forward lunge in first 35% of animation, then hold & fade
+      const lunge = p < 0.35 ? (0.35 + (p / 0.35) * 0.65) : 1.0;
+      const alpha = p > 0.7 ? (1 - p) / 0.3 : 1.0;
+      const r = eff.reach * lunge;
+      const w = eff.thickness;
+
       ctx.save();
       ctx.translate(eff.x, eff.y);
       ctx.rotate(eff.angle);
+      ctx.globalAlpha = Math.max(0, alpha);
 
-      ctx.fillStyle = this.level >= 8 ? 'rgba(240, 192, 90, 0.9)' : 'rgba(56, 239, 125, 0.85)';
-      ctx.shadowColor = '#38ef7d';
-      ctx.shadowBlur = 12;
-
-      // Spear shaft and giant spearhead
-      ctx.fillRect(0, -eff.thickness / 6, eff.reach * 0.75, eff.thickness / 3);
-
+      // 1. Sonic thrust cone wake
+      ctx.fillStyle = eff.isEvolved ? 'rgba(241, 196, 15, 0.22)' : 'rgba(0, 210, 211, 0.20)';
       ctx.beginPath();
-      ctx.moveTo(eff.reach, 0);
-      ctx.lineTo(eff.reach * 0.75, -eff.thickness / 2);
-      ctx.lineTo(eff.reach * 0.75, eff.thickness / 2);
+      ctx.moveTo(r * 0.25, -w * 0.45);
+      ctx.lineTo(r * 1.05, 0);
+      ctx.lineTo(r * 0.25, w * 0.45);
+      ctx.closePath();
+      ctx.fill();
+
+      // 2. Royal Hardwood & Gold Shaft
+      ctx.fillStyle = eff.isEvolved ? '#8b0000' : '#4a3219';
+      ctx.fillRect(10, -w * 0.1, r * 0.68, w * 0.2);
+      ctx.fillStyle = '#d4af37';
+      ctx.fillRect(r * 0.35, -w * 0.11, r * 0.08, w * 0.22);
+
+      // 3. Ornate Winged Crossguard below spearhead
+      const guardX = r * 0.66;
+      ctx.fillStyle = '#f0c05a';
+      ctx.beginPath();
+      ctx.moveTo(guardX - 6, 0);
+      ctx.lineTo(guardX + 4, -w * 0.55);
+      ctx.lineTo(guardX + 10, -w * 0.18);
+      ctx.lineTo(guardX + 10, w * 0.18);
+      ctx.lineTo(guardX + 4, w * 0.55);
+      ctx.closePath();
+      ctx.fill();
+
+      // 4. Gleaming Diamond Halberd/Spear Blade
+      ctx.fillStyle = eff.isEvolved ? '#ffd700' : '#00d2d3';
+      ctx.beginPath();
+      ctx.moveTo(r, 0);
+      ctx.lineTo(guardX + 4, -w * 0.36);
+      ctx.lineTo(guardX - 4, 0);
+      ctx.lineTo(guardX + 4, w * 0.36);
+      ctx.closePath();
+      ctx.fill();
+
+      // Inner bright core ridge
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(r * 0.98, 0);
+      ctx.lineTo(guardX + 8, -w * 0.14);
+      ctx.lineTo(guardX + 2, 0);
+      ctx.lineTo(guardX + 8, w * 0.14);
       ctx.closePath();
       ctx.fill();
 
       ctx.restore();
     });
+  }
+}
+
+class SpearShockwave {
+  constructor(cfg) {
+    this.x = cfg.x;
+    this.y = cfg.y;
+    this.angle = cfg.angle;
+    this.speed = cfg.speed;
+    this.damage = cfg.damage;
+    this.radius = cfg.radius || 18;
+    this.pierce = cfg.pierce || 4;
+    this.isEvolved = cfg.isEvolved;
+    this.weapon = cfg.weapon;
+    this.vx = Math.cos(this.angle) * this.speed;
+    this.vy = Math.sin(this.angle) * this.speed;
+    this.life = 0.55;
+    this.maxLife = 0.55;
+    this.hitEnemies = new Set();
+  }
+
+  update(dt, enemies, particles) {
+    this.life -= dt;
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const enemy = enemies[i];
+      if (!enemy.alive || this.hitEnemies.has(enemy.id)) continue;
+      const dx = enemy.x - this.x;
+      const dy = enemy.y - this.y;
+      const r = this.radius + enemy.radius;
+      if (dx * dx + dy * dy <= r * r) {
+        this.hitEnemies.add(enemy.id);
+        const dealt = enemy.takeDamage(this.damage, this.vx / this.speed, this.vy / this.speed, 10);
+        this.weapon.totalDamageDealt += dealt;
+        this.pierce--;
+        if (this.pierce <= 0) break;
+      }
+    }
+
+    return this.life > 0 && this.pierce > 0;
+  }
+
+  render(ctx) {
+    const alpha = Math.max(0, this.life / this.maxLife);
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle);
+    ctx.globalAlpha = alpha;
+
+    ctx.strokeStyle = this.isEvolved ? '#ffd700' : '#00e5ff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(-this.radius * 0.4, 0, this.radius, -Math.PI * 0.4, Math.PI * 0.4);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(-this.radius * 0.3, 0, this.radius * 0.85, -Math.PI * 0.3, Math.PI * 0.3);
+    ctx.stroke();
+
+    ctx.restore();
   }
 }
 

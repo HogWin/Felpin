@@ -154,6 +154,22 @@ class PassiveRegistry {
         player.bonusAreaMultiplier = lvl * 0.15;
       }
     });
+
+    // 9. Anel da Multiplicação (+1 Projétil na Run)
+    this.register({
+      id: 'passive_projectiles',
+      name: 'Anel da Multiplicação',
+      icon: '☄️',
+      maxLevel: 2,
+      description: 'Relíquia arcana que conjura cópias dos seus ataques, aumentando em +1 o número de projéteis e golpes de todas as armas.',
+      getStatDesc: (lvl) => `Projéteis / Golpes adicionais: +${lvl}.`,
+      getNextLevelDiff: (currentLvl) => {
+        return `Quantidade de Projéteis: +${currentLvl} ➔ +${currentLvl + 1}`;
+      },
+      apply: (player, lvl) => {
+        player.runBonusProjectiles = lvl;
+      }
+    });
   }
 }
 

@@ -75,20 +75,24 @@ class BaseEnemy {
     let moveX = (dx / dist) * this.speed;
     let moveY = (dy / dist) * this.speed;
 
-    // Separation from nearby enemies to prevent single-point stacking
+    // Separation from nearby enemies using spatial grid / squared distance (O(1) cell lookup)
     if (!this.isBoss) {
-      allEnemies.forEach(other => {
-        if (other === this || !other.alive) return;
+      const game = window.MedievalSurvivors.game;
+      const neighbors = (game && game.getNearbyEnemies) ? game.getNearbyEnemies(this.x, this.y) : allEnemies;
+      for (let i = 0, len = neighbors.length; i < len; i++) {
+        const other = neighbors[i];
+        if (other === this || !other.alive) continue;
         const ox = this.x - other.x;
         const oy = this.y - other.y;
-        const d = Math.hypot(ox, oy);
         const minDist = this.radius + other.radius;
-        if (d > 0 && d < minDist) {
+        const dSq = ox * ox + oy * oy;
+        if (dSq > 0 && dSq < minDist * minDist) {
+          const d = Math.sqrt(dSq);
           const push = ((minDist - d) / minDist) * 45;
           moveX += (ox / d) * push;
           moveY += (oy / d) * push;
         }
-      });
+      }
     }
 
     this.vx = moveX;
@@ -236,10 +240,7 @@ class PlagueRatEnemy extends BaseEnemy {
 
     // Glowing green plague eyes
     ctx.fillStyle = '#2ed573';
-    ctx.shadowColor = '#2ed573';
-    ctx.shadowBlur = 6;
     ctx.fillRect(7, -3 + bob, 2.5, 2.5);
-    ctx.shadowBlur = 0;
   }
 }
 
@@ -307,11 +308,8 @@ class SkeletonEnemy extends BaseEnemy {
     ctx.fillRect(-4, -10 + bob, 3, 3);
     ctx.fillRect(1, -10 + bob, 3, 3);
     ctx.fillStyle = '#00d2d3';
-    ctx.shadowColor = '#00d2d3';
-    ctx.shadowBlur = 5;
     ctx.fillRect(-3, -9 + bob, 1.5, 1.5);
     ctx.fillRect(2, -9 + bob, 1.5, 1.5);
-    ctx.shadowBlur = 0;
 
     // Left arm holding battered wooden shield with iron rim
     ctx.fillStyle = '#5c3a21';
@@ -486,10 +484,7 @@ class DarkKnightEnemy extends BaseEnemy {
 
     // Intense glowing crimson horizontal visor slit
     ctx.fillStyle = '#ff1744';
-    ctx.shadowColor = '#ff1744';
-    ctx.shadowBlur = 8;
     ctx.fillRect(-5, -15 + bob, 10, 2.5);
-    ctx.shadowBlur = 0;
 
     // Heavy Gothic Kite Shield with red trim
     ctx.fillStyle = '#1e272e';
@@ -618,8 +613,6 @@ class WitchEnemy extends BaseEnemy {
     ctx.fillRect(8, -12 + hover, 3, 24);
     // Levitating pulsating poison/dark orb
     ctx.fillStyle = '#9b59b6';
-    ctx.shadowColor = '#8e44ad';
-    ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.arc(9.5, -17 + hover, 4.5, 0, Math.PI * 2);
     ctx.fill();
@@ -627,7 +620,6 @@ class WitchEnemy extends BaseEnemy {
     ctx.beginPath();
     ctx.arc(9, -18 + hover, 1.5, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
   }
 }
 
@@ -640,8 +632,10 @@ class EnemyProjectile {
     this.speed = cfg.speed;
     this.damage = cfg.damage;
     this.color = cfg.color || '#e74c3c';
-    this.radius = 7;
+    this.radius = cfg.unblockable ? 8.5 : 7;
     this.life = 4.0;
+    // Boss and Mini-Boss projectiles cannot be cancelled/deflected by player weapons!
+    this.unblockable = Boolean(cfg.unblockable);
   }
 
   update(dt, player, particles, playerProjectiles = []) {
@@ -649,17 +643,19 @@ class EnemyProjectile {
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
 
-    if (Math.random() < 0.25) {
+    if (Math.random() < 0.18) {
       particles.createSpark(this.x, this.y, this.color);
     }
 
-    // Weapon contact cancellation / parry
-    if (this.checkWeaponContact(player, playerProjectiles, particles)) {
+    // Weapon contact cancellation / parry (ONLY for non-boss projectiles)
+    if (!this.unblockable && this.checkWeaponContact(player, playerProjectiles, particles)) {
       return false; // Cancelled by player weapon contact!
     }
 
-    const dist = Math.hypot(player.x - this.x, player.y - this.y);
-    if (dist <= this.radius + player.radius) {
+    const dx = player.x - this.x;
+    const dy = player.y - this.y;
+    const r = this.radius + player.radius;
+    if (dx * dx + dy * dy <= r * r) {
       player.takeDamage(this.damage);
       return false; // Hit player and destroyed
     }
@@ -755,12 +751,31 @@ class EnemyProjectile {
   render(ctx) {
     ctx.save();
     ctx.translate(this.x, this.y);
-    ctx.fillStyle = this.color;
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 8;
-    ctx.beginPath();
-    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-    ctx.fill();
+
+    if (this.unblockable) {
+      // Unblockable Boss / Mini-boss projectile visual (pulsing dark-core orb)
+      ctx.strokeStyle = '#ff4757';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius + 2.5, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#1e272e';
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     ctx.restore();
   }
 }
@@ -918,7 +933,7 @@ class StoneGolemBoss extends BaseEnemy {
 
     if (this.stompTimer <= 0) {
       this.stompTimer = 5.5;
-      // Stomp shockwave: fire 8 radial stone shards
+      // Stomp shockwave: fire 8 radial stone shards (Unblockable Mini-Boss Projectiles!)
       for (let i = 0; i < 8; i++) {
         const ang = (i / 8) * Math.PI * 2;
         enemyProjectiles.push(new EnemyProjectile({
@@ -927,7 +942,8 @@ class StoneGolemBoss extends BaseEnemy {
           angle: ang,
           speed: 160,
           damage: 18,
-          color: '#7f8c8d'
+          color: '#7f8c8d',
+          unblockable: true
         }));
       }
     }
@@ -1007,7 +1023,7 @@ class DeathBaronBoss extends BaseEnemy {
 
     if (this.spellTimer <= 0) {
       this.spellTimer = 4.0;
-      // Spiral dark magic volley
+      // Spiral dark magic volley (Unblockable Boss Projectiles!)
       for (let i = 0; i < 12; i++) {
         const ang = (i / 12) * Math.PI * 2 + (Date.now() / 1000);
         enemyProjectiles.push(new EnemyProjectile({
@@ -1016,7 +1032,8 @@ class DeathBaronBoss extends BaseEnemy {
           angle: ang,
           speed: 175,
           damage: 22,
-          color: '#e056fd'
+          color: '#e056fd',
+          unblockable: true
         }));
       }
     }
@@ -1104,15 +1121,17 @@ class DeathBaronBoss extends BaseEnemy {
   }
 }
 
-// Wave Spawner & Difficulty Director
+// Wave Spawner & Difficulty Director (10-Minute Run Pacing)
 class WaveDirector {
   constructor() {
     this.gameTime = 0;
     this.spawnTimer = 0;
+    this.maxActiveRegularEnemies = 160;
     this.bossEvents = [
       { time: 60, type: 'executioner', name: 'O Carrasco Carmesim', spawned: false },
-      { time: 150, type: 'golem', name: 'Golem das Catacumbas', spawned: false },
-      { time: 240, type: 'death_baron', name: 'Barão da Morte Von Kroll', spawned: false }
+      { time: 180, type: 'golem', name: 'Golem das Catacumbas', spawned: false },
+      { time: 330, type: 'death_baron', name: 'Barão da Morte Von Kroll', spawned: false },
+      { time: 480, type: 'death_baron', name: 'Barão da Morte Von Kroll', spawned: false }
     ];
   }
 
@@ -1134,13 +1153,15 @@ class WaveDirector {
       }
     });
 
-    // Dynamic spawn rate: starts at 1 spawn per 0.8s, accelerates to multiple spawns per second
-    const interval = Math.max(0.12, 0.75 - (this.gameTime / 600));
+    // Dynamic spawn rate scaled for 10-minute (600s) run
+    const interval = Math.max(0.14, 0.72 - (this.gameTime / 450));
 
     if (this.spawnTimer >= interval) {
       this.spawnTimer = 0;
-      const count = 1 + Math.floor(this.gameTime / 75);
+      if (enemies.length >= this.maxActiveRegularEnemies) return;
+      const count = 1 + Math.floor(this.gameTime / 65);
       for (let i = 0; i < count; i++) {
+        if (enemies.length >= this.maxActiveRegularEnemies) break;
         this.spawnRegularEnemy(player, enemies);
       }
     }

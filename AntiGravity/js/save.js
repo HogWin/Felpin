@@ -18,7 +18,8 @@ class SaveManager {
       runsAttempted: 0,
       settings: {
         mouseAim: true,
-        soundMuted: false
+        soundMuted: false,
+        autoGoldOnMax: false
       },
       metaUpgrades: {
         health: 0,      // Max HP
@@ -27,6 +28,8 @@ class SaveManager {
         area: 0,        // Weapon Area %
         luck: 0,        // Crit & Gold Bonus %
         speed: 0,       // Movement Speed %
+        projectiles: 0, // +1 Projectile / Strike Count
+        reroll: 0,      // Permanent Reroll charges per run
         sword_boost: 0, // Broadsword Base Damage
         bow_boost: 0,   // Crossbow Base Damage
         fire_boost: 0   // Holy Fire Base Damage
@@ -78,7 +81,7 @@ class SaveManager {
         name: 'Fortuna dos Deuses',
         icon: '🍀',
         description: 'Aumenta a probabilidade de acertos críticos e ganho de ouro.',
-        statPerLevel: '+10% Crítico / +15% Ouro',
+        statPerLevel: '+10% Crítico / +8% Ouro',
         maxLevel: 5,
         costs: [100, 220, 450, 800, 1500]
       },
@@ -90,6 +93,24 @@ class SaveManager {
         statPerLevel: '+6% Velocidade',
         maxLevel: 5,
         costs: [75, 170, 320, 600, 1100]
+      },
+      {
+        id: 'projectiles',
+        name: 'Arsenal Multiplicado',
+        icon: '☄️',
+        description: 'Aumenta permanentemente a quantidade de projéteis e golpes de todas as armas.',
+        statPerLevel: '+1 Projétil / Golpe',
+        maxLevel: 2,
+        costs: [250, 600]
+      },
+      {
+        id: 'reroll',
+        name: 'Dados do Destino',
+        icon: '🎲',
+        description: 'Concede cargas permanentes na run para trocar as opções de aprimoramento ao subir de nível.',
+        statPerLevel: '+1 Carga de Reroll por Run',
+        maxLevel: 5,
+        costs: [60, 140, 260, 450, 750]
       },
       {
         id: 'sword_boost',
@@ -112,7 +133,7 @@ class SaveManager {
       {
         id: 'fire_boost',
         name: 'Chama Alquímica',
-        icon: '🧪',
+        icon: '🔥',
         description: 'Aumenta permanentemente o dano base das chamas do Fogo Sagrado.',
         statPerLevel: '+4 Dano Base nas Chamas',
         maxLevel: 5,
@@ -229,7 +250,7 @@ class SaveManager {
     // Luck / Crit / Gold
     if (up.luck > 0) {
       player.critChance = 0.05 + (up.luck * 0.10);
-      player.goldMultiplier = 1.0 + (up.luck * 0.15);
+      player.goldMultiplier = 1.0 + (up.luck * 0.08);
     } else {
       player.critChance = 0.05;
       player.goldMultiplier = 1.0;
@@ -239,6 +260,12 @@ class SaveManager {
     if (up.speed > 0) {
       player.speedMultiplier += up.speed * 0.06;
     }
+
+    // Permanent Bonus Projectiles
+    player.metaBonusProjectiles = up.projectiles || 0;
+
+    // Permanent Reroll charges per run (1 base + purchased permanent charges)
+    player.rerolls = 1 + (up.reroll || 0);
 
     // Base Weapon Boosts
     player.weapons.forEach(w => {

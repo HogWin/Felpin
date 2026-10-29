@@ -42,6 +42,11 @@ class Player {
     this.bonusHpRegen = 0;
     this.regenAccumulator = 0;
 
+    // Bonus Projectiles & Reroll Charges
+    this.metaBonusProjectiles = 0;
+    this.runBonusProjectiles = 0;
+    this.rerolls = 1;
+
     // Progression
     this.level = 1;
     this.xp = 0;
@@ -64,6 +69,10 @@ class Player {
       startingWep.upgrade(); // Starts at level 1
       this.weapons.push(startingWep);
     }
+  }
+
+  get bonusProjectiles() {
+    return (this.metaBonusProjectiles || 0) + (this.runBonusProjectiles || 0);
   }
 
   get effectiveArmor() {
@@ -316,26 +325,36 @@ class Player {
   }
 }
 
-// XP Gem Entity
+// XP Gem Entity (supports Concentrated XP clusters with numeric sum display)
 class XpGem {
-  constructor(x, y, value = 1) {
+  constructor(x, y, value = 1, isConcentrated = false) {
     this.x = x;
     this.y = y;
     this.value = value;
+    this.isConcentrated = isConcentrated;
     this.radius = 7;
     this.alive = true;
     this.attracted = false;
     this.speed = 100;
     this.floatTimer = Math.random() * Math.PI * 2;
+    this.updateVisualStyle();
+  }
+
+  updateVisualStyle() {
+    if (this.isConcentrated) {
+      this.color = this.value >= 100 ? '#e056fd' : '#ff9f43';
+      this.radius = Math.min(18, 12 + Math.floor(Math.log10(Math.max(10, this.value)) * 2));
+      return;
+    }
 
     // Visual styles by tier
-    if (value >= 100) {
+    if (this.value >= 100) {
       this.color = '#e056fd'; // Purple Relic Soul
       this.radius = 11;
-    } else if (value >= 25) {
+    } else if (this.value >= 25) {
       this.color = '#f0c05a'; // Gold Soul
       this.radius = 9;
-    } else if (value >= 5) {
+    } else if (this.value >= 5) {
       this.color = '#00d2d3'; // Cyan / Silver Soul
       this.radius = 8;
     } else {
@@ -345,20 +364,22 @@ class XpGem {
   }
 
   update(dt, player) {
-    if (!this.alive) return;
+    if (!this.alive) return null;
     this.floatTimer += dt * 3;
 
     const dx = player.x - this.x;
     const dy = player.y - this.y;
-    const dist = Math.hypot(dx, dy);
+    const distSq = dx * dx + dy * dy;
+    const pickupR = player.effectivePickupRadius;
 
     // Trigger attraction when inside player's pickup radius
-    if (!this.attracted && dist <= player.effectivePickupRadius) {
+    if (!this.attracted && distSq <= pickupR * pickupR) {
       this.attracted = true;
     }
 
     if (this.attracted) {
-      this.speed += 800 * dt; // Accelerate towards player
+      const dist = Math.sqrt(distSq) || 1;
+      this.speed += 850 * dt; // Accelerate towards player
       const moveDist = this.speed * dt;
 
       if (dist <= player.radius + this.radius || moveDist >= dist) {
@@ -383,11 +404,58 @@ class XpGem {
     ctx.save();
     ctx.translate(this.x, this.y + bob);
 
-    // Diamond gem shape
-    ctx.fillStyle = this.color;
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 8;
+    if (this.isConcentrated) {
+      // Concentrated XP Cluster: Radiant Octagonal/Star Crystal + Sum Number
+      const pulse = 1 + Math.sin(this.floatTimer * 1.5) * 0.1;
+      const r = this.radius * pulse;
 
+      // Outer aura ring
+      ctx.fillStyle = 'rgba(255, 159, 67, 0.25)';
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.45, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#ffeaa7';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.2, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Main concentrated crystal body
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.moveTo(0, -r * 1.15);
+      ctx.lineTo(r * 0.85, -r * 0.4);
+      ctx.lineTo(r * 0.85, r * 0.4);
+      ctx.lineTo(0, r * 1.15);
+      ctx.lineTo(-r * 0.85, r * 0.4);
+      ctx.lineTo(-r * 0.85, -r * 0.4);
+      ctx.closePath();
+      ctx.fill();
+
+      // Inner core shine
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Display the numeric sum of all XP in that region
+      const label = `${this.value}`;
+      ctx.font = 'bold 12px Cinzel, Georgia, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3.5;
+      ctx.strokeText(label, 0, -r - 9);
+      ctx.fillStyle = '#ffeaa7';
+      ctx.fillText(label, 0, -r - 9);
+
+      ctx.restore();
+      return;
+    }
+
+    // Standard Diamond gem shape (no shadowBlur for high FPS)
+    ctx.fillStyle = this.color;
     ctx.beginPath();
     ctx.moveTo(0, -this.radius);
     ctx.lineTo(this.radius, 0);
@@ -493,14 +561,17 @@ class FloatingText {
   }
 }
 
-// Particle System
+// Particle System (Optimized with pool cap & O(1) swap-and-pop)
 class ParticleSystem {
   constructor() {
     this.particles = [];
+    this.maxParticles = 180;
   }
 
-  createBloodSparks(x, y, count = 4, color = '#e63946') {
-    for (let i = 0; i < count; i++) {
+  createBloodSparks(x, y, count = 3, color = '#e63946') {
+    if (this.particles.length >= this.maxParticles) return;
+    const limit = Math.min(count, this.maxParticles - this.particles.length);
+    for (let i = 0; i < limit; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 40 + Math.random() * 120;
       this.particles.push({
@@ -510,13 +581,14 @@ class ParticleSystem {
         vy: Math.sin(angle) * speed,
         size: 2 + Math.random() * 2.5,
         color: color,
-        life: 0.35 + Math.random() * 0.2,
-        maxLife: 0.5
+        life: 0.3 + Math.random() * 0.15,
+        maxLife: 0.45
       });
     }
   }
 
   createSpark(x, y, color = '#f39c12') {
+    if (this.particles.length >= this.maxParticles) return;
     this.particles.push({
       x: x + (Math.random() - 0.5) * 8,
       y: y + (Math.random() - 0.5) * 8,
@@ -524,14 +596,17 @@ class ParticleSystem {
       vy: -(30 + Math.random() * 40),
       size: 2,
       color: color,
-      life: 0.4,
-      maxLife: 0.4
+      life: 0.35,
+      maxLife: 0.35
     });
   }
 
   createExplosionWave(x, y, radius, color = '#e67e22') {
-    for (let i = 0; i < 16; i++) {
-      const angle = (i / 16) * Math.PI * 2;
+    if (this.particles.length >= this.maxParticles) return;
+    const count = 12;
+    for (let i = 0; i < count; i++) {
+      if (this.particles.length >= this.maxParticles) break;
+      const angle = (i / count) * Math.PI * 2;
       const speed = radius * 2.0;
       this.particles.push({
         x: x,
@@ -540,8 +615,8 @@ class ParticleSystem {
         vy: Math.sin(angle) * speed,
         size: 3,
         color: color,
-        life: 0.4,
-        maxLife: 0.4
+        life: 0.38,
+        maxLife: 0.38
       });
     }
   }
@@ -550,22 +625,26 @@ class ParticleSystem {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.life -= dt;
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
       if (p.life <= 0) {
-        this.particles.splice(i, 1);
+        this.particles[i] = this.particles[this.particles.length - 1];
+        this.particles.pop();
+      } else {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
       }
     }
   }
 
-  render(ctx) {
+  render(ctx, camX = -Infinity, camY = -Infinity, camW = Infinity, camH = Infinity) {
     ctx.save();
-    this.particles.forEach(p => {
+    for (let i = 0, len = this.particles.length; i < len; i++) {
+      const p = this.particles[i];
+      if (p.x < camX || p.x > camX + camW || p.y < camY || p.y > camY + camH) continue;
       const alpha = Math.max(0, p.life / p.maxLife);
       ctx.globalAlpha = alpha;
       ctx.fillStyle = p.color;
       ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-    });
+    }
     ctx.restore();
   }
 }

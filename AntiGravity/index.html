@@ -49,6 +49,7 @@
             </div>
 
             <div class="hud-actions">
+              <button class="hud-btn" id="btn-auto-gold-hud" title="Escolher Ouro Real automaticamente quando não houver nada para aumentar o nível">💰 Auto-Ouro: Deslig.</button>
               <button class="hud-btn" id="btn-mouse-aim" title="Alternar controle de mira com o mouse">🎯 Mira: Mouse</button>
               <button class="hud-btn" id="btn-sound-toggle">🔊 Som: Ligado</button>
               <button class="hud-btn" id="btn-pause">⏸️ Pausa</button>
@@ -104,9 +105,17 @@
     <div class="modal-overlay" id="level-up-modal">
       <div class="modal-box">
         <h1 class="modal-title">SUBIU DE NÍVEL!</h1>
-        <p class="modal-subtitle">Escolha uma nova bênção, armamento ou aprimoramento de combate:</p>
+        <p class="modal-subtitle" id="level-up-subtitle">Escolha uma nova bênção, armamento ou aprimoramento de combate:</p>
         <div class="level-up-cards" id="level-up-cards">
           <!-- Dynamically populated cards -->
+        </div>
+        <div class="level-up-actions" id="level-up-actions" style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:8px;">
+          <button class="btn-primary" id="btn-reroll-levelup" style="padding:10px 24px; font-size:0.95rem;">
+            🎲 Trocar Opções (Reroll: <span id="reroll-count-val">1</span>)
+          </button>
+          <button class="btn-primary" id="btn-auto-gold-levelup" style="padding:10px 24px; font-size:0.9rem; background:linear-gradient(180deg,#2c3e50,#1a252f); color:#ffeaa7;">
+            💰 Auto-Ouro no Nível Máx: Desligado
+          </button>
         </div>
       </div>
     </div>
@@ -185,20 +194,20 @@
       </div>
     </div>
 
-    <!-- MODAL: Vitória Real (15 Minutos Concluídos!) -->
+    <!-- MODAL: Vitória Real (10 Minutos Concluídos!) -->
     <div class="modal-overlay" id="victory-modal">
       <div class="modal-box victory-box" style="max-width: 650px;">
         <h1 class="modal-title victory-title">🏆 VITÓRIA GLORIOSA! 🏆</h1>
-        <p class="modal-subtitle">Você resistiu bravamente aos 15 minutos e triunfou perante as hordas da escuridão!</p>
+        <p class="modal-subtitle">Você resistiu bravamente aos 10 minutos e triunfou perante as hordas da escuridão!</p>
 
         <div class="gameover-stats-grid">
           <div class="stat-box">
             <span class="title">Tempo Sobrevivido</span>
-            <span class="val" style="color:#2ecc71;">15:00 (MÁXIMO)</span>
+            <span class="val" style="color:#2ecc71;">10:00 (MÁXIMO)</span>
           </div>
           <div class="stat-box">
             <span class="title">Bônus da Coroa</span>
-            <span class="val" style="color:#ffeaa7;">+500 OURO 👑</span>
+            <span class="val" style="color:#ffeaa7;">+100 OURO 👑</span>
           </div>
           <div class="stat-box">
             <span class="title">Inimigos Eliminados</span>

@@ -19,6 +19,28 @@ class GameRenderer {
   resize() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
+    this.buildVignetteCache();
+  }
+
+  buildVignetteCache() {
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+    const centerX = w / 2;
+    const centerY = h / 2;
+    const grad = this.ctx.createRadialGradient(centerX, centerY, 120, centerX, centerY, Math.max(w, h) * 0.75);
+    grad.addColorStop(0, 'rgba(0, 0, 0, 0.0)');
+    grad.addColorStop(0.5, 'rgba(10, 8, 14, 0.45)');
+    grad.addColorStop(1, 'rgba(4, 2, 8, 0.88)');
+    this.vignetteGradient = grad;
+  }
+
+  isOnScreen(x, y, margin = 0) {
+    return (
+      x >= this.cameraX - margin &&
+      x <= this.cameraX + this.canvas.width + margin &&
+      y >= this.cameraY - margin &&
+      y <= this.cameraY + this.canvas.height + margin
+    );
   }
 
   // Pre-render a set of varied medieval cobblestone & mossy stone slabs
@@ -94,38 +116,69 @@ class GameRenderer {
     game.player.weapons.forEach(w => w.renderUnder(ctx, game.player));
 
     // 3. Render Ground Projectiles (e.g. Holy Fire burning pools)
-    game.projectiles.forEach(p => {
-      if (p.state === 'burning') p.render(ctx);
-    });
+    for (let i = 0, len = game.projectiles.length; i < len; i++) {
+      const p = game.projectiles[i];
+      if (p.state === 'burning' && this.isOnScreen(p.x, p.y, p.radius || 120)) {
+        p.render(ctx);
+      }
+    }
 
-    // 4. Render XP Gems
-    game.gems.forEach(gem => gem.render(ctx));
+    // 4. Render XP Gems (Frustum Culled)
+    for (let i = 0, len = game.gems.length; i < len; i++) {
+      const gem = game.gems[i];
+      if (this.isOnScreen(gem.x, gem.y, 40)) {
+        gem.render(ctx);
+      }
+    }
 
-    // 5. Render Treasure Chests
-    game.chests.forEach(chest => chest.render(ctx));
+    // 5. Render Treasure Chests (Frustum Culled)
+    for (let i = 0, len = game.chests.length; i < len; i++) {
+      const chest = game.chests[i];
+      if (this.isOnScreen(chest.x, chest.y, 50)) {
+        chest.render(ctx);
+      }
+    }
 
-    // 6. Render Enemies
-    game.enemies.forEach(enemy => enemy.render(ctx));
+    // 6. Render Enemies (Frustum Culled)
+    for (let i = 0, len = game.enemies.length; i < len; i++) {
+      const enemy = game.enemies[i];
+      if (this.isOnScreen(enemy.x, enemy.y, 70)) {
+        enemy.render(ctx);
+      }
+    }
 
-    // 7. Render Enemy Projectiles
-    game.enemyProjectiles.forEach(ep => ep.render(ctx));
+    // 7. Render Enemy Projectiles (Frustum Culled)
+    for (let i = 0, len = game.enemyProjectiles.length; i < len; i++) {
+      const ep = game.enemyProjectiles[i];
+      if (this.isOnScreen(ep.x, ep.y, 30)) {
+        ep.render(ctx);
+      }
+    }
 
     // 8. Render Player
     game.player.render(ctx);
 
     // 9. Render Flying Player Projectiles (Bolts, Axes, Flying Flasks)
-    game.projectiles.forEach(p => {
-      if (p.state !== 'burning') p.render(ctx);
-    });
+    for (let i = 0, len = game.projectiles.length; i < len; i++) {
+      const p = game.projectiles[i];
+      if (p.state !== 'burning' && this.isOnScreen(p.x, p.y, 60)) {
+        p.render(ctx);
+      }
+    }
 
     // 10. Render Weapons "Over" (Spear thrust, Sword slash)
     game.player.weapons.forEach(w => w.renderOver(ctx, game.player));
 
-    // 11. Render Particles
-    game.particles.render(ctx);
+    // 11. Render Particles (Frustum Culled)
+    game.particles.render(ctx, this.cameraX - 20, this.cameraY - 20, this.canvas.width + 40, this.canvas.height + 40);
 
-    // 12. Render Floating Text Numbers
-    game.floatingTexts.forEach(ft => ft.render(ctx));
+    // 12. Render Floating Text Numbers (Frustum Culled)
+    for (let i = 0, len = game.floatingTexts.length; i < len; i++) {
+      const ft = game.floatingTexts[i];
+      if (this.isOnScreen(ft.x, ft.y, 50)) {
+        ft.render(ctx);
+      }
+    }
 
     // Restore camera
     ctx.restore();
@@ -194,22 +247,13 @@ class GameRenderer {
     });
   }
 
-  // Dark gothic atmosphere vignette + player torch glow
+  // Dark gothic atmosphere vignette + player torch glow (cached gradient)
   renderVignette(ctx) {
-    const w = this.canvas.width;
-    const h = this.canvas.height;
-
-    // Torch radius centered on player's screen position
-    const centerX = w / 2;
-    const centerY = h / 2;
-
-    const grad = ctx.createRadialGradient(centerX, centerY, 120, centerX, centerY, Math.max(w, h) * 0.75);
-    grad.addColorStop(0, 'rgba(0, 0, 0, 0.0)');
-    grad.addColorStop(0.5, 'rgba(10, 8, 14, 0.45)');
-    grad.addColorStop(1, 'rgba(4, 2, 8, 0.88)');
-
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
+    if (!this.vignetteGradient) {
+      this.buildVignetteCache();
+    }
+    ctx.fillStyle = this.vignetteGradient;
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 }
 
