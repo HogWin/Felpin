@@ -405,15 +405,56 @@ class Game {
         }
       }
 
-      // Check player proximity hit (kick/smash on contact)
+      // Check melee weapon strikes (Broadsword, Dark Greatsword, Penitent Whip)
       if (d.alive && this.player) {
-        const dx = this.player.x - d.x;
-        const dy = this.player.y - d.y;
-        const contactR = this.player.radius + d.radius;
-        if (dx * dx + dy * dy <= contactR * contactR) {
-          d.takeDamage(1, this);
+        for (let wIdx = 0; wIdx < this.player.weapons.length; wIdx++) {
+          const w = this.player.weapons[wIdx];
+          if (!w || w.level <= 0) continue;
+
+          // Check sword/greatsword slash effects
+          if (w.slashEffects && w.slashEffects.length > 0) {
+            for (let sIdx = 0; sIdx < w.slashEffects.length; sIdx++) {
+              const s = w.slashEffects[sIdx];
+              const dx = d.x - this.player.x;
+              const dy = d.y - this.player.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist <= s.radius + d.radius) {
+                const ang = Math.atan2(dy, dx);
+                let diff = Math.abs(ang - s.angle);
+                while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+                const arcLimit = s.isEvolved ? Math.PI : (Math.PI * 0.45);
+                if (diff <= arcLimit) {
+                  d.takeDamage(1, this);
+                  break;
+                }
+              }
+            }
+          }
+
+          // Check whip lash effects
+          if (d.alive && w.lashEffects && w.lashEffects.length > 0) {
+            for (let lIdx = 0; lIdx < w.lashEffects.length; lIdx++) {
+              const lash = w.lashEffects[lIdx];
+              const dx = d.x - this.player.x;
+              const dy = d.y - this.player.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist <= lash.reach + d.radius) {
+                const ang = Math.atan2(dy, dx);
+                let diff = Math.abs(ang - lash.angle);
+                while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+                if (diff <= Math.PI * 0.35) {
+                  d.takeDamage(1, this);
+                  break;
+                }
+              }
+            }
+          }
+
+          if (!d.alive) break;
         }
       }
+
+      // REGRA: Objetos do mapa SÓ podem ser quebrados por armas e projéteis (NÃO pelo corpo do personagem)
 
       if (!d.alive) {
         this.destructibles.splice(i, 1);

@@ -430,16 +430,12 @@ class UIController {
     if (!game) return;
     const container = document.getElementById('top-modifiers-container');
     if (!container) return;
-    const sig = `${game.hyperMode ? 1 : 0}-${game.curseRank}-${game.isRankedMode ? 1 : 0}`;
+    const sig = `${game.hyperMode ? 1 : 0}-${game.curseRank}`;
     if (this._lastModifiersSig === sig) return;
     this._lastModifiersSig = sig;
 
     let html = '';
-    if (game.isRankedMode) {
-      html += `<span class="modifier-hud-pill hud-ranked-pill" title="Partida Ranqueada Oficial: Pontuação computada no Placar Neon">👑 COMPETITIVO (RANQUEADO)</span>`;
-    } else {
-      html += `<span class="modifier-hud-pill casual-pill" style="background: rgba(149, 165, 166, 0.2); border: 1px solid #7f8c8d; color: #bdc3c7;" title="Expedição Livre: Estatísticas não enviadas ao ranking oficial">🗡️ EXPEDIÇÃO LIVRE</span>`;
-    }
+    // Regra: Não exibir insígnia de Modo Competitivo durante a partida para manter a HUD limpa e focada
     if (game.hyperMode) {
       html += `<span class="modifier-hud-pill hyper-pill">⚡ HIPER (+50% 💰 / +30% 💎)</span>`;
     }
