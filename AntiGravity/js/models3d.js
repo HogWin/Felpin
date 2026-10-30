@@ -1596,31 +1596,66 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
     if (isEvolved) {
       // 360° Holy Blade Storm (Lâmina do Monarca Sagrado)
-      const ringGeo = new THREE.RingGeometry(24, 48, 36);
+      // Radiant golden ring of sacred blades centered on the hero
+      const ringGeo = new THREE.RingGeometry(8, 42, 36);
       ringGeo.rotateX(-Math.PI / 2);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xfff6d0, transparent: true, opacity: 0.95, side: THREE.DoubleSide });
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xffea88,
+        transparent: true,
+        opacity: 0.65,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      });
       const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.position.y = 12;
+      ring.position.y = 8;
       root.add(ring);
 
-      const edgeGeo = new THREE.RingGeometry(44, 52, 36);
+      const edgeGeo = new THREE.RingGeometry(38, 43, 36);
       edgeGeo.rotateX(-Math.PI / 2);
-      const edge = new THREE.Mesh(edgeGeo, new THREE.MeshBasicMaterial({ color: 0xf1c40f, transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
-      edge.position.y = 12.2;
+      const edge = new THREE.Mesh(edgeGeo, new THREE.MeshBasicMaterial({
+        color: 0xffd700,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      }));
+      edge.position.y = 8.2;
       root.add(edge);
     } else {
-      // Sweeping 3D crescent blade wave
-      const arcGeo = new THREE.RingGeometry(20, 44, 28, 1, -Math.PI * 0.45, Math.PI * 0.9);
+      // Sweeping 3D crescent blade slash wave - tightly anchored to hero hands/sword
+      const arcHalf = Math.PI * 0.32; // ~115° natural sword sweep
+      const thetaStart = -Math.PI / 2 - arcHalf; // Centered forward toward +Z
+      const thetaLength = arcHalf * 2;
+
+      // Inner blade energy body (starts at radius 6, extends to 36)
+      const arcGeo = new THREE.RingGeometry(6, 36, 28, 1, thetaStart, thetaLength);
       arcGeo.rotateX(-Math.PI / 2);
-      const arcMat = new THREE.MeshBasicMaterial({ color: 0xfff6d0, transparent: true, opacity: 0.92, side: THREE.DoubleSide });
+      const arcMat = new THREE.MeshBasicMaterial({
+        color: 0xfffae8,
+        transparent: true,
+        opacity: 0.65,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      });
       const arc = new THREE.Mesh(arcGeo, arcMat);
-      arc.position.y = 12;
+      arc.position.y = 8;
       root.add(arc);
 
-      const edgeGeo = new THREE.RingGeometry(40, 46, 28, 1, -Math.PI * 0.45, Math.PI * 0.9);
+      // Luminous cutting razor edge (radii 33 to 38)
+      const edgeGeo = new THREE.RingGeometry(33, 38, 28, 1, thetaStart, thetaLength);
       edgeGeo.rotateX(-Math.PI / 2);
-      const edge = new THREE.Mesh(edgeGeo, new THREE.MeshBasicMaterial({ color: 0xf1c40f, transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
-      edge.position.y = 12.2;
+      const edge = new THREE.Mesh(edgeGeo, new THREE.MeshBasicMaterial({
+        color: 0xf0c05a,
+        transparent: true,
+        opacity: 0.85,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      }));
+      edge.position.y = 8.2;
       root.add(edge);
     }
 
@@ -1630,22 +1665,35 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   function createSpearShockwaveMesh(isEvolved) {
     const root = new THREE.Group();
 
-    // Radiant vertical/horizontal sonic crescent wave
-    const waveGeo = new THREE.RingGeometry(14, 28, 24, 1, -Math.PI * 0.38, Math.PI * 0.76);
+    // Radiant vertical/horizontal sonic crescent wave centered toward +Z
+    const arcHalf = Math.PI * 0.25;
+    const thetaStart = -Math.PI / 2 - arcHalf;
+    const thetaLength = arcHalf * 2;
+
+    const waveGeo = new THREE.RingGeometry(6, 26, 24, 1, thetaStart, thetaLength);
     waveGeo.rotateX(-Math.PI / 2);
     const waveMat = new THREE.MeshBasicMaterial({
       color: isEvolved ? 0xffd700 : 0x00e5ff,
       transparent: true,
-      opacity: 0.9,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
       side: THREE.DoubleSide
     });
     const wave = new THREE.Mesh(waveGeo, waveMat);
     wave.position.y = 8;
     root.add(wave);
 
-    const crestGeo = new THREE.RingGeometry(24, 30, 24, 1, -Math.PI * 0.3, Math.PI * 0.6);
+    const crestGeo = new THREE.RingGeometry(22, 27, 24, 1, thetaStart, thetaLength);
     crestGeo.rotateX(-Math.PI / 2);
-    const crest = new THREE.Mesh(crestGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.98, side: THREE.DoubleSide }));
+    const crest = new THREE.Mesh(crestGeo, new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.9,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    }));
     crest.position.y = 8.2;
     root.add(crest);
 

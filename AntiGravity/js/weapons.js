@@ -116,28 +116,33 @@ class BroadswordWeapon extends BaseWeapon {
 
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
-    const baseReach = 95 * effectiveArea;
+    // Balanced, realistic melee reach proportional to knight model & greatsword length
+    const baseReach = 46 * effectiveArea;
     const facingAngle = player.facingAngle || 0;
     const totalCount = this.count + (player.bonusProjectiles || 0);
 
     const arcs = [];
-    if (totalCount === 1) {
+    if (this.level >= 8) {
+      // Evolved: Single 360° celestial blade storm
+      arcs.push(facingAngle);
+    } else if (totalCount === 1) {
       arcs.push(facingAngle);
     } else if (totalCount === 2) {
-      arcs.push(facingAngle);
-      arcs.push(facingAngle + Math.PI); // Costas
+      // Dual Forward Cross-Slash (Golpe Duplo em X na direção do golpe)
+      arcs.push(facingAngle - 0.28);
+      arcs.push(facingAngle + 0.28);
     } else if (totalCount === 3) {
-      arcs.push(facingAngle - 0.45);
+      arcs.push(facingAngle - 0.38);
       arcs.push(facingAngle);
-      arcs.push(facingAngle + 0.45);
+      arcs.push(facingAngle + 0.38);
     } else {
-      // 4 ou mais: Círculo completo
+      // 4 ou mais: Tempestade em cruz / círculo proporcional
       for (let i = 0; i < totalCount; i++) {
         arcs.push(facingAngle + (i * Math.PI * 2 / totalCount));
       }
     }
 
-    const arcSpreadHalf = (Math.PI * 0.65) / 2;
+    const arcSpreadHalf = this.level >= 8 ? Math.PI : (Math.PI * 0.35);
     arcs.forEach(angle => {
       this.slashEffects.push({
         x: player.x,
@@ -145,8 +150,8 @@ class BroadswordWeapon extends BaseWeapon {
         player: player,
         angle: angle,
         radius: baseReach,
-        duration: 0.22,
-        maxDuration: 0.22,
+        duration: 0.16,
+        maxDuration: 0.16,
         isEvolved: this.level >= 8,
         color: this.level >= 8 ? '#f0c05a' : '#ffffff'
       });

@@ -635,11 +635,20 @@ class GameRenderer {
           // Follow player position so slash stays firmly anchored to the hero!
           const posX = slash.player ? slash.player.x : slash.x;
           const posZ = slash.player ? slash.player.y : slash.y;
-          sMesh.position.set(posX, 12, posZ);
+          sMesh.position.set(posX, 8, posZ);
           sMesh.rotation.y = -slash.angle + Math.PI / 2;
-          const prog = 1 - (slash.duration / (slash.maxDuration || 0.22));
-          const s = (slash.radius / 38) * (0.7 + prog * 0.35);
+          const prog = 1 - (slash.duration / (slash.maxDuration || 0.16));
+          // Proportional blade scale and dynamic visceral fade out
+          const s = (slash.radius / 38) * (0.8 + prog * 0.25);
           sMesh.scale.set(s, s, s);
+
+          const fade = Math.max(0, 1 - prog);
+          sMesh.traverse(child => {
+            if (child.isMesh && child.material) {
+              if (child._baseOpacity === undefined) child._baseOpacity = child.material.opacity;
+              child.material.opacity = child._baseOpacity * fade;
+            }
+          });
         }
       }
     }
