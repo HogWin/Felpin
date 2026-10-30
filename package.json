@@ -1,6 +1,6 @@
 {
   "name": "the-fallen-kingdom",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "The Fallen Kingdom - Roguelite de Ação Medieval 3D with Neon Postgres & Neon Auth",
   "main": "server/server.js",
   "scripts": {

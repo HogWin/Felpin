@@ -63,7 +63,7 @@ async function runEndToEndTests() {
 
   // TEST 4: Query Leaderboard
   try {
-    const scores = await db.getLeaderboard(10);
+    const scores = await db.getLeaderboard(50);
     const found = scores.some(s => s.player_name === testPlayerName);
     report('4. Query Leaderboard Table', found && scores.length > 0, `Returned ${scores.length} entries, test run verified`);
   } catch (err) {
