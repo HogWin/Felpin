@@ -722,25 +722,468 @@ body, html {
   transform: translateY(1px);
 }
 
-/* Controls Hint */
-.controls-hint {
+/* ==================== BATTLE PREP & HERO SPOTLIGHT ==================== */
+.battle-prep-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0;
+  width: 100%;
+}
+
+.hero-spotlight-card {
+  display: flex;
+  background: radial-gradient(ellipse at top, rgba(35, 26, 48, 0.95), rgba(14, 11, 20, 0.98));
+  border: 2px solid var(--gold-primary);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), inset 0 0 25px rgba(240, 192, 90, 0.15), 0 0 20px var(--gold-glow);
+  border-radius: 14px;
+  padding: 28px 34px;
+  max-width: 880px;
+  width: 100%;
+  gap: 32px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-spotlight-card::before {
+  content: '';
   position: absolute;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(10, 8, 14, 0.85);
-  border: 1px solid rgba(201, 147, 43, 0.4);
-  padding: 6px 18px;
-  border-radius: 20px;
-  font-size: 0.82rem;
-  color: var(--text-muted);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #ffe18b, transparent);
+}
+
+.pedestal-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-width: 190px;
+}
+
+.pedestal-aura {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240, 192, 90, 0.35) 0%, rgba(201, 147, 43, 0.1) 60%, transparent 80%);
+  animation: pedestalAuraPulse 3s infinite alternate ease-in-out;
   pointer-events: none;
-  letter-spacing: 0.5px;
+}
+
+@keyframes pedestalAuraPulse {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
+.pedestal-avatar {
+  font-size: 6.2rem;
+  z-index: 2;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.9));
+  transform: translateY(-4px);
+}
+
+.hero-details-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hero-role-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffeaa7;
+  background: rgba(240, 192, 90, 0.18);
+  border: 1px solid var(--gold-primary);
+  border-radius: 4px;
+  padding: 3px 10px;
+}
+
+.hero-title {
+  font-size: 2.1rem;
+  color: var(--gold-primary);
+  font-family: 'Cinzel', serif;
+  margin: 0;
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px var(--gold-glow);
+}
+
+.hero-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: -6px;
+}
+
+.hero-desc {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #d1c7bc;
+}
+
+/* Stat Meters */
+.hero-stat-meters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  background: rgba(10, 7, 15, 0.75);
+  border: 1px solid rgba(201, 147, 43, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.meter-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meter-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #bbb;
+}
+
+.meter-label strong {
+  color: #ffeaa7;
+}
+
+.meter-track {
+  width: 100%;
+  height: 8px;
+  background: #1e1728;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.6);
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.hp-meter { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+.armor-meter { background: linear-gradient(90deg, #2980b9, #3498db); }
+.speed-meter { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+.dmg-meter { background: linear-gradient(90deg, #d35400, #f39c12); }
+
+.hero-specials-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.special-pill {
   display: flex;
   align-items: center;
   gap: 12px;
-  z-index: 5;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  background: rgba(26, 18, 36, 0.85);
+  border: 1px solid rgba(201, 147, 43, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.special-pill .pill-icon {
+  font-size: 1.8rem;
+}
+
+.special-pill .pill-title {
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: var(--gold-primary);
+  letter-spacing: 1px;
+}
+
+.special-pill .pill-desc {
+  font-size: 0.8rem;
+  color: #ccc;
+  line-height: 1.35;
+}
+
+/* Prep Actions Row */
+.prep-actions-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-epic-start {
+  flex: 2;
+  font-size: 1.15rem;
+  padding: 14px 28px;
+  background: linear-gradient(180deg, #f1c40f 0%, #b8860b 60%, #7d5700 100%) !important;
+  color: #120902 !important;
+  box-shadow: 0 0 25px rgba(240, 192, 90, 0.6), 0 4px 15px rgba(0,0,0,0.8) !important;
+  animation: epicPulse 2s infinite alternate;
+}
+
+@keyframes epicPulse {
+  0% { transform: scale(1); box-shadow: 0 0 15px rgba(240, 192, 90, 0.5); }
+  100% { transform: scale(1.02); box-shadow: 0 0 30px rgba(240, 192, 90, 0.85); }
+}
+
+.btn-secondary-hub {
+  flex: 1;
+  font-size: 0.92rem;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, #34495e, #1c2833) !important;
+  border-color: #5d6d7e !important;
+  color: #ecf0f1 !important;
+}
+
+/* ==================== HERO SELECTION GRID ==================== */
+.heroes-header-banner {
+  text-align: center;
+  margin-bottom: 20px;
+  background: rgba(22, 16, 32, 0.85);
+  border: 1px solid rgba(201, 147, 43, 0.35);
+  border-radius: 8px;
+  padding: 14px 20px;
+}
+
+.heroes-header-banner h3 {
+  color: var(--gold-primary);
+  font-size: 1.25rem;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.heroes-header-banner p {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.hero-select-card {
+  background: radial-gradient(circle at top, #231930, #100b17);
+  border: 2px solid rgba(201, 147, 43, 0.35);
+  border-radius: 12px;
+  padding: 24px 18px;
+  text-align: center;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+}
+
+.hero-select-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--gold-primary);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.8), 0 0 18px var(--gold-glow);
+}
+
+.hero-select-card.selected {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 25px rgba(240, 192, 90, 0.6), inset 0 0 15px rgba(240, 192, 90, 0.15);
+  transform: translateY(-4px);
+}
+
+.selected-ribbon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(90deg, #d4af37, #f1c40f);
+  color: #120902;
+  font-weight: 900;
+  font-size: 0.68rem;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+
+.hero-card-avatar {
+  font-size: 4rem;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8));
+}
+
+.hero-card-title {
+  color: var(--gold-primary);
+  font-size: 1.15rem;
+  font-family: 'Cinzel', serif;
+  margin: 0 0 2px;
+}
+
+.hero-card-sub {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.hero-card-stats-box {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hero-card-stats-box .stat-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #bbb;
+}
+
+.hero-card-stats-box .stat-line strong {
+  color: #ffeaa7;
+}
+
+.hero-card-perk {
+  font-size: 0.78rem;
+  color: #f1c40f;
+  background: rgba(241, 196, 15, 0.08);
+  border: 1px solid rgba(241, 196, 15, 0.2);
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 10px;
+  line-height: 1.35;
+}
+
+.hero-card-wep {
+  font-size: 0.78rem;
+  color: #ddd;
+  margin-bottom: 14px;
+}
+
+.hero-card-wep strong {
+  color: #fff;
+}
+
+.btn-hero-select {
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 10px;
+}
+
+.active-hero-btn {
+  background: linear-gradient(180deg, #27ae60, #1e824c) !important;
+  color: #fff !important;
+  border-color: #2ecc71 !important;
+}
+
+/* ==================== FORGE HEADER & ADVANCED CARDS ==================== */
+.forge-header-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: radial-gradient(ellipse at center, rgba(35, 20, 20, 0.95), rgba(16, 10, 12, 0.95));
+  border: 1px solid #d35400;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(211, 84, 0, 0.25);
+}
+
+.forge-header-banner h3 {
+  color: #f39c12;
+  font-size: 1.35rem;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.forge-header-banner p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.forge-balance-pill {
+  background: radial-gradient(circle, #3d290b, #181105);
+  border: 2px solid var(--gold-primary);
+  padding: 6px 20px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  color: #ffeaa7;
+  font-weight: 900;
+}
+
+.forge-card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.forge-icon-wrap {
+  font-size: 2.4rem;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(201, 147, 43, 0.4);
+  border-radius: 8px;
+  padding: 8px;
+  min-width: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.forge-card-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.forge-card-name {
+  color: var(--gold-primary);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.forge-card-tier {
+  font-size: 0.78rem;
+  color: #aaa;
+}
+
+.forge-stat-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #2ecc71;
+  background: rgba(46, 204, 113, 0.12);
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.btn-can-buy {
+  background: linear-gradient(180deg, #d8a032, #946413) !important;
+}
+
+.btn-disabled {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+}
+
+.btn-maxed {
+  background: linear-gradient(180deg, #27ae60, #1e824c) !important;
+  color: #fff !important;
+  border-color: #2ecc71 !important;
+  cursor: not-allowed !important;
 }
 
 .key-badge {

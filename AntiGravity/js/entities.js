@@ -13,6 +13,7 @@ class Player {
     this.radius = 21;
     this.facingAngle = 0;
     this.facingDir = 1; // 1 for right, -1 for left
+    this.aimingWithMouse = true;
     this.walkCycle = 0;
 
     // Base stats from chosen class
@@ -176,6 +177,14 @@ class Player {
       this.vy = 0;
       if (Math.cos(this.facingAngle) > 0.1) this.facingDir = 1;
       else if (Math.cos(this.facingAngle) < -0.1) this.facingDir = -1;
+    }
+
+    // Bounded Arena Constraint: player stays firmly within the gothic fortress arena
+    const arenaLimit = 770;
+    const distFromOrigin = Math.hypot(this.x, this.y);
+    if (distFromOrigin > arenaLimit) {
+      this.x = (this.x / distFromOrigin) * arenaLimit;
+      this.y = (this.y / distFromOrigin) * arenaLimit;
     }
 
     // Health Regeneration

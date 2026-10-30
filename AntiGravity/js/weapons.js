@@ -142,10 +142,12 @@ class BroadswordWeapon extends BaseWeapon {
       this.slashEffects.push({
         x: player.x,
         y: player.y,
+        player: player,
         angle: angle,
         radius: baseReach,
         duration: 0.22,
         maxDuration: 0.22,
+        isEvolved: this.level >= 8,
         color: this.level >= 8 ? '#f0c05a' : '#ffffff'
       });
 
@@ -177,8 +179,13 @@ class BroadswordWeapon extends BaseWeapon {
   update(dt, player, enemies, projectiles, particles) {
     super.update(dt, player, enemies, projectiles, particles);
     for (let i = this.slashEffects.length - 1; i >= 0; i--) {
-      this.slashEffects[i].duration -= dt;
-      if (this.slashEffects[i].duration <= 0) {
+      const s = this.slashEffects[i];
+      s.duration -= dt;
+      if (player) {
+        s.x = player.x;
+        s.y = player.y;
+      }
+      if (s.duration <= 0) {
         this.slashEffects.splice(i, 1);
       }
     }
@@ -239,28 +246,18 @@ class CrossbowWeapon extends BaseWeapon {
   }
 
   attack(player, enemies, projectiles, particles) {
-    if (enemies.length === 0) return;
-
-    // Filter alive enemies and sort by squared distance
-    const targets = [];
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const e = enemies[i];
-      if (!e.alive) continue;
-      const dx = e.x - player.x;
-      const dy = e.y - player.y;
-      targets.push({ enemy: e, distSq: dx * dx + dy * dy });
-    }
-    if (targets.length === 0) return;
-    targets.sort((a, b) => a.distSq - b.distSq);
-
     window.MedievalSurvivors.sound.playCrossbow();
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const totalCount = this.count + (player.bonusProjectiles || 0);
+    const baseAngle = player.facingAngle || 0;
+    const spreadAngle = totalCount > 1 ? Math.min(0.75, (totalCount - 1) * 0.15) : 0;
 
     for (let i = 0; i < totalCount; i++) {
-      // Pick nearest targets or fan out
-      const target = targets[i % targets.length].enemy;
-      const angle = Math.atan2(target.y - player.y, target.x - player.x) + (Math.random() - 0.5) * 0.15;
+      let angle = baseAngle;
+      if (totalCount > 1) {
+        angle = baseAngle - spreadAngle / 2 + (spreadAngle * (i / (totalCount - 1)));
+      }
+      angle += (Math.random() - 0.5) * 0.04;
 
       projectiles.push(new CrossbowBolt({
         x: player.x,
@@ -373,19 +370,14 @@ class HolyFireWeapon extends BaseWeapon {
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
     const totalCount = this.count + (player.bonusProjectiles || 0);
+    const baseAngle = player.facingAngle || 0;
 
     for (let i = 0; i < totalCount; i++) {
-      // Pick random location around player or target enemies
-      let targetX = player.x + (Math.random() - 0.5) * 380;
-      let targetY = player.y + (Math.random() - 0.5) * 380;
-
-      if (enemies.length > 0) {
-        const randEnemy = enemies[Math.floor(Math.random() * enemies.length)];
-        if (randEnemy && randEnemy.alive) {
-          targetX = randEnemy.x + (Math.random() - 0.5) * 50;
-          targetY = randEnemy.y + (Math.random() - 0.5) * 50;
-        }
-      }
+      const spread = totalCount > 1 ? (i - (totalCount - 1) / 2) * 0.35 : 0;
+      const angle = baseAngle + spread + (Math.random() - 0.5) * 0.1;
+      const dist = 120 + Math.random() * 80;
+      const targetX = player.x + Math.cos(angle) * dist;
+      const targetY = player.y + Math.sin(angle) * dist;
 
       projectiles.push(new HolyFireFlask({
         startX: player.x,
@@ -418,7 +410,8 @@ class HolyFireFlask {
 
     this.state = 'flying'; // 'flying' or 'burning'
     this.flightProgress = 0;
-    this.flightSpeed = 2.2;
+    this.flightSpeed = 2.4;
+    this.renderHeight = 10;
     this.burnTimer = this.duration;
     this.tickTimer = 0;
     this.tickRate = 0.28; // Ticks every 0.28 seconds
@@ -429,6 +422,8 @@ class HolyFireFlask {
       this.flightProgress += this.flightSpeed * dt;
       if (this.flightProgress >= 1) {
         this.state = 'burning';
+        this.flightProgress = 1;
+        this.renderHeight = 0;
         this.x = this.targetX;
         this.y = this.targetY;
         window.MedievalSurvivors.sound.playFireBurst();
@@ -436,9 +431,8 @@ class HolyFireFlask {
       } else {
         const p = this.flightProgress;
         this.x = this.startX + (this.targetX - this.startX) * p;
-        // Arc trajectory
-        const arcHeight = Math.sin(p * Math.PI) * 90;
-        this.y = this.startY + (this.targetY - this.startY) * p - arcHeight;
+        this.y = this.startY + (this.targetY - this.startY) * p;
+        this.renderHeight = Math.sin(p * Math.PI) * 55;
         particles.createSpark(this.x, this.y, '#f39c12');
       }
       return true;
@@ -536,17 +530,22 @@ class WhirlingAxesWeapon extends BaseWeapon {
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
     const totalCount = this.count + (player.bonusProjectiles || 0);
+    const baseAngle = player.facingAngle || 0;
+    const spreadAngle = Math.min(Math.PI * 1.4, Math.max(0.6, totalCount * 0.3));
 
     for (let i = 0; i < totalCount; i++) {
-      const spreadX = (Math.random() - 0.5) * 340;
-      const vy = -(390 + Math.random() * 120);
+      let ang = baseAngle;
+      if (totalCount > 1) {
+        ang = baseAngle - spreadAngle / 2 + (spreadAngle * (i / (totalCount - 1)));
+      }
+      ang += (Math.random() - 0.5) * 0.12;
+      const speed = 250 + Math.random() * 80;
 
       projectiles.push(new ThrownAxe({
         x: player.x,
         y: player.y,
-        vx: spreadX,
-        vy: vy,
-        gravity: 600,
+        angle: ang,
+        speed: speed,
         damage: effectiveDamage,
         size: 18 * effectiveArea,
         isEvolved: this.level >= 8,
@@ -560,25 +559,34 @@ class ThrownAxe {
   constructor(cfg) {
     this.x = cfg.x;
     this.y = cfg.y;
-    this.vx = cfg.vx;
-    this.vy = cfg.vy;
-    this.gravity = cfg.gravity;
+    this.angle = cfg.angle || 0;
+    this.speed = cfg.speed || 260;
+    this.vx = Math.cos(this.angle) * this.speed;
+    this.vy = Math.sin(this.angle) * this.speed;
     this.damage = cfg.damage;
     this.size = cfg.size;
     this.isEvolved = cfg.isEvolved;
     this.weapon = cfg.weapon;
-    this.angle = Math.random() * Math.PI * 2;
-    this.spinSpeed = (this.vx >= 0 ? 1 : -1) * 15;
-    this.life = 2.4;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.spinSpeed = 16;
+    this.life = 2.2;
+    this.maxLife = 2.2;
+    this.renderHeight = 10;
     this.hitCooldowns = new Map();
   }
 
   update(dt, enemies, particles) {
     this.life -= dt;
-    this.vy += this.gravity * dt;
+    const progress = 1 - Math.max(0, this.life / this.maxLife);
+    this.renderHeight = Math.max(4, Math.sin(progress * Math.PI) * 36 + (1 - progress) * 8);
+
     this.x += this.vx * dt;
     this.y += this.vy * dt;
-    this.angle += this.spinSpeed * dt;
+    this.rotation += this.spinSpeed * dt;
+
+    if (Math.random() < 0.25) {
+      particles.createSpark(this.x, this.y, this.isEvolved ? '#e63946' : '#d8d8d8');
+    }
 
     // Clean cooldowns
     for (const [id, time] of this.hitCooldowns) {
@@ -594,7 +602,8 @@ class ThrownAxe {
       const r = this.size + enemy.radius;
       if (dx * dx + dy * dy <= r * r) {
         this.hitCooldowns.set(enemy.id, 0.25);
-        const dealt = enemy.takeDamage(this.damage, this.vx > 0 ? 1 : -1, 0.2, 10);
+        const dist = Math.hypot(dx, dy) || 1;
+        const dealt = enemy.takeDamage(this.damage, dx / dist, dy / dist, 12);
         this.weapon.totalDamageDealt += dealt;
         particles.createBloodSparks(enemy.x, enemy.y, 3, '#f0c05a');
       }
@@ -991,6 +1000,7 @@ class SpearShockwave {
     this.vy = Math.sin(this.angle) * this.speed;
     this.life = 0.55;
     this.maxLife = 0.55;
+    this.renderHeight = 8;
     this.hitEnemies = new Set();
   }
 

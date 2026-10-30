@@ -35,12 +35,13 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     wood: new THREE.MeshStandardMaterial({ color: 0x4e3620, roughness: 0.8 }),
     stoneGrey: new THREE.MeshStandardMaterial({ color: 0x595e63, roughness: 0.75 }),
     stoneMoss: new THREE.MeshStandardMaterial({ color: 0x4a5542, roughness: 0.8 }),
-    blackObsidian: new THREE.MeshStandardMaterial({ color: 0x15161a, metalness: 0.8, roughness: 0.35 })
+    blackObsidian: new THREE.MeshStandardMaterial({ color: 0x15161a, metalness: 0.8, roughness: 0.35 }),
+    hitFlash: new THREE.MeshBasicMaterial({ color: 0xff3333 })
   };
 
-  // Helper: clone material for flash effects
+  // Shared material system prevents memory fragmentation and eliminates GPU shader compilation stalls
   function createFlashable(baseMat) {
-    return baseMat.clone();
+    return baseMat;
   }
 
   // ==========================================
@@ -620,9 +621,19 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     const sRadius = enemy.radius ? enemy.radius * 0.85 : 10;
     const shadowGeo = new THREE.CircleGeometry(sRadius, 12);
     shadowGeo.rotateX(-Math.PI / 2);
-    const shadow = new THREE.Mesh(shadowGeo, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 }));
+    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 });
+    const shadow = new THREE.Mesh(shadowGeo, shadowMat);
     shadow.position.y = 0.2;
     root.add(shadow);
+
+    // Collect all render meshes for zero-allocation hit flashing
+    anim.flashMeshes = [];
+    root.traverse(child => {
+      if (child.isMesh && child !== shadow) {
+        child._origMat = child.material;
+        anim.flashMeshes.push(child);
+      }
+    });
 
     // Update Hook
     root.updateVisuals = function(dt, enemyObj) {
@@ -652,24 +663,23 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         root.position.y = 4 + Math.sin(walk) * 2.2;
       }
 
-      // Damage Flash (when damaged, flashes bright red/white)
+      // Damage Flash (when damaged, flashes bright red)
       const isDamaged = (enemyObj.hp < enemyObj._lastHp);
       enemyObj._lastHp = enemyObj.hp;
       if (isDamaged) {
-        anim.flashTimer = 0.12;
+        anim.flashTimer = 0.10;
       }
       if (anim.flashTimer > 0) {
         anim.flashTimer -= dt;
-        for (let i = 0; i < anim.materials.length; i++) {
-          anim.materials[i].emissive.setHex(0xff3333);
-          anim.materials[i].emissiveIntensity = 1.0;
+        for (let i = 0; i < anim.flashMeshes.length; i++) {
+          anim.flashMeshes[i].material = materials.hitFlash;
         }
-      } else {
-        for (let i = 0; i < anim.materials.length; i++) {
-          const m = anim.materials[i];
-          m.emissive.setHex(m._origEmissive || 0x000000);
-          m.emissiveIntensity = m._origEmissiveInt || 0;
+        anim.wasFlashing = true;
+      } else if (anim.wasFlashing) {
+        for (let i = 0; i < anim.flashMeshes.length; i++) {
+          anim.flashMeshes[i].material = anim.flashMeshes[i]._origMat;
         }
+        anim.wasFlashing = false;
       }
     };
 
@@ -1360,79 +1370,175 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   // ==========================================
   // 4. 3D PROJECTILES & WEAPON EFFECTS
   // ==========================================
-  function createCrossbowBoltMesh() {
+  function createCrossbowBoltMesh(isEvolved) {
     const root = new THREE.Group();
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 11, 4), materials.wood);
+
+    // Wooden / Iron Shaft
+    const shaftMat = isEvolved ? materials.darkSteel : materials.wood;
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 14, 5), shaftMat);
     shaft.rotation.x = Math.PI / 2;
     root.add(shaft);
 
-    const tip = new THREE.Mesh(new THREE.ConeGeometry(1.2, 4, 4), materials.steel);
+    // Sharp Steel / Molten Arrowhead
+    const tipMat = isEvolved ? materials.glowingRed : materials.steel;
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(1.6, 5, 5), tipMat);
     tip.rotation.x = Math.PI / 2;
-    tip.position.z = 7;
+    tip.position.z = 8.5;
     root.add(tip);
 
-    const fletch = new THREE.Mesh(new THREE.BoxGeometry(3, 0.2, 3), materials.royalRed);
-    fletch.position.z = -5;
-    root.add(fletch);
+    // 4 Aerodynamic Fletching Fins
+    const fletchMat = isEvolved ? materials.royalRed : materials.crimsonCloth;
+    const fletch1 = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.2, 3.5), fletchMat);
+    fletch1.position.z = -6;
+    root.add(fletch1);
+    const fletch2 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 3.5, 3.5), fletchMat);
+    fletch2.position.z = -6;
+    root.add(fletch2);
+
+    // 3D Luminous Speed Tracer Streak
+    const tracerGeo = new THREE.ConeGeometry(1.2, 18, 5);
+    tracerGeo.rotateX(-Math.PI / 2);
+    tracerGeo.translate(0, 0, -14);
+    const tracerMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xff4500 : 0x00e5ff,
+      transparent: true,
+      opacity: 0.75,
+      blending: THREE.AdditiveBlending
+    });
+    const tracer = new THREE.Mesh(tracerGeo, tracerMat);
+    root.add(tracer);
 
     return root;
   }
 
-  function createThrownAxeMesh() {
+  function createThrownAxeMesh(isEvolved) {
     const root = new THREE.Group();
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 13, 5), materials.wood);
+
+    // Curved wooden haft with leather grip wraps
+    const handleMat = isEvolved ? materials.blackObsidian : materials.wood;
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.8, 16, 6), handleMat);
     root.add(handle);
 
-    const blade = new THREE.Mesh(new THREE.BoxGeometry(7, 5, 0.6), materials.steel);
-    blade.position.set(0, 4.5, 0);
-    root.add(blade);
+    // Dual bearded battleaxe blades
+    const bladeMat = isEvolved ? materials.royalRed : materials.steel;
+    const bladeGeo = new THREE.BoxGeometry(8, 7, 0.8);
+    const bladeL = new THREE.Mesh(bladeGeo, bladeMat);
+    bladeL.position.set(-4.5, 3.5, 0);
+    root.add(bladeL);
+
+    const bladeR = new THREE.Mesh(bladeGeo, bladeMat);
+    bladeR.position.set(4.5, 3.5, 0);
+    root.add(bladeR);
+
+    // Beveled sharp cutting edges
+    const edgeMat = isEvolved ? materials.glowingRed : materials.steel;
+    const edgeL = new THREE.Mesh(new THREE.BoxGeometry(1.5, 7.8, 0.4), edgeMat);
+    edgeL.position.set(-8.6, 3.5, 0);
+    root.add(edgeL);
+
+    const edgeR = new THREE.Mesh(new THREE.BoxGeometry(1.5, 7.8, 0.4), edgeMat);
+    edgeR.position.set(8.6, 3.5, 0);
+    root.add(edgeR);
+
+    // Center ornate brass collar
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 3.5, 6), materials.gold);
+    collar.position.set(0, 3.5, 0);
+    root.add(collar);
 
     return root;
   }
 
-  function createHolyFireFlaskMesh() {
+  function createHolyFireFlaskMesh(isEvolved) {
     const root = new THREE.Group();
-    const bottle = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 2.5, 6, 6), materials.flameGlow);
-    root.add(bottle);
-    const cork = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1.5, 5), materials.wood);
-    cork.position.y = 3.5;
+
+    // Rounded alembic glass vial
+    const vialMat = isEvolved ? materials.glowingCyan : materials.flameGlow;
+    const vial = new THREE.Mesh(new THREE.SphereGeometry(2.4, 8, 8), vialMat);
+    vial.position.y = 1.5;
+    root.add(vial);
+
+    // Flask neck
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.2, 3, 6), vialMat);
+    neck.position.y = 4.2;
+    root.add(neck);
+
+    // Cork stopper
+    const cork = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.8, 1.5, 5), materials.wood);
+    cork.position.y = 5.8;
     root.add(cork);
+
     return root;
   }
 
-  function createHolyFirePoolMesh(radius) {
+  function createHolyFirePoolMesh(radius, isEvolved) {
     const root = new THREE.Group();
     const r = radius || 40;
-    const ringGeo = new THREE.RingGeometry(r * 0.2, r, 24);
+
+    // Glowing holy consecrated seal on ground
+    const ringGeo = new THREE.RingGeometry(r * 0.25, r, 28);
     ringGeo.rotateX(-Math.PI / 2);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0xff5500, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
+    const ringColor = isEvolved ? 0x00d2d3 : 0xff5500;
+    const ringMat = new THREE.MeshBasicMaterial({ color: ringColor, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.position.y = 0.5;
     root.add(ring);
 
-    // Inner bright core
-    const coreGeo = new THREE.CircleGeometry(r * 0.45, 16);
+    // Inner bright core disc
+    const coreGeo = new THREE.CircleGeometry(r * 0.5, 20);
     coreGeo.rotateX(-Math.PI / 2);
-    const core = new THREE.Mesh(coreGeo, new THREE.MeshBasicMaterial({ color: 0xffcc00, transparent: true, opacity: 0.85 }));
+    const coreMat = new THREE.MeshBasicMaterial({ color: isEvolved ? 0x54a0ff : 0xffcc00, transparent: true, opacity: 0.85 });
+    const core = new THREE.Mesh(coreGeo, coreMat);
     core.position.y = 0.6;
     root.add(core);
 
+    // Volumetric 3D Animated Dancing Flames (3 to 5 flame cones)
+    const flameMat = isEvolved ? materials.glowingCyan : materials.flameGlow;
+    const flames = [];
+    const flameCount = 4;
+    for (let i = 0; i < flameCount; i++) {
+      const fAngle = (i / flameCount) * Math.PI * 2;
+      const fDist = r * 0.35;
+      const fMesh = new THREE.Mesh(new THREE.ConeGeometry(3.5, 12, 5), flameMat);
+      fMesh.position.set(Math.cos(fAngle) * fDist, 6, Math.sin(fAngle) * fDist);
+      root.add(fMesh);
+      flames.push({ mesh: fMesh, phase: i * 1.5 });
+    }
+
+    // Center major flame spout
+    const centerFlame = new THREE.Mesh(new THREE.ConeGeometry(4.5, 16, 6), isEvolved ? materials.holyGlow : materials.glowingRed);
+    centerFlame.position.y = 8;
+    root.add(centerFlame);
+    flames.push({ mesh: centerFlame, phase: 0 });
+
     root.updateVisuals = function(dt) {
-      ring.rotation.z += dt * 2;
-      core.scale.setScalar(0.9 + Math.sin(Date.now() / 80) * 0.2);
+      ring.rotation.z += dt * 1.5;
+      const time = Date.now() / 100;
+      core.scale.setScalar(0.9 + Math.sin(time) * 0.18);
+
+      for (let i = 0; i < flames.length; i++) {
+        const f = flames[i];
+        const scaleY = 0.8 + Math.sin(time + f.phase) * 0.35;
+        f.mesh.scale.set(1, scaleY, 1);
+        f.mesh.rotation.y += dt * 2.5;
+      }
     };
 
     return root;
   }
 
-  function createHolyAuraRingMesh(radius) {
+  function createHolyAuraRingMesh(radius, isEvolved) {
     const root = new THREE.Group();
     const r = radius || 70;
 
     // Glowing holy seal disc on ground
     const discGeo = new THREE.RingGeometry(r * 0.85, r, 32);
     discGeo.rotateX(-Math.PI / 2);
-    const discMat = new THREE.MeshBasicMaterial({ color: 0xf1c40f, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
+    const discMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xffd700 : 0xf1c40f,
+      transparent: true,
+      opacity: 0.6,
+      side: THREE.DoubleSide
+    });
     const disc = new THREE.Mesh(discGeo, discMat);
     disc.position.y = 0.6;
     root.add(disc);
@@ -1440,41 +1546,131 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     // Inner rotating runes
     const innerGeo = new THREE.RingGeometry(r * 0.4, r * 0.5, 20);
     innerGeo.rotateX(-Math.PI / 2);
-    const inner = new THREE.Mesh(innerGeo, new THREE.MeshBasicMaterial({ color: 0xffea79, transparent: true, opacity: 0.4, side: THREE.DoubleSide }));
+    const inner = new THREE.Mesh(innerGeo, new THREE.MeshBasicMaterial({
+      color: 0xffea79,
+      transparent: true,
+      opacity: 0.45,
+      side: THREE.DoubleSide
+    }));
     inner.position.y = 0.7;
     root.add(inner);
 
+    // 4 Orbiting 3D Sacred Light Crystals around the hero
+    const crystalsGroup = new THREE.Group();
+    root.add(crystalsGroup);
+    const crystals = [];
+    const crystalGeo = new THREE.OctahedronGeometry(3.5, 0);
+    const crystalMat = new THREE.MeshBasicMaterial({ color: isEvolved ? 0xffffff : 0xffea79 });
+
+    const crystalCount = isEvolved ? 6 : 4;
+    for (let i = 0; i < crystalCount; i++) {
+      const cMesh = new THREE.Mesh(crystalGeo, crystalMat);
+      crystalsGroup.add(cMesh);
+      crystals.push(cMesh);
+    }
+
     root.updateVisuals = function(dt, currentRadius) {
-      const scale = (currentRadius || r) / r;
+      const curR = currentRadius || r;
+      const scale = curR / r;
       disc.scale.set(scale, scale, scale);
       inner.scale.set(scale, scale, scale);
       disc.rotation.z += dt * 1.2;
       inner.rotation.z -= dt * 2.0;
+
+      // Orbiting 3D sacred crystals
+      crystalsGroup.rotation.y += dt * 2.4;
+      const orbitR = curR * 0.72;
+      for (let i = 0; i < crystals.length; i++) {
+        const ang = (i / crystals.length) * Math.PI * 2;
+        crystals[i].position.set(Math.cos(ang) * orbitR, 14 + Math.sin(Date.now() / 200 + i) * 2, Math.sin(ang) * orbitR);
+        crystals[i].rotation.x += dt * 3;
+        crystals[i].rotation.y += dt * 3;
+      }
     };
 
     return root;
   }
 
-  function createSwordSlashMesh() {
+  function createSwordSlashMesh(isEvolved) {
     const root = new THREE.Group();
-    const arcGeo = new THREE.RingGeometry(22, 38, 24, 1, 0, Math.PI * 0.85);
-    arcGeo.rotateX(-Math.PI / 2);
-    const arcMat = new THREE.MeshBasicMaterial({ color: 0xfff2b2, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
-    const arc = new THREE.Mesh(arcGeo, arcMat);
-    arc.position.y = 12;
-    root.add(arc);
+
+    if (isEvolved) {
+      // 360° Holy Blade Storm (Lâmina do Monarca Sagrado)
+      const ringGeo = new THREE.RingGeometry(24, 48, 36);
+      ringGeo.rotateX(-Math.PI / 2);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xfff6d0, transparent: true, opacity: 0.95, side: THREE.DoubleSide });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.position.y = 12;
+      root.add(ring);
+
+      const edgeGeo = new THREE.RingGeometry(44, 52, 36);
+      edgeGeo.rotateX(-Math.PI / 2);
+      const edge = new THREE.Mesh(edgeGeo, new THREE.MeshBasicMaterial({ color: 0xf1c40f, transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
+      edge.position.y = 12.2;
+      root.add(edge);
+    } else {
+      // Sweeping 3D crescent blade wave
+      const arcGeo = new THREE.RingGeometry(20, 44, 28, 1, -Math.PI * 0.45, Math.PI * 0.9);
+      arcGeo.rotateX(-Math.PI / 2);
+      const arcMat = new THREE.MeshBasicMaterial({ color: 0xfff6d0, transparent: true, opacity: 0.92, side: THREE.DoubleSide });
+      const arc = new THREE.Mesh(arcGeo, arcMat);
+      arc.position.y = 12;
+      root.add(arc);
+
+      const edgeGeo = new THREE.RingGeometry(40, 46, 28, 1, -Math.PI * 0.45, Math.PI * 0.9);
+      edgeGeo.rotateX(-Math.PI / 2);
+      const edge = new THREE.Mesh(edgeGeo, new THREE.MeshBasicMaterial({ color: 0xf1c40f, transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
+      edge.position.y = 12.2;
+      root.add(edge);
+    }
+
     return root;
   }
 
-  function createSpearThrustMesh() {
+  function createSpearShockwaveMesh(isEvolved) {
     const root = new THREE.Group();
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 38, 6), materials.wood);
+
+    // Radiant vertical/horizontal sonic crescent wave
+    const waveGeo = new THREE.RingGeometry(14, 28, 24, 1, -Math.PI * 0.38, Math.PI * 0.76);
+    waveGeo.rotateX(-Math.PI / 2);
+    const waveMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xffd700 : 0x00e5ff,
+      transparent: true,
+      opacity: 0.9,
+      side: THREE.DoubleSide
+    });
+    const wave = new THREE.Mesh(waveGeo, waveMat);
+    wave.position.y = 8;
+    root.add(wave);
+
+    const crestGeo = new THREE.RingGeometry(24, 30, 24, 1, -Math.PI * 0.3, Math.PI * 0.6);
+    crestGeo.rotateX(-Math.PI / 2);
+    const crest = new THREE.Mesh(crestGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.98, side: THREE.DoubleSide }));
+    crest.position.y = 8.2;
+    root.add(crest);
+
+    return root;
+  }
+
+  function createSpearThrustMesh(isEvolved) {
+    const root = new THREE.Group();
+
+    // Royal Hardwood / Gold Shaft
+    const shaftMat = isEvolved ? materials.royalRed : materials.wood;
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 44, 6), shaftMat);
     shaft.rotation.x = Math.PI / 2;
     root.add(shaft);
 
-    const spearhead = new THREE.Mesh(new THREE.ConeGeometry(2.4, 10, 4), materials.gold);
+    // Winged Golden Crossguard
+    const guard = new THREE.Mesh(new THREE.BoxGeometry(10, 1.4, 2), materials.gold);
+    guard.position.z = 18;
+    root.add(guard);
+
+    // Gleaming Diamond Halberd / Spearhead
+    const spearheadMat = isEvolved ? materials.paladinGold : materials.gold;
+    const spearhead = new THREE.Mesh(new THREE.ConeGeometry(2.8, 14, 4), spearheadMat);
     spearhead.rotation.x = Math.PI / 2;
-    spearhead.position.z = 24;
+    spearhead.position.z = 28;
     root.add(spearhead);
 
     return root;
@@ -1486,7 +1682,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     if (type === 'poison') mat = materials.glowingGreen;
     if (type === 'dark') mat = materials.glowingViolet;
 
-    const sphere = new THREE.Mesh(new THREE.SphereGeometry(3, 8, 8), mat);
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(3.5, 8, 8), mat);
     sphere.position.y = 8;
     root.add(sphere);
 
@@ -1506,6 +1702,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     createHolyAuraRingMesh,
     createSwordSlashMesh,
     createSpearThrustMesh,
+    createSpearShockwaveMesh,
     createEnemyProjectileMesh,
     materials
   };

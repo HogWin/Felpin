@@ -78,9 +78,8 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   class GenerativeMap3D {
     constructor(scene) {
       this.scene = scene;
-      this.chunkSize = 350;
-      this.viewDistance = 2; // Chunks radius around player
-      this.loadedChunks = new Map(); // key "x,z" -> { group, lights }
+      this.arenaRadius = 800; // Bounded procedural arena: limits map to 1600x1600 units
+      this.arenaGroup = null;
       this.currentBiome = null;
       this.seed = 12345;
       this.prng = createPRNG(this.seed);
@@ -104,9 +103,9 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       };
     }
 
-    // Generate a fresh procedural map when a new run starts!
+    // Generate a fresh bounded procedural arena when a new run starts!
     generateNewRun() {
-      // Clean up previous chunks and lights
+      // Clean up previous arena and lights
       this.clear();
 
       // Pick random seed and biome
@@ -124,13 +123,140 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         metalness: 0.1
       });
 
-      // Spawn initial center chunks
-      this.update(0, 0);
+      // Build the complete bounded arena (zero chunk allocation during gameplay!)
+      this.buildBoundedArena();
 
       return {
         biome: this.currentBiome,
-        seed: this.seed
+        seed: this.seed,
+        arenaRadius: this.arenaRadius
       };
+    }
+
+    buildBoundedArena() {
+      this.arenaGroup = new THREE.Group();
+      const rng = this.prng;
+
+      // 1. Single unified circular ground floor with detailed flagstone texture
+      const groundGeo = new THREE.CircleGeometry(this.arenaRadius + 50, 48);
+      groundGeo.rotateX(-Math.PI / 2);
+      const groundMesh = new THREE.Mesh(groundGeo, this.groundMaterial);
+      groundMesh.position.set(0, 0, 0);
+      this.arenaGroup.add(groundMesh);
+
+      // Outer darkened perimeter fade ring
+      const borderFadeGeo = new THREE.RingGeometry(this.arenaRadius - 20, this.arenaRadius + 60, 48);
+      borderFadeGeo.rotateX(-Math.PI / 2);
+      const borderFadeMat = new THREE.MeshBasicMaterial({ color: 0x040306, side: THREE.DoubleSide });
+      const borderFade = new THREE.Mesh(borderFadeGeo, borderFadeMat);
+      borderFade.position.y = 0.1;
+      this.arenaGroup.add(borderFade);
+
+      // 2. Procedural Boundary Walls & Watchtowers encircling the arena
+      const wallCount = 36;
+      for (let i = 0; i < wallCount; i++) {
+        const angle = (i / wallCount) * Math.PI * 2;
+        const wx = Math.cos(angle) * this.arenaRadius;
+        const wz = Math.sin(angle) * this.arenaRadius;
+
+        const wallPiece = this.createBoundaryWallPiece(this.currentBiome.id, angle, rng);
+        if (wallPiece) {
+          wallPiece.position.set(wx, 0, wz);
+          wallPiece.rotation.y = -angle - Math.PI / 2;
+          this.arenaGroup.add(wallPiece);
+        }
+      }
+
+      // 3. Central Sanctuary Courtyard (open area for clean combat maneuvering)
+      const sanctuaryCorners = [
+        [-90, -90], [90, -90], [-90, 90], [90, 90]
+      ];
+      sanctuaryCorners.forEach(([bx, bz]) => {
+        const brazier = this.createBrazier('gold', rng);
+        brazier.position.set(bx, 0, bz);
+        this.arenaGroup.add(brazier);
+        if (brazier._light && this.activeTorches.length < 2) {
+          this.activeTorches.push(brazier._light);
+        }
+      });
+
+      // 4. Randomized Thematic Interior Props scattered throughout the arena
+      const propCount = 28 + Math.floor(rng() * 10);
+      for (let i = 0; i < propCount; i++) {
+        const propType = this.currentBiome.accentProps[Math.floor(rng() * this.currentBiome.accentProps.length)];
+
+        // Random position within arena (excluding center sanctuary circle r < 140)
+        const propAngle = rng() * Math.PI * 2;
+        const propDist = 145 + rng() * (this.arenaRadius - 220);
+        const px = Math.cos(propAngle) * propDist;
+        const pz = Math.sin(propAngle) * propDist;
+
+        const prop = this.createProp(propType, rng);
+        if (prop) {
+          prop.position.set(px, 0, pz);
+          prop.rotation.y = rng() * Math.PI * 2;
+          const sc = 0.85 + rng() * 0.35;
+          prop.scale.set(sc, sc, sc);
+          this.arenaGroup.add(prop);
+
+          if (prop._light && this.activeTorches.length < 2) {
+            this.activeTorches.push(prop._light);
+          }
+        }
+      }
+
+      this.scene.add(this.arenaGroup);
+    }
+
+    createBoundaryWallPiece(biomeId, angle, rng) {
+      const group = new THREE.Group();
+
+      if (biomeId === 'forest') {
+        // Ancient dead giant oak barrier with druidic menhir
+        const tree = this.createDeadTree(rng);
+        tree.scale.set(1.5, 1.8, 1.5);
+        group.add(tree);
+        const menhir = this.createStoneMenhir(rng);
+        menhir.position.set(18, 0, 0);
+        group.add(menhir);
+      } else if (biomeId === 'crimson') {
+        // Spiked gothic fortress barricade with obsidian pillar
+        const barricade = this.createBarricade();
+        barricade.scale.set(1.4, 1.4, 1.4);
+        group.add(barricade);
+
+        const pillar = this.createPillar(false);
+        pillar.position.set(18, 0, 0);
+        group.add(pillar);
+      } else if (biomeId === 'necropolis') {
+        // High crypt stone wall with sarcophagus & cross
+        const slab = new THREE.Mesh(new THREE.BoxGeometry(34, 28, 6), this.materials.darkStone);
+        slab.position.y = 14;
+        group.add(slab);
+
+        const battlement = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 7), this.materials.stone);
+        battlement.position.set(0, 30, 0);
+        group.add(battlement);
+
+        const cross = new THREE.Mesh(new THREE.BoxGeometry(2, 9, 1), this.materials.mossStone);
+        cross.position.set(0, 18, 3.2);
+        group.add(cross);
+      } else {
+        // Ruínas de Valoria: Colossal fortress battlements & arches
+        const wall = new THREE.Mesh(new THREE.BoxGeometry(38, 30, 7), this.materials.stone);
+        wall.position.y = 15;
+        group.add(wall);
+
+        const crenel1 = new THREE.Mesh(new THREE.BoxGeometry(8, 7, 8), this.materials.darkStone);
+        crenel1.position.set(-12, 32, 0);
+        group.add(crenel1);
+
+        const crenel2 = new THREE.Mesh(new THREE.BoxGeometry(8, 7, 8), this.materials.darkStone);
+        crenel2.position.set(12, 32, 0);
+        group.add(crenel2);
+      }
+
+      return group;
     }
 
     createProceduralGroundTexture(biome) {
@@ -187,115 +313,15 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       return texture;
     }
 
-    // Dynamic chunk streaming based on player's position
+    // Real-time update for torch flames and braziers (0 chunk allocations during gameplay!)
     update(playerX, playerZ) {
-      const centerCX = Math.floor(playerX / this.chunkSize);
-      const centerCZ = Math.floor(playerZ / this.chunkSize);
-
-      const neededKeys = new Set();
-
-      for (let dx = -this.viewDistance; dx <= this.viewDistance; dx++) {
-        for (let dz = -this.viewDistance; dz <= this.viewDistance; dz++) {
-          const cx = centerCX + dx;
-          const cz = centerCZ + dz;
-          const key = `${cx},${cz}`;
-          neededKeys.add(key);
-
-          if (!this.loadedChunks.has(key)) {
-            const chunk = this.generateChunk(cx, cz);
-            this.loadedChunks.set(key, chunk);
-            this.scene.add(chunk.group);
-          }
-        }
-      }
-
-      // Unload distant chunks to preserve silky smooth 60 FPS
-      for (const [key, chunk] of this.loadedChunks.entries()) {
-        if (!neededKeys.has(key)) {
-          this.scene.remove(chunk.group);
-          if (chunk.lights) {
-            for (let l of chunk.lights) {
-              const idx = this.activeTorches.indexOf(l);
-              if (idx !== -1) this.activeTorches.splice(idx, 1);
-            }
-          }
-          this.loadedChunks.delete(key);
-        }
-      }
-
-      // Animate active torch flickers
       const time = Date.now() / 150;
       for (let i = 0; i < this.activeTorches.length; i++) {
         const t = this.activeTorches[i];
-        t.light.intensity = t.baseIntensity + Math.sin(time + t.phase) * 0.25 + (Math.random() - 0.5) * 0.15;
-      }
-    }
-
-    generateChunk(cx, cz) {
-      const group = new THREE.Group();
-      const lights = [];
-
-      const posX = cx * this.chunkSize;
-      const posZ = cz * this.chunkSize;
-
-      // Ground plane for this chunk
-      const groundGeo = new THREE.PlaneGeometry(this.chunkSize, this.chunkSize);
-      groundGeo.rotateX(-Math.PI / 2);
-      const groundMesh = new THREE.Mesh(groundGeo, this.groundMaterial);
-      groundMesh.position.set(posX + this.chunkSize / 2, 0, posZ + this.chunkSize / 2);
-      group.add(groundMesh);
-
-      // Deterministic PRNG for this chunk
-      const chunkSeed = (this.seed ^ (cx * 73856093) ^ (cz * 19349663)) >>> 0;
-      const cprng = createPRNG(chunkSeed);
-
-      // Keep sanctuary zone clear around spawn (0, 0)
-      const distFromOrigin = Math.hypot(posX, posZ);
-      const isStartSanctuary = distFromOrigin < 150;
-
-      if (!isStartSanctuary) {
-        // Number of props in this chunk
-        const propCount = Math.floor(cprng() * 5) + 3;
-        for (let i = 0; i < propCount; i++) {
-          const propType = this.currentBiome.accentProps[Math.floor(cprng() * this.currentBiome.accentProps.length)];
-          const localX = posX + 20 + cprng() * (this.chunkSize - 40);
-          const localZ = posZ + 20 + cprng() * (this.chunkSize - 40);
-          const rotY = cprng() * Math.PI * 2;
-          const scale = 0.85 + cprng() * 0.35;
-
-          const prop = this.createProp(propType, cprng);
-          if (prop) {
-            prop.position.set(localX, 0, localZ);
-            prop.rotation.y = rotY;
-            prop.scale.set(scale, scale, scale);
-            group.add(prop);
-
-            // If prop has a light (e.g. brazier), register it
-            if (prop._light) {
-              lights.push(prop._light);
-              this.activeTorches.push(prop._light);
-            }
-          }
-        }
-      } else {
-        // Courtyard corner braziers around sanctuary
-        if (cx === 0 && cz === 0) {
-          const cornerPositions = [
-            [-80, -80], [80, -80], [-80, 80], [80, 80]
-          ];
-          cornerPositions.forEach(([bx, bz]) => {
-            const brazier = this.createBrazier('gold', cprng);
-            brazier.position.set(bx, 0, bz);
-            group.add(brazier);
-            if (brazier._light) {
-              lights.push(brazier._light);
-              this.activeTorches.push(brazier._light);
-            }
-          });
+        if (t && t.light) {
+          t.light.intensity = t.baseIntensity + Math.sin(time + t.phase) * 0.25 + (Math.random() - 0.5) * 0.12;
         }
       }
-
-      return { group, lights };
     }
 
     createProp(type, rng) {
@@ -387,16 +413,18 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       flame.position.y = 18;
       group.add(flame);
 
-      // Real 3D PointLight casting flickering illumination
-      const light = new THREE.PointLight(lightHex, 1.3, 140, 1.6);
-      light.position.y = 18;
-      group.add(light);
+      // Real 3D PointLight - keep maximum 2 active across scene to avoid GPU lighting shader bottlenecks
+      if (this.activeTorches.length < 2) {
+        const light = new THREE.PointLight(lightHex, 1.1, 120, 1.6);
+        light.position.y = 18;
+        group.add(light);
 
-      group._light = {
-        light: light,
-        baseIntensity: 1.3,
-        phase: (rng ? rng() : Math.random()) * Math.PI * 2
-      };
+        group._light = {
+          light: light,
+          baseIntensity: 1.1,
+          phase: (rng ? rng() : Math.random()) * Math.PI * 2
+        };
+      }
 
       return group;
     }
@@ -505,10 +533,10 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     }
 
     clear() {
-      for (const [key, chunk] of this.loadedChunks.entries()) {
-        this.scene.remove(chunk.group);
+      if (this.arenaGroup) {
+        this.scene.remove(this.arenaGroup);
+        this.arenaGroup = null;
       }
-      this.loadedChunks.clear();
       this.activeTorches = [];
     }
   }

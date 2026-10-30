@@ -102,6 +102,14 @@ class BaseEnemy {
     this.x += (moveX + this.knockbackX) * dt;
     this.y += (moveY + this.knockbackY) * dt;
 
+    // Keep enemy inside bounded arena
+    const arenaLimit = 795;
+    const distCenter = Math.hypot(this.x, this.y);
+    if (distCenter > arenaLimit) {
+      this.x = (this.x / distCenter) * arenaLimit;
+      this.y = (this.y / distCenter) * arenaLimit;
+    }
+
     // Collision with player
     if (dist <= this.radius + player.radius) {
       player.takeDamage(this.damage);
@@ -1168,11 +1176,18 @@ class WaveDirector {
   }
 
   spawnRegularEnemy(player, enemies) {
-    // Spawn in a ring just off-screen
-    const spawnDist = 650 + Math.random() * 150;
+    // Spawn in a ring off-screen, clamped within the bounded arena
+    const spawnDist = 450 + Math.random() * 260;
     const angle = Math.random() * Math.PI * 2;
-    const x = player.x + Math.cos(angle) * spawnDist;
-    const y = player.y + Math.sin(angle) * spawnDist;
+    let x = player.x + Math.cos(angle) * spawnDist;
+    let y = player.y + Math.sin(angle) * spawnDist;
+
+    // Clamp inside arena walls (radius 780)
+    const dist = Math.hypot(x, y);
+    if (dist > 770) {
+      x = (x / dist) * 750;
+      y = (y / dist) * 750;
+    }
 
     const t = this.gameTime;
     const hpScaling = 1.0 + (t / 180);
@@ -1201,9 +1216,14 @@ class WaveDirector {
 
   spawnBoss(type, player, enemies, onBossSpawn) {
     const angle = Math.random() * Math.PI * 2;
-    const dist = 600;
-    const x = player.x + Math.cos(angle) * dist;
-    const y = player.y + Math.sin(angle) * dist;
+    const dist = 480;
+    let x = player.x + Math.cos(angle) * dist;
+    let y = player.y + Math.sin(angle) * dist;
+    const bd = Math.hypot(x, y);
+    if (bd > 740) {
+      x = (x / bd) * 720;
+      y = (y / bd) * 720;
+    }
     const scaling = 1.0 + (this.gameTime / 240);
 
     let boss;

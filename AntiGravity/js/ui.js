@@ -512,24 +512,82 @@ class UIController {
     const cls = window.MedievalSurvivors.classRegistry.getClass(this._menuSelectedClass);
     if (!cls) return;
 
+    const hpPercent = Math.min(100, (cls.stats.maxHp / 160) * 100);
+    const armorPercent = Math.min(100, (cls.stats.armor / 6) * 100);
+    const speedPercent = Math.min(100, (cls.stats.moveSpeed / 1.6) * 100);
+    const dmgPercent = Math.min(100, (cls.stats.damageMultiplier / 1.5) * 100);
+
+    const startingWep = window.MedievalSurvivors.weapons.create(cls.startingWeapon);
+
     this.menuTabContent.innerHTML = `
-      <div style="display:flex; flex-direction:column; align-items:center; gap:24px; padding:20px 0;">
-        <div class="codex-card" style="max-width:420px; width:100%; text-align:center; padding:28px 24px;">
-          <div style="font-size:4rem; margin-bottom:12px;">${cls.icon}</div>
-          <h2 style="color:#f0c05a; margin:0 0 4px;">${cls.name}</h2>
-          <div style="color:#aaa; font-size:0.9rem; margin-bottom:16px;">${cls.subtitle}</div>
-          <p style="font-size:0.92rem; line-height:1.6; color:#ddd; margin-bottom:16px;">${cls.description}</p>
-          <div class="forge-grid" style="grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
-            <div class="stat-box"><span class="title">Vida Máxima</span><span class="val">${cls.stats.maxHp} HP</span></div>
-            <div class="stat-box"><span class="title">Armadura</span><span class="val">${cls.stats.armor}</span></div>
-            <div class="stat-box"><span class="title">Velocidade</span><span class="val">${(cls.stats.moveSpeed * 100).toFixed(0)}</span></div>
-            <div class="stat-box"><span class="title">Dano Base</span><span class="val">+${((cls.stats.damageMultiplier - 1) * 100).toFixed(0)}%</span></div>
+      <div class="battle-prep-container">
+        <!-- Hero Spotlight Card -->
+        <div class="hero-spotlight-card">
+          <div class="pedestal-wrap">
+            <div class="pedestal-aura"></div>
+            <div class="pedestal-avatar">${cls.icon}</div>
           </div>
-          <div style="font-size:0.85rem; color:#f0c05a; background:rgba(0,0,0,0.35); border-radius:8px; padding:10px; margin-bottom:20px;">
-            <strong>Perk:</strong> ${cls.perkDesc}
+
+          <div class="hero-details-wrap">
+            <div class="hero-role-badge">⚜️ COMBATENTE SELECIONADO</div>
+            <h2 class="hero-title">${cls.name}</h2>
+            <div class="hero-subtitle">${cls.subtitle}</div>
+            <p class="hero-desc">${cls.description}</p>
+
+            <!-- Stat Meters -->
+            <div class="hero-stat-meters">
+              <div class="meter-box">
+                <div class="meter-label"><span>❤️ Vida Máxima</span> <strong>${cls.stats.maxHp} HP</strong></div>
+                <div class="meter-track"><div class="meter-fill hp-meter" style="width:${hpPercent}%;"></div></div>
+              </div>
+              <div class="meter-box">
+                <div class="meter-label"><span>🛡️ Armadura</span> <strong>${cls.stats.armor} Pontos</strong></div>
+                <div class="meter-track"><div class="meter-fill armor-meter" style="width:${armorPercent}%;"></div></div>
+              </div>
+              <div class="meter-box">
+                <div class="meter-label"><span>⚡ Agilidade</span> <strong>${(cls.stats.moveSpeed * 100).toFixed(0)} Vel.</strong></div>
+                <div class="meter-track"><div class="meter-fill speed-meter" style="width:${speedPercent}%;"></div></div>
+              </div>
+              <div class="meter-box">
+                <div class="meter-label"><span>⚔️ Dano Base</span> <strong>+${((cls.stats.damageMultiplier - 1) * 100).toFixed(0)}%</strong></div>
+                <div class="meter-track"><div class="meter-fill dmg-meter" style="width:${dmgPercent}%;"></div></div>
+              </div>
+            </div>
+
+            <!-- Perk & Starting Weapon -->
+            <div class="hero-specials-grid">
+              <div class="special-pill">
+                <span class="pill-icon">✨</span>
+                <div>
+                  <div class="pill-title">BÊNÇÃO HEROICA:</div>
+                  <div class="pill-desc">${cls.perkDesc}</div>
+                </div>
+              </div>
+
+              ${startingWep ? `
+              <div class="special-pill">
+                <span class="pill-icon">${startingWep.icon}</span>
+                <div>
+                  <div class="pill-title">ARMA INICIAL: ${startingWep.name}</div>
+                  <div class="pill-desc">${startingWep.description}</div>
+                </div>
+              </div>
+              ` : ''}
+            </div>
+
+            <!-- Action CTA Buttons -->
+            <div class="prep-actions-row">
+              <button class="btn-primary btn-epic-start" id="btn-start-battle">
+                ⚔️ INICIAR BATALHA REAL
+              </button>
+              <button class="btn-primary btn-secondary-hub" id="btn-go-heroes">
+                🛡️ Trocar Classe
+              </button>
+              <button class="btn-primary btn-secondary-hub" id="btn-go-forge">
+                🔨 Forja Real
+              </button>
+            </div>
           </div>
-          <button class="btn-primary" id="btn-start-battle" style="width:100%; font-size:1.05rem; padding:14px;">⚔️ Iniciar Batalha!</button>
-          <button class="btn-primary" style="width:100%; font-size:0.9rem; padding:10px; margin-top:10px; background:linear-gradient(180deg,#2c3e50,#1a252f);" id="btn-go-heroes">🛡️ Trocar Combatente</button>
         </div>
       </div>
     `;
@@ -543,6 +601,10 @@ class UIController {
     document.getElementById('btn-go-heroes').addEventListener('click', () => {
       this.switchMenuTab('heroes');
     });
+
+    document.getElementById('btn-go-forge').addEventListener('click', () => {
+      this.switchMenuTab('forge');
+    });
   }
 
   // ── TAB: Combatentes ────────────────────────────────────────
@@ -550,34 +612,57 @@ class UIController {
     const classes = window.MedievalSurvivors.classRegistry.getAllClasses();
 
     this.menuTabContent.innerHTML = `
-      <div class="codex-grid" style="grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap:16px;">
-        ${classes.map(c => `
-          <div class="codex-card class-menu-card ${c.id === this._menuSelectedClass ? 'selected' : ''} ${!c.unlocked ? 'locked' : ''}"
-               data-classid="${c.id}" style="cursor:pointer; text-align:center; padding:22px 16px;">
-            <div style="font-size:3rem; margin-bottom:8px;">${c.icon}</div>
-            <h3 style="color:#f0c05a; margin:0 0 4px; font-size:1rem;">${c.name}</h3>
-            <div style="color:#aaa; font-size:0.82rem; margin-bottom:12px;">${c.subtitle}</div>
-            <div style="font-size:0.8rem; color:#ccc; line-height:1.5;">
-              <div>❤️ ${c.stats.maxHp} HP &nbsp;|&nbsp; 🛡️ ${c.stats.armor} Armad.</div>
-              <div>⚡ ${(cls => (cls.stats.moveSpeed * 100).toFixed(0))(c)} Vel.</div>
+      <div class="heroes-header-banner">
+        <h3>🛡️ GUILDA DOS CAMPEÕES DE VALORIA</h3>
+        <p>Escolha o combatente para liderar sua investida contra o cataclisma das catacumbas.</p>
+      </div>
+
+      <div class="codex-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:18px;">
+        ${classes.map(c => {
+          const isSelected = c.id === this._menuSelectedClass;
+          const w = window.MedievalSurvivors.weapons.create(c.startingWeapon);
+          return `
+          <div class="hero-select-card ${isSelected ? 'selected' : ''} ${!c.unlocked ? 'locked' : ''}"
+               data-classid="${c.id}">
+            ${isSelected ? `<div class="selected-ribbon">👑 ATIVO</div>` : ''}
+            <div class="hero-card-avatar">${c.icon}</div>
+            <h3 class="hero-card-title">${c.name}</h3>
+            <div class="hero-card-sub">${c.subtitle}</div>
+
+            <div class="hero-card-stats-box">
+              <div class="stat-line"><span>❤️ Vida Máxima:</span> <strong>${c.stats.maxHp}</strong></div>
+              <div class="stat-line"><span>🛡️ Armadura:</span> <strong>${c.stats.armor}</strong></div>
+              <div class="stat-line"><span>⚡ Velocidade:</span> <strong>${(c.stats.moveSpeed * 100).toFixed(0)}</strong></div>
+              <div class="stat-line"><span>⚔️ Dano Base:</span> <strong>+${((c.stats.damageMultiplier - 1) * 100).toFixed(0)}%</strong></div>
             </div>
-            <div style="margin-top:12px;">
-              ${c.unlocked
-                ? `<button class="btn-primary" style="font-size:0.82rem; padding:7px 14px;">${c.id === this._menuSelectedClass ? '✅ Selecionado' : 'Selecionar'}</button>`
-                : `<button class="btn-primary" style="font-size:0.82rem; padding:7px 14px; opacity:0.5; cursor:not-allowed;">🔒 Bloqueado</button>`}
+
+            <div class="hero-card-perk">
+              <strong>Bênção:</strong> ${c.perkDesc}
             </div>
+
+            ${w ? `
+            <div class="hero-card-wep">
+              <span>Arma:</span> <strong>${w.icon} ${w.name}</strong>
+            </div>
+            ` : ''}
+
+            <button class="btn-primary btn-hero-select ${isSelected ? 'active-hero-btn' : ''}">
+              ${isSelected ? '✅ Combatente Selecionado' : '⚔️ Escolher Combatente'}
+            </button>
           </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     `;
 
-    this.menuTabContent.querySelectorAll('.class-menu-card').forEach(card => {
+    this.menuTabContent.querySelectorAll('.hero-select-card').forEach(card => {
       const cid = card.getAttribute('data-classid');
       const cls = window.MedievalSurvivors.classRegistry.getClass(cid);
       if (cls && cls.unlocked) {
         card.addEventListener('click', () => {
           this._menuSelectedClass = cid;
           this.game.selectedClassId = cid;
+          window.MedievalSurvivors.sound.playSwordSlash();
           this.renderHeroesTab();
         });
       }
@@ -590,8 +675,14 @@ class UIController {
     const upgrades = sm.metaUpgradeDefinitions;
 
     this.menuTabContent.innerHTML = `
-      <div style="margin-bottom:16px; text-align:center; color:#aaa; font-size:0.9rem;">
-        Gaste o ouro acumulado em melhorias permanentes que persistem entre todas as partidas.
+      <div class="forge-header-banner">
+        <h3>🔨 FORJA REAL DOS ANCESTRAIS</h3>
+        <p>Invoque as chamas arcanas para fundir seu ouro em bênçãos de combate eternas.</p>
+        <div class="forge-balance-pill">
+          <span>Ouro Disponível:</span>
+          <strong>${sm.getGold().toLocaleString()}</strong>
+          <span>💰</span>
+        </div>
       </div>
       <div class="forge-grid" id="forge-grid-inner"></div>
     `;
@@ -605,18 +696,29 @@ class UIController {
       const isMaxed = currentLvl >= def.maxLevel;
       const canAfford = !isMaxed && sm.getGold() >= cost;
 
+      // Build visual pips
+      let pipsHTML = '<div class="forge-pips">';
+      for (let p = 0; p < def.maxLevel; p++) {
+        pipsHTML += `<span class="pip ${p < currentLvl ? 'filled' : ''}"></span>`;
+      }
+      pipsHTML += '</div>';
+
       const card = document.createElement('div');
-      card.className = 'forge-card';
+      card.className = `forge-card ${isMaxed ? 'maxed' : ''}`;
       card.innerHTML = `
-        <div class="forge-card-icon">${def.icon}</div>
-        <div class="forge-card-name">${def.name}</div>
-        <div class="forge-card-level">Nível ${currentLvl} / ${def.maxLevel}</div>
-        <div class="forge-card-desc">${def.description}</div>
-        <div class="forge-card-stat">${def.statPerLevel}</div>
-        <button class="btn-primary forge-buy-btn" data-id="${def.id}"
-          style="${isMaxed ? 'background:linear-gradient(180deg,#2d5a2d,#1a3a1a); opacity:0.7; cursor:not-allowed;' :
-            canAfford ? '' : 'opacity:0.5; cursor:not-allowed;'}">
-          ${isMaxed ? '✅ MÁXIMO' : `🔨 ${cost} 💰`}
+        <div class="forge-card-top">
+          <div class="forge-icon-wrap">${def.icon}</div>
+          <div class="forge-card-titles">
+            <h4 class="forge-card-name">${def.name}</h4>
+            <div class="forge-card-tier">Grau ${currentLvl} de ${def.maxLevel}</div>
+            ${pipsHTML}
+          </div>
+        </div>
+        <p class="forge-card-desc">${def.description}</p>
+        <div class="forge-stat-badge">${def.statPerLevel} por grau</div>
+
+        <button class="btn-primary forge-buy-btn ${isMaxed ? 'btn-maxed' : (canAfford ? 'btn-can-buy' : 'btn-disabled')}" data-id="${def.id}">
+          ${isMaxed ? '✅ MÁXIMO FORJADO' : `🔨 Aprimorar (${cost} 💰)`}
         </button>
       `;
 
@@ -625,13 +727,13 @@ class UIController {
         buyBtn.addEventListener('click', () => {
           const success = sm.purchaseUpgrade(def.id);
           if (success) {
+            window.MedievalSurvivors.sound.playLevelUp();
             this.updateMenuGoldDisplay();
             this.renderForgeTab();
           } else {
-            buyBtn.style.animation = 'none';
-            buyBtn.textContent = '❌ Ouro insuficiente';
+            buyBtn.textContent = '❌ Ouro Insuficiente!';
             setTimeout(() => {
-              buyBtn.textContent = `🔨 ${sm.getUpgradeCost(def.id)} 💰`;
+              buyBtn.textContent = `🔨 Aprimorar (${sm.getUpgradeCost(def.id)} 💰)`;
             }, 1200);
           }
         });
@@ -845,26 +947,37 @@ class UIController {
     const sm = this.game.saveManager;
     const mouseAimActive = sm ? sm.data.settings.mouseAim : true;
     const soundMuted = sm ? sm.data.settings.soundMuted : false;
+    const graphicsQuality = sm && sm.data.settings.graphicsQuality ? sm.data.settings.graphicsQuality : 'alta';
 
     this.menuTabContent.innerHTML = `
-      <div style="max-width:480px; margin:0 auto; display:flex; flex-direction:column; gap:18px; padding:10px 0;">
+      <div style="max-width:540px; margin:0 auto; display:flex; flex-direction:column; gap:18px; padding:10px 0;">
 
         <div class="forge-card" style="display:flex; justify-content:space-between; align-items:center;">
           <div>
             <div style="font-weight:700; color:#f0c05a;">🎯 Controle de Mira</div>
-            <div style="font-size:0.82rem; color:#aaa; margin-top:4px;">Usar mouse para direcionar ataques do personagem.</div>
+            <div style="font-size:0.82rem; color:#aaa; margin-top:4px;">Usar mouse para direcionar ataques do personagem (movimentação não altera o alvo).</div>
           </div>
-          <button class="btn-primary" id="settings-mouse-aim-btn" style="min-width:140px;">
+          <button class="btn-primary" id="settings-mouse-aim-btn" style="min-width:150px;">
             ${mouseAimActive ? '🖱️ Mouse: Ativo' : '⌨️ Teclado: Ativo'}
           </button>
         </div>
 
         <div class="forge-card" style="display:flex; justify-content:space-between; align-items:center;">
           <div>
-            <div style="font-weight:700; color:#f0c05a;">🔊 Som e Música</div>
-            <div style="font-size:0.82rem; color:#aaa; margin-top:4px;">Alternar efeitos sonoros e música de fundo.</div>
+            <div style="font-weight:700; color:#f0c05a;">⚡ Otimização Gráfica</div>
+            <div style="font-size:0.82rem; color:#aaa; margin-top:4px;">Alternar entre Alta Resolução e Desempenho Ultra Fluido (60 FPS).</div>
           </div>
-          <button class="btn-primary" id="settings-sound-btn" style="min-width:140px;">
+          <button class="btn-primary" id="settings-graphics-btn" style="min-width:150px;">
+            ${graphicsQuality === 'alta' ? '💎 Alta Qualidade' : '🚀 60 FPS Rápido'}
+          </button>
+        </div>
+
+        <div class="forge-card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:700; color:#f0c05a;">🔊 Áudio e Efeitos</div>
+            <div style="font-size:0.82rem; color:#aaa; margin-top:4px;">Alternar efeitos sonoros medievais e sintetizador de áudio.</div>
+          </div>
+          <button class="btn-primary" id="settings-sound-btn" style="min-width:150px;">
             ${soundMuted ? '🔇 Som: Deslig.' : '🔊 Som: Ligado'}
           </button>
         </div>
@@ -880,6 +993,18 @@ class UIController {
     document.getElementById('settings-mouse-aim-btn').addEventListener('click', () => {
       this.game.toggleMouseAim();
       this.updateMouseAimButton();
+      this.renderSettingsTab();
+    });
+
+    document.getElementById('settings-graphics-btn').addEventListener('click', () => {
+      const nextQuality = graphicsQuality === 'alta' ? 'desempenho' : 'alta';
+      if (sm) {
+        sm.data.settings.graphicsQuality = nextQuality;
+        sm.save();
+      }
+      if (this.game.renderer && this.game.renderer.renderer) {
+        this.game.renderer.renderer.setPixelRatio(nextQuality === 'alta' ? Math.min(window.devicePixelRatio || 1, 1.25) : 1.0);
+      }
       this.renderSettingsTab();
     });
 

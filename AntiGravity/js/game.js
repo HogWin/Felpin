@@ -24,39 +24,27 @@ class Game {
     this.lastTimestamp = 0;
     this.keys = {};
 
+    // Track pointer screen position for continuous aiming
+    this.lastPointerScreenX = window.innerWidth / 2;
+    this.lastPointerScreenY = window.innerHeight / 2;
+
     this.ui = new MedievalSurvivors.UIController(this);
     this.bindInputs();
   }
 
   bindInputs() {
     window.addEventListener('pointermove', (e) => {
-      // Only process mouse aim if enabled in settings
+      this.lastPointerScreenX = e.clientX;
+      this.lastPointerScreenY = e.clientY;
+
       const mouseAimEnabled = this.saveManager ? this.saveManager.data.settings.mouseAim : true;
-      if (this.state === 'PLAYING' && this.player && this.renderer && mouseAimEnabled) {
-        if (this.renderer.getMouseWorldPosition) {
-          const mouseWorld = this.renderer.getMouseWorldPosition(e.clientX, e.clientY);
-          if (mouseWorld) {
-            this.player.facingAngle = Math.atan2(mouseWorld.y - this.player.y, mouseWorld.x - this.player.x);
-            this.player.aimingWithMouse = true;
-            if (Math.cos(this.player.facingAngle) > 0.1) this.player.facingDir = 1;
-            else if (Math.cos(this.player.facingAngle) < -0.1) this.player.facingDir = -1;
-          }
-        } else {
-          const mouseWorldX = e.clientX + this.renderer.cameraX;
-          const mouseWorldY = e.clientY + this.renderer.cameraY;
-          this.player.facingAngle = Math.atan2(mouseWorldY - this.player.y, mouseWorldX - this.player.x);
-          this.player.aimingWithMouse = true;
-          if (Math.cos(this.player.facingAngle) > 0.1) this.player.facingDir = 1;
-          else if (Math.cos(this.player.facingAngle) < -0.1) this.player.facingDir = -1;
-        }
+      if (this.state === 'PLAYING' && this.player && mouseAimEnabled) {
+        this.updateAimDirection();
       }
     });
 
     window.addEventListener('keydown', (e) => {
       this.keys[e.code] = true;
-      if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
-        if (this.player) this.player.aimingWithMouse = false;
-      }
       if (e.code === 'KeyP' || e.code === 'Escape') {
         if (this.state === 'PLAYING' || this.state === 'PAUSED') {
           this.togglePause();
@@ -76,6 +64,29 @@ class Game {
     };
     window.addEventListener('pointerdown', initAudio);
     window.addEventListener('keydown', initAudio);
+  }
+
+  updateAimDirection() {
+    if (!this.player || !this.renderer) return;
+    const mouseAimEnabled = this.saveManager ? this.saveManager.data.settings.mouseAim : true;
+    if (!mouseAimEnabled) return;
+
+    if (this.renderer.getMouseWorldPosition) {
+      const mouseWorld = this.renderer.getMouseWorldPosition(this.lastPointerScreenX, this.lastPointerScreenY);
+      if (mouseWorld) {
+        this.player.facingAngle = Math.atan2(mouseWorld.y - this.player.y, mouseWorld.x - this.player.x);
+        this.player.aimingWithMouse = true;
+        if (Math.cos(this.player.facingAngle) > 0.05) this.player.facingDir = 1;
+        else if (Math.cos(this.player.facingAngle) < -0.05) this.player.facingDir = -1;
+      }
+    } else {
+      const mouseWorldX = this.lastPointerScreenX + this.renderer.cameraX;
+      const mouseWorldY = this.lastPointerScreenY + this.renderer.cameraY;
+      this.player.facingAngle = Math.atan2(mouseWorldY - this.player.y, mouseWorldX - this.player.x);
+      this.player.aimingWithMouse = true;
+      if (Math.cos(this.player.facingAngle) > 0.05) this.player.facingDir = 1;
+      else if (Math.cos(this.player.facingAngle) < -0.05) this.player.facingDir = -1;
+    }
   }
 
   toggleMouseAim() {
@@ -214,14 +225,17 @@ class Game {
       return;
     }
 
-    // 1. Update Player
+    // 1. Update Aim Direction (locks aim to mouse position continuously)
+    this.updateAimDirection();
+
+    // 2. Update Player
     const inputDir = this.getInputDirection();
     this.player.update(dt, inputDir, this.enemies, this.projectiles, this.particles);
 
     // Camera follow
     this.renderer.updateCamera(this.player, dt);
 
-    // 2. Wave Director & Boss Timers
+    // 3. Wave Director & Boss Timers
     this.waveDirector.update(dt, this.player, this.enemies, (bossName) => {
       this.ui.showBossWarning(bossName);
       this.renderer.triggerShake(12, 0.6);

@@ -28,7 +28,7 @@ class GameRenderer {
       powerPreference: 'high-performance'
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.15;
 
@@ -538,7 +538,7 @@ class GameRenderer {
     const auraWep = game.player.weapons.find(w => w.id === 'holy_aura');
     if (auraWep && auraWep.level > 0) {
       if (!this.holyAuraMesh) {
-        this.holyAuraMesh = window.MedievalSurvivors.models3d.createHolyAuraRingMesh(auraWep.activeRadius || 70);
+        this.holyAuraMesh = window.MedievalSurvivors.models3d.createHolyAuraRingMesh(auraWep.activeRadius || 70, auraWep.level >= 8);
         this.scene.add(this.holyAuraMesh);
       }
       this.holyAuraMesh.position.set(game.player.x, 0, game.player.y);
@@ -558,10 +558,10 @@ class GameRenderer {
       activeProjectiles.add(p);
 
       if (p.state === 'burning') {
-        // Holy Fire burning ground pool
+        // Holy Fire burning ground pool with volumetric 3D dancing flames
         let poolMesh = this.holyFirePoolsMap.get(p);
         if (!poolMesh) {
-          poolMesh = window.MedievalSurvivors.models3d.createHolyFirePoolMesh(p.radius || 40);
+          poolMesh = window.MedievalSurvivors.models3d.createHolyFirePoolMesh(p.radius || 40, p.isEvolved);
           this.scene.add(poolMesh);
           this.holyFirePoolsMap.set(p, poolMesh);
         }
@@ -573,20 +573,30 @@ class GameRenderer {
       let pMesh = this.projectileMeshMap.get(p);
       if (!pMesh) {
         if (p.constructor && p.constructor.name === 'CrossbowBolt') {
-          pMesh = window.MedievalSurvivors.models3d.createCrossbowBoltMesh();
+          pMesh = window.MedievalSurvivors.models3d.createCrossbowBoltMesh(p.isEvolved);
         } else if (p.constructor && p.constructor.name === 'ThrownAxe') {
-          pMesh = window.MedievalSurvivors.models3d.createThrownAxeMesh();
+          pMesh = window.MedievalSurvivors.models3d.createThrownAxeMesh(p.isEvolved);
+        } else if (p.constructor && p.constructor.name === 'SpearShockwave') {
+          pMesh = window.MedievalSurvivors.models3d.createSpearShockwaveMesh(p.isEvolved);
         } else {
-          pMesh = window.MedievalSurvivors.models3d.createHolyFireFlaskMesh();
+          pMesh = window.MedievalSurvivors.models3d.createHolyFireFlaskMesh(p.isEvolved);
         }
         this.scene.add(pMesh);
         this.projectileMeshMap.set(p, pMesh);
       }
 
-      pMesh.position.set(p.x, 10, p.y);
+      const h = p.renderHeight !== undefined ? p.renderHeight : 10;
+      pMesh.position.set(p.x, h, p.y);
 
-      // Rotation
-      if (p.angle !== undefined) {
+      // 3D Realistic Weapon Orientation & Spinning
+      if (p.constructor && p.constructor.name === 'ThrownAxe') {
+        pMesh.rotation.y = -p.angle + Math.PI / 2;
+        pMesh.rotation.x = p.rotation || 0;
+        pMesh.rotation.z = Math.sin(p.rotation || 0) * 0.4;
+      } else if (p.constructor && p.constructor.name === 'HolyFireFlask') {
+        pMesh.rotation.x = (p.flightProgress || 0) * Math.PI * 4;
+        pMesh.rotation.z = (p.flightProgress || 0) * Math.PI * 2;
+      } else if (p.angle !== undefined) {
         pMesh.rotation.y = -p.angle + Math.PI / 2;
       } else if (p.rotation !== undefined) {
         pMesh.rotation.y = p.rotation;
@@ -618,14 +628,17 @@ class GameRenderer {
           activeProjectiles.add(slash);
           let sMesh = this.projectileMeshMap.get(slash);
           if (!sMesh) {
-            sMesh = window.MedievalSurvivors.models3d.createSwordSlashMesh();
+            sMesh = window.MedievalSurvivors.models3d.createSwordSlashMesh(slash.isEvolved);
             this.scene.add(sMesh);
             this.projectileMeshMap.set(slash, sMesh);
           }
-          sMesh.position.set(slash.x, 10, slash.y);
+          // Follow player position so slash stays firmly anchored to the hero!
+          const posX = slash.player ? slash.player.x : slash.x;
+          const posZ = slash.player ? slash.player.y : slash.y;
+          sMesh.position.set(posX, 12, posZ);
           sMesh.rotation.y = -slash.angle + Math.PI / 2;
           const prog = 1 - (slash.duration / (slash.maxDuration || 0.22));
-          const s = (slash.radius / 38) * (0.6 + prog * 0.4);
+          const s = (slash.radius / 38) * (0.7 + prog * 0.35);
           sMesh.scale.set(s, s, s);
         }
       }
@@ -640,14 +653,16 @@ class GameRenderer {
           activeProjectiles.add(thrust);
           let tMesh = this.projectileMeshMap.get(thrust);
           if (!tMesh) {
-            tMesh = window.MedievalSurvivors.models3d.createSpearThrustMesh();
+            tMesh = window.MedievalSurvivors.models3d.createSpearThrustMesh(thrust.isEvolved);
             this.scene.add(tMesh);
             this.projectileMeshMap.set(thrust, tMesh);
           }
-          tMesh.position.set(thrust.x, 10, thrust.y);
+          const posX = thrust.player ? thrust.player.x : thrust.x;
+          const posZ = thrust.player ? thrust.player.y : thrust.y;
+          tMesh.position.set(posX, 11, posZ);
           tMesh.rotation.y = -thrust.angle + Math.PI / 2;
           const progress = 1 - (thrust.duration / (thrust.maxDuration || 0.24));
-          const forwardReach = Math.sin(progress * Math.PI) * (thrust.reach * 0.5);
+          const forwardReach = Math.sin(progress * Math.PI) * (thrust.reach * 0.55);
           tMesh.translateZ(forwardReach);
         }
       }
