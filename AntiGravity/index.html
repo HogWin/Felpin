@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sobreviventes Medievais - Vampire Survivors Era Medieval</title>
-  <link rel="stylesheet" href="css/style.css?v=16">
+  <link rel="stylesheet" href="css/style.css?v=20">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22><text y=%2226%22 font-size=%2228%22>⚔️</text></svg>">
 </head>
 <body>
@@ -393,7 +393,7 @@
     </div>
 
     <!-- ==================== TELA DE AUTENTICAÇÃO REAL (LOGIN / CADASTRO NEON) ==================== -->
-    <div class="modal-overlay" id="auth-modal" style="display: flex;">
+    <div class="modal-overlay" id="auth-modal">
       <div class="modal-box ornate-frame auth-box">
         <div class="ornate-corner corner-tl"></div>
         <div class="ornate-corner corner-tr"></div>
@@ -448,7 +448,7 @@
     </div>
 
     <!-- ==================== MODAL: Menu Principal e Central de Valoria ==================== -->
-    <div class="modal-overlay" id="main-menu-modal" style="display: none;">
+    <div class="modal-overlay" id="main-menu-modal">
       <div class="modal-box ornate-frame main-menu-box">
         <div class="ornate-corner corner-tl"></div>
         <div class="ornate-corner corner-tr"></div>
@@ -528,29 +528,33 @@
   </div>
 
   <!-- 3D Engine & Game Scripts -->
-  <script src="js/three.min.js?v=18"></script>
-  <script src="js/audio.js?v=18"></script>
-  <script src="js/save.js?v=18"></script>
-  <script src="js/classes.js?v=18"></script>
-  <script src="js/passives.js?v=18"></script>
-  <script src="js/weapons.js?v=18"></script>
-  <script src="js/synergies.js?v=18"></script>
-  <script src="js/entities.js?v=18"></script>
-  <script src="js/enemies.js?v=18"></script>
-  <script src="js/models3d.js?v=18"></script>
-  <script src="js/map3d.js?v=18"></script>
-  <script src="js/renderer.js?v=18"></script>
-  <script src="js/ui.js?v=18"></script>
-  <script src="js/game.js?v=18"></script>
+  <script src="js/three.min.js?v=20"></script>
+  <script src="js/audio.js?v=20"></script>
+  <script src="js/save.js?v=20"></script>
+  <script src="js/classes.js?v=20"></script>
+  <script src="js/passives.js?v=20"></script>
+  <script src="js/weapons.js?v=20"></script>
+  <script src="js/synergies.js?v=20"></script>
+  <script src="js/entities.js?v=20"></script>
+  <script src="js/enemies.js?v=20"></script>
+  <script src="js/models3d.js?v=20"></script>
+  <script src="js/map3d.js?v=20"></script>
+  <script src="js/renderer.js?v=20"></script>
+  <script src="js/ui.js?v=20"></script>
+  <script src="js/game.js?v=20"></script>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      window.MedievalSurvivors.game = new window.MedievalSurvivors.Game();
-      // Inicia com autenticação nos Portões de Valoria (integrada ao Neon)
-      if (window.MedievalSurvivors.game.ui && window.MedievalSurvivors.game.ui.initAuth) {
-        window.MedievalSurvivors.game.ui.initAuth();
-      } else {
-        window.MedievalSurvivors.game.ui.openMainMenu('play');
+      try {
+        window.MedievalSurvivors.game = new window.MedievalSurvivors.Game();
+        // Inicia com autenticação nos Portões de Valoria (integrada ao Neon Cloud)
+        if (window.MedievalSurvivors.game.ui && window.MedievalSurvivors.game.ui.initAuth) {
+          window.MedievalSurvivors.game.ui.initAuth();
+        } else if (window.MedievalSurvivors.game.ui && window.MedievalSurvivors.game.ui.openMainMenu) {
+          window.MedievalSurvivors.game.ui.openMainMenu('play');
+        }
+      } catch (err) {
+        console.error('Falha na inicialização do jogo:', err);
       }
     });
   </script>

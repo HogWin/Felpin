@@ -240,14 +240,21 @@ class UIController {
   }
 
   showAuthModal() {
+    this.hideAllModals();
     if (this.authModal) {
-      this.authModal.style.display = 'flex';
+      this.authModal.classList.add('active');
     }
   }
 
   hideAuthModal() {
     if (this.authModal) {
-      this.authModal.style.display = 'none';
+      this.authModal.classList.remove('active');
+    }
+  }
+
+  closeMainMenu() {
+    if (this.mainMenuModal) {
+      this.mainMenuModal.classList.remove('active');
     }
   }
 
@@ -2080,8 +2087,14 @@ class UIController {
       this.gameOverModal,
       this.pauseModal,
       this.victoryModal,
-      this.mainMenuModal
-    ].forEach(m => { if (m) m.classList.remove('active'); });
+      this.mainMenuModal,
+      this.authModal
+    ].forEach(m => {
+      if (m) {
+        m.classList.remove('active');
+        m.style.display = '';
+      }
+    });
   }
 }
 
