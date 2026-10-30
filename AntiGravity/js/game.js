@@ -790,3 +790,4 @@ class Game {
 
 window.MedievalSurvivors = window.MedievalSurvivors || {};
 window.MedievalSurvivors.Game = Game;
+window.TheFallenKingdom = window.MedievalSurvivors;

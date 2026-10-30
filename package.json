@@ -1,7 +1,7 @@
 {
-  "name": "medieval-survivors",
+  "name": "the-fallen-kingdom",
   "version": "1.0.0",
-  "description": "Medieval Survivors with Neon Postgres & Neon Auth",
+  "description": "The Fallen Kingdom - Roguelite de Ação Medieval 3D with Neon Postgres & Neon Auth",
   "main": "server/server.js",
   "scripts": {
     "build": "node server/build.js",

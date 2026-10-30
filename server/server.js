@@ -51,7 +51,7 @@ app.get('/api/health', async (req, res) => {
     const authUrl = process.env.NEON_AUTH_BASE_URL || DEFAULT_AUTH_BASE;
     res.json({
       status: 'ok',
-      service: 'Medieval Survivors Backend',
+      service: 'The Fallen Kingdom Backend',
       postgres: health,
       auth: {
         enabled: Boolean(authUrl),
@@ -159,7 +159,7 @@ if (require.main === module) {
     .then(() => {
       app.listen(PORT, () => {
         console.log(`====================================================`);
-        console.log(`🏰 Medieval Survivors Server running on port ${PORT}`);
+        console.log(`🏰 The Fallen Kingdom Server running on port ${PORT}`);
         console.log(`⚡ Connected to Neon Postgres (${process.env.NEON_BRANCH || 'production'})`);
         console.log(`🔐 Neon Auth Base: ${process.env.NEON_AUTH_BASE_URL || 'Not configured'}`);
         console.log(`🎮 Game playable at: http://localhost:${PORT}`);

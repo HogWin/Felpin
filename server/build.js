@@ -3,7 +3,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 const dotenv = require('dotenv');
 
-console.log('--- [BUILD] Starting Medieval Survivors Build & Verification ---');
+console.log('--- [BUILD] Starting The Fallen Kingdom Build & Verification ---');
 
 // 1. Verify Environment Variables (supporting .env.local, .env, and cloud environment providers like Vercel)
 const envPath = path.resolve(__dirname, '../.env.local');
@@ -61,5 +61,5 @@ if (fs.existsSync(indexPath)) {
   process.exit(1);
 }
 
-console.log('--- [BUILD] Build & Verification Complete: 0 ERRORS! ---');
+console.log('--- [BUILD] The Fallen Kingdom Build & Verification Complete: 0 ERRORS! ---');
 process.exit(0);

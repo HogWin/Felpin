@@ -1,4 +1,4 @@
-# Sobreviventes Medievais (Medieval Survivors)
+# The Fallen Kingdom
 ## Contexto, Regras e Configurações do Projeto para Antigravity IDE
 
 Este arquivo serve como contexto mestre persistente para o **Antigravity IDE** e seus agentes em qualquer máquina ou ambiente de desenvolvimento.
@@ -6,7 +6,7 @@ Este arquivo serve como contexto mestre persistente para o **Antigravity IDE** e
 ---
 
 ### 1. Visão Geral do Projeto
-- **Título**: Sobreviventes Medievais (*Medieval Survivors*)
+- **Título**: The Fallen Kingdom
 - **Gênero**: Roguelite de ação e sobrevivência medieval gótico isométrica (estilo *Vampire Survivors*).
 - **Repositório Git**: `https://github.com/HogWin/Felpin.git` (Branch padrão: `main`).
 - **Hospedagem & Deploy**: Vercel (`https://felpin.vercel.app/`).
