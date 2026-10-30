@@ -106,3 +106,4 @@ Sempre que fizer alterações no projeto, siga obrigatoriamente estes passos ant
      git push origin main
      ```
    - O Vercel detectará o push na branch `main` e fará o build e deploy instantaneamente para `felpin.vercel.app`.
+
