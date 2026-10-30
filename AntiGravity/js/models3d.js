@@ -113,18 +113,67 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       buildKnightModel(bodyRoot, anim);
     }
 
-    // Shadow blob
-    const shadowGeo = new THREE.CircleGeometry(12, 16);
+    // Base contact shadow
+    const shadowGeo = new THREE.CircleGeometry(14, 20);
     shadowGeo.rotateX(-Math.PI / 2);
-    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 });
+    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.4 });
     const shadow = new THREE.Mesh(shadowGeo, shadowMat);
-    shadow.position.y = 0.2;
+    shadow.position.y = 0.15;
     root.add(shadow);
+
+    // Indicador visual de Hitbox do Personagem no chao (Raio 21 exato)
+    const hitboxGroup = new THREE.Group();
+    hitboxGroup.position.y = 0.22;
+
+    const hitboxRingGeo = new THREE.RingGeometry(19.8, 21.6, 36);
+    hitboxRingGeo.rotateX(-Math.PI / 2);
+    const hitboxRingMat = new THREE.MeshBasicMaterial({
+      color: 0x00f2fe,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide
+    });
+    const hitboxRing = new THREE.Mesh(hitboxRingGeo, hitboxRingMat);
+    hitboxGroup.add(hitboxRing);
+
+    const hitboxFillGeo = new THREE.CircleGeometry(19.8, 24);
+    hitboxFillGeo.rotateX(-Math.PI / 2);
+    const hitboxFillMat = new THREE.MeshBasicMaterial({
+      color: 0x00d2d3,
+      transparent: true,
+      opacity: 0.12,
+      side: THREE.DoubleSide
+    });
+    const hitboxFill = new THREE.Mesh(hitboxFillGeo, hitboxFillMat);
+    hitboxGroup.add(hitboxFill);
+
+    // 4 Marcadores táticos cardeais no anel de hitbox
+    const tickGeo = new THREE.BoxGeometry(1.6, 0.4, 4.5);
+    const tickMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    for (let tIdx = 0; tIdx < 4; tIdx++) {
+      const tick = new THREE.Mesh(tickGeo, tickMat);
+      const angle = (tIdx * Math.PI) / 2;
+      tick.position.set(Math.cos(angle) * 20.7, 0.05, Math.sin(angle) * 20.7);
+      tick.rotation.y = -angle;
+      hitboxGroup.add(tick);
+    }
+    root.add(hitboxGroup);
 
     // Update animation hook
     root.updateVisuals = function(dt, player) {
       const isMoving = Math.hypot(player.vx, player.vy) > 10;
       const walk = player.walkCycle || 0;
+
+      // Pulse and update hitbox ring
+      if (player.invulnerableTimer > 0) {
+        hitboxRingMat.color.setHex(0xff4757);
+        hitboxFillMat.color.setHex(0xff4757);
+        hitboxRingMat.opacity = Math.floor(Date.now() / 100) % 2 === 0 ? 0.95 : 0.3;
+      } else {
+        hitboxRingMat.color.setHex(0x00f2fe);
+        hitboxFillMat.color.setHex(0x00d2d3);
+        hitboxRingMat.opacity = 0.75 + Math.sin(Date.now() / 350) * 0.15;
+      }
 
       // Rotate root to face direction
       bodyRoot.rotation.y = -player.facingAngle + Math.PI / 2;
@@ -1221,19 +1270,63 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       buildSkeletonModel(root, anim);
     }
 
-    // Shadow disc under enemy
-    const sRadius = enemy.radius ? enemy.radius * 0.85 : 10;
-    const shadowGeo = new THREE.CircleGeometry(sRadius, 12);
+    // 1. Sombra de contato sob o inimigo
+    const sRadius = (enemy.radius || 12) * 0.75;
+    const shadowGeo = new THREE.CircleGeometry(sRadius, 14);
     shadowGeo.rotateX(-Math.PI / 2);
-    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 });
+    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.4 });
     const shadow = new THREE.Mesh(shadowGeo, shadowMat);
-    shadow.position.y = 0.2;
+    shadow.position.y = 0.12;
     root.add(shadow);
 
-    // Collect all render meshes for zero-allocation hit flashing
+    // 2. Indicador visual da área de ataque/contato do monstro no chão (Threat Ring)
+    const attackR = Math.max(12, enemy.radius || 14);
+    const isBoss = !!enemy.isBoss;
+    const threatGroup = new THREE.Group();
+    threatGroup.position.y = 0.18;
+
+    const ringThickness = isBoss ? 3.0 : 2.0;
+    const threatRingGeo = new THREE.RingGeometry(attackR - ringThickness, attackR + 0.5, isBoss ? 32 : 22);
+    threatRingGeo.rotateX(-Math.PI / 2);
+    const threatRingMat = new THREE.MeshBasicMaterial({
+      color: isBoss ? 0xff2222 : 0xe74c3c,
+      transparent: true,
+      opacity: isBoss ? 0.9 : 0.65,
+      side: THREE.DoubleSide
+    });
+    const threatRing = new THREE.Mesh(threatRingGeo, threatRingMat);
+    threatGroup.add(threatRing);
+
+    const threatFillGeo = new THREE.CircleGeometry(attackR - ringThickness, isBoss ? 24 : 16);
+    threatFillGeo.rotateX(-Math.PI / 2);
+    const threatFillMat = new THREE.MeshBasicMaterial({
+      color: isBoss ? 0xff0000 : 0xc0392b,
+      transparent: true,
+      opacity: isBoss ? 0.22 : 0.12,
+      side: THREE.DoubleSide
+    });
+    const threatFill = new THREE.Mesh(threatFillGeo, threatFillMat);
+    threatGroup.add(threatFill);
+
+    let bossOuterRing = null;
+    if (isBoss) {
+      const bossOuterGeo = new THREE.RingGeometry(attackR * 1.15, attackR * 1.25, 32);
+      bossOuterGeo.rotateX(-Math.PI / 2);
+      const bossOuterMat = new THREE.MeshBasicMaterial({
+        color: 0xff3838,
+        transparent: true,
+        opacity: 0.55,
+        side: THREE.DoubleSide
+      });
+      bossOuterRing = new THREE.Mesh(bossOuterGeo, bossOuterMat);
+      threatGroup.add(bossOuterRing);
+    }
+    root.add(threatGroup);
+
+    // Collect all render meshes for zero-allocation hit flashing (ignoring shadows and threat indicators)
     anim.flashMeshes = [];
     root.traverse(child => {
-      if (child.isMesh && child !== shadow) {
+      if (child.isMesh && child !== shadow && !threatGroup.children.includes(child)) {
         child._origMat = child.material;
         anim.flashMeshes.push(child);
       }
@@ -1265,6 +1358,12 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       // Floating bob for witches and Death Baron
       if (anim.isHovering) {
         root.position.y = 4 + Math.sin(walk) * 2.2;
+      }
+
+      // Pulse boss danger perimeter
+      if (bossOuterRing) {
+        const pulse = 1.0 + Math.sin(Date.now() / 200) * 0.08;
+        bossOuterRing.scale.set(pulse, 1, pulse);
       }
 
       // Damage Flash (when damaged, flashes bright red)

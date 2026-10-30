@@ -239,6 +239,66 @@ class SoundEngine {
     noise.start(t);
   }
 
+  // Frasco da Peste: Estilhaço de vidro cáustico e borbulhar de ácido
+  playPlagueSplash() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+
+    // 1. Estilhaço de vidro (Impacto vítreo)
+    const glassOsc = this.ctx.createOscillator();
+    const glassGain = this.ctx.createGain();
+    glassOsc.type = 'triangle';
+    glassOsc.frequency.setValueAtTime(1450, t);
+    glassOsc.frequency.exponentialRampToValueAtTime(320, t + 0.12);
+    glassGain.gain.setValueAtTime(0.26, t);
+    glassGain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    glassOsc.connect(glassGain);
+    glassGain.connect(this.ctx.destination);
+    glassOsc.start(t);
+    glassOsc.stop(t + 0.12);
+
+    // 2. Ruído de ácido borbulhante e corrosão ácida
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.35);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.55));
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(650, t);
+    filter.frequency.exponentialRampToValueAtTime(190, t + 0.32);
+    filter.Q.setValueAtTime(3.8, t);
+
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.32, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.005, t + 0.32);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(this.ctx.destination);
+    noise.start(t);
+
+    // 3. Borbulhar grave (gurgle alquímico)
+    const bubbleOsc = this.ctx.createOscillator();
+    const bubbleGain = this.ctx.createGain();
+    bubbleOsc.type = 'sine';
+    bubbleOsc.frequency.setValueAtTime(260, t);
+    bubbleOsc.frequency.exponentialRampToValueAtTime(95, t + 0.22);
+    bubbleGain.gain.setValueAtTime(0.18, t);
+    bubbleGain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    bubbleOsc.connect(bubbleGain);
+    bubbleGain.connect(this.ctx.destination);
+    bubbleOsc.start(t);
+    bubbleOsc.stop(t + 0.22);
+  }
+
   // Aura pulse
   playAuraPulse() {
     if (this.muted) return;

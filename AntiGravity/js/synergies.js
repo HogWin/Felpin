@@ -1395,3 +1395,4 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   window.MedievalSurvivors.SupremeBlackDeathWeapon = SupremeBlackDeathWeapon;
   window.MedievalSurvivors.SupremeStellarFrostWeapon = SupremeStellarFrostWeapon;
 })();
+

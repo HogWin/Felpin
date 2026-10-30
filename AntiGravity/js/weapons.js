@@ -377,12 +377,28 @@ class HolyFireWeapon extends BaseWeapon {
     const totalCount = this.count + (player.bonusProjectiles || 0);
     const baseAngle = player.facingAngle || 0;
 
+    const living = enemies ? enemies.filter(e => e.alive) : [];
+    living.sort((a, b) => {
+      const d1 = (a.x - player.x) * (a.x - player.x) + (a.y - player.y) * (a.y - player.y);
+      const d2 = (b.x - player.x) * (b.x - player.x) + (b.y - player.y) * (b.y - player.y);
+      return d1 - d2;
+    });
+
     for (let i = 0; i < totalCount; i++) {
-      const spread = totalCount > 1 ? (i - (totalCount - 1) / 2) * 0.35 : 0;
-      const angle = baseAngle + spread + (Math.random() - 0.5) * 0.1;
-      const dist = 120 + Math.random() * 80;
-      const targetX = player.x + Math.cos(angle) * dist;
-      const targetY = player.y + Math.sin(angle) * dist;
+      let targetX, targetY;
+      if (living.length > 0) {
+        const targetEnemy = living[i % living.length];
+        const offsetAng = (i * 1.618) * Math.PI * 2;
+        const offsetDist = living.length === 1 && totalCount > 1 ? (i * 20) : (Math.random() * 14);
+        targetX = targetEnemy.x + Math.cos(offsetAng) * offsetDist;
+        targetY = targetEnemy.y + Math.sin(offsetAng) * offsetDist;
+      } else {
+        const spread = totalCount > 1 ? (i - (totalCount - 1) / 2) * 0.35 : 0;
+        const angle = baseAngle + spread + (Math.random() - 0.5) * 0.1;
+        const dist = 120 + Math.random() * 80;
+        targetX = player.x + Math.cos(angle) * dist;
+        targetY = player.y + Math.sin(angle) * dist;
+      }
 
       projectiles.push(new HolyFireFlask({
         startX: player.x,
@@ -1430,8 +1446,8 @@ class PlagueFlaskWeapon extends BaseWeapon {
   }
 
   attack(player, enemies, projectiles, particles) {
-    if (window.MedievalSurvivors.sound.playChestOpen) {
-      window.MedievalSurvivors.sound.playChestOpen();
+    if (window.MedievalSurvivors.sound.playPlagueSplash) {
+      window.MedievalSurvivors.sound.playPlagueSplash();
     }
 
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
@@ -1440,16 +1456,27 @@ class PlagueFlaskWeapon extends BaseWeapon {
     const totalCount = this.count + (player.bonusProjectiles || 0);
     const isEvo = this.level >= 8;
 
-    for (let i = 0; i < totalCount; i++) {
-      let targetX = player.x + Math.cos(player.facingAngle) * (140 + Math.random() * 80);
-      let targetY = player.y + Math.sin(player.facingAngle) * (140 + Math.random() * 80);
+    const living = enemies ? enemies.filter(e => e.alive) : [];
+    living.sort((a, b) => {
+      const d1 = (a.x - player.x) * (a.x - player.x) + (a.y - player.y) * (a.y - player.y);
+      const d2 = (b.x - player.x) * (b.x - player.x) + (b.y - player.y) * (b.y - player.y);
+      return d1 - d2;
+    });
 
-      if (enemies && enemies.length > 0) {
-        const randEnemy = enemies[Math.floor(Math.random() * Math.min(enemies.length, 12))];
-        if (randEnemy && randEnemy.alive) {
-          targetX = randEnemy.x + (Math.random() - 0.5) * 30;
-          targetY = randEnemy.y + (Math.random() - 0.5) * 30;
-        }
+    for (let i = 0; i < totalCount; i++) {
+      let targetX, targetY;
+      if (living.length > 0) {
+        const targetEnemy = living[i % living.length];
+        const offsetAng = (i * 1.618) * Math.PI * 2;
+        const offsetDist = living.length === 1 && totalCount > 1 ? (i * 18) : (Math.random() * 12);
+        targetX = targetEnemy.x + Math.cos(offsetAng) * offsetDist;
+        targetY = targetEnemy.y + Math.sin(offsetAng) * offsetDist;
+      } else {
+        const spread = totalCount > 1 ? (i - (totalCount - 1) / 2) * 0.35 : 0;
+        const ang = (player.facingAngle || 0) + spread;
+        const dist = 140 + Math.random() * 60;
+        targetX = player.x + Math.cos(ang) * dist;
+        targetY = player.y + Math.sin(ang) * dist;
       }
 
       projectiles.push(new PlagueFlask({
@@ -1500,6 +1527,9 @@ class PlagueFlask {
         this.renderHeight = 0;
         if (particles && particles.createExplosionWave) {
           particles.createExplosionWave(this.x, this.y, this.poolRadius * 0.7, '#2ed573');
+        }
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playPlagueSplash) {
+          window.MedievalSurvivors.sound.playPlagueSplash();
         }
       } else {
         const t = this.flightProgress;
@@ -2220,15 +2250,23 @@ class EldritchTomeWeapon extends BaseWeapon {
   }
 
   attack(player, enemies, projectiles, particles) {
-    if (enemies.length === 0) return;
+    if (!enemies || enemies.length === 0) return;
     const isEvo = this.level >= this.maxLevel;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const vortexRadius = 65 * this.area * player.areaMultiplier;
     const vortexCount = this.count + (player.bonusProjectiles || 0);
 
+    const living = enemies.filter(e => e.alive);
+    if (living.length === 0) return;
+    living.sort((a, b) => {
+      const d1 = (a.x - player.x) * (a.x - player.x) + (a.y - player.y) * (a.y - player.y);
+      const d2 = (b.x - player.x) * (b.x - player.x) + (b.y - player.y) * (b.y - player.y);
+      return d1 - d2;
+    });
+
     for (let v = 0; v < vortexCount; v++) {
-      const randEnemy = enemies[Math.floor(Math.random() * enemies.length)];
-      if (!randEnemy) continue;
+      const targetEnemy = living[v % living.length];
+      if (!targetEnemy) continue;
 
       projectiles.push(new VoidVortex({
         x: randEnemy.x,

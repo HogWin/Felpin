@@ -250,7 +250,7 @@ class ClassRegistry {
       stats: {
         maxHp: 105,
         armor: 1,
-        moveSpeed: 3.25,
+        moveSpeed: 2.70,
         damageMultiplier: 1.20,
         cooldownMultiplier: 0.95,
         areaMultiplier: 1.35,
