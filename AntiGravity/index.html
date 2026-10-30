@@ -392,8 +392,63 @@
       </div>
     </div>
 
+    <!-- ==================== TELA DE AUTENTICAÇÃO REAL (LOGIN / CADASTRO NEON) ==================== -->
+    <div class="modal-overlay" id="auth-modal" style="display: flex;">
+      <div class="modal-box ornate-frame auth-box">
+        <div class="ornate-corner corner-tl"></div>
+        <div class="ornate-corner corner-tr"></div>
+        <div class="ornate-corner corner-bl"></div>
+        <div class="ornate-corner corner-br"></div>
+
+        <div class="auth-header">
+          <div class="auth-emblem">🛡️</div>
+          <h1 class="auth-title">PORTÕES DE VALORIA</h1>
+          <p class="auth-subtitle">Identifique-se para cruzar os portões, salvar sua linhagem e gravar seu nome nas crônicas do Neon Cloud.</p>
+        </div>
+
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab-btn active" id="auth-tab-login">⚔️ Entrar</button>
+          <button type="button" class="auth-tab-btn" id="auth-tab-register">📜 Criar Conta</button>
+        </div>
+
+        <form id="auth-form" class="auth-form" onsubmit="return false;">
+          <div class="auth-field" id="auth-display-group" style="display: none;">
+            <label for="auth-display-name">👑 Título Nobre / Nome de Exibição</label>
+            <input type="text" id="auth-display-name" class="auth-input" placeholder="Ex: Sir Lancelot, Feiticeira Elena" maxlength="30" autocomplete="name" />
+          </div>
+
+          <div class="auth-field">
+            <label for="auth-username">👤 Nome de Guerreiro (Usuário)</label>
+            <input type="text" id="auth-username" class="auth-input" placeholder="Seu nome de combatente (mín. 3 letras)" maxlength="30" required autocomplete="username" />
+          </div>
+
+          <div class="auth-field">
+            <label for="auth-password">🗝️ Palavra-Passe (Senha)</label>
+            <input type="password" id="auth-password" class="auth-input" placeholder="Sua senha secreta (mín. 4 dígitos)" maxlength="50" required autocomplete="current-password" />
+          </div>
+
+          <div id="auth-msg-box" class="auth-msg-box" style="display: none;"></div>
+
+          <button type="button" class="btn-royal btn-epic-start" id="auth-submit-btn" style="width: 100%; margin-top: 6px; padding: 13px 20px;">
+            <span class="btn-icon">🏰</span>
+            <span id="auth-submit-text">ADENTRAR O REINO</span>
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <button type="button" class="btn-guest" id="btn-auth-guest">
+            🗡️ Entrar como Visitante Anônimo
+          </button>
+          <div class="auth-db-status">
+            <span class="status-dot"></span>
+            <span>Autenticação Integrada ao Neon Lakebase Postgres</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ==================== MODAL: Menu Principal e Central de Valoria ==================== -->
-    <div class="modal-overlay" id="main-menu-modal">
+    <div class="modal-overlay" id="main-menu-modal" style="display: none;">
       <div class="modal-box ornate-frame main-menu-box">
         <div class="ornate-corner corner-tl"></div>
         <div class="ornate-corner corner-tr"></div>
@@ -409,11 +464,17 @@
               <p class="main-tagline">Crônicas das Catacumbas de Valoria • Era da Forja Ancestral</p>
             </div>
           </div>
-          <div class="gold-vault-pill">
-            <span class="vault-label">Tesouro Real</span>
-            <div class="vault-amount">
-              <span id="menu-gold-val">0</span>
-              <span class="coin-icon">💰</span>
+          <div class="header-right-group" style="display: flex; align-items: center; gap: 14px;">
+            <div class="user-profile-pill" id="user-profile-pill" style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(241,196,15,0.4); border-radius: 20px; padding: 4px 12px;">
+              <span id="menu-user-badge" style="color: #f1c40f; font-weight: bold; font-size: 0.82rem;">👤 Visitante</span>
+              <button type="button" id="btn-switch-user" style="background: transparent; border: none; color: #ff7675; cursor: pointer; font-size: 0.75rem; text-decoration: underline;" title="Trocar combatente / Sair">Sair</button>
+            </div>
+            <div class="gold-vault-pill">
+              <span class="vault-label">Tesouro Real</span>
+              <div class="vault-amount">
+                <span id="menu-gold-val">0</span>
+                <span class="coin-icon">💰</span>
+              </div>
             </div>
           </div>
         </div>
@@ -444,6 +505,10 @@
             <span class="tab-icon">🏆</span>
             <span>Conquistas</span>
           </button>
+          <button class="tab-btn" data-tab="leaderboard">
+            <span class="tab-icon">👑</span>
+            <span>Placar Neon</span>
+          </button>
           <button class="tab-btn" data-tab="history">
             <span class="tab-icon">📊</span>
             <span>Crônicas de Batalha</span>
@@ -463,26 +528,30 @@
   </div>
 
   <!-- 3D Engine & Game Scripts -->
-  <script src="js/three.min.js?v=17"></script>
-  <script src="js/audio.js?v=17"></script>
-  <script src="js/save.js?v=17"></script>
-  <script src="js/classes.js?v=17"></script>
-  <script src="js/passives.js?v=17"></script>
-  <script src="js/weapons.js?v=17"></script>
-  <script src="js/synergies.js?v=17"></script>
-  <script src="js/entities.js?v=17"></script>
-  <script src="js/enemies.js?v=17"></script>
-  <script src="js/models3d.js?v=17"></script>
-  <script src="js/map3d.js?v=17"></script>
-  <script src="js/renderer.js?v=17"></script>
-  <script src="js/ui.js?v=17"></script>
-  <script src="js/game.js?v=17"></script>
+  <script src="js/three.min.js?v=18"></script>
+  <script src="js/audio.js?v=18"></script>
+  <script src="js/save.js?v=18"></script>
+  <script src="js/classes.js?v=18"></script>
+  <script src="js/passives.js?v=18"></script>
+  <script src="js/weapons.js?v=18"></script>
+  <script src="js/synergies.js?v=18"></script>
+  <script src="js/entities.js?v=18"></script>
+  <script src="js/enemies.js?v=18"></script>
+  <script src="js/models3d.js?v=18"></script>
+  <script src="js/map3d.js?v=18"></script>
+  <script src="js/renderer.js?v=18"></script>
+  <script src="js/ui.js?v=18"></script>
+  <script src="js/game.js?v=18"></script>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       window.MedievalSurvivors.game = new window.MedievalSurvivors.Game();
-      // Abre o menu principal de imediato para o jogador ver as novidades, forja e códice!
-      window.MedievalSurvivors.game.ui.openMainMenu('play');
+      // Inicia com autenticação nos Portões de Valoria (integrada ao Neon)
+      if (window.MedievalSurvivors.game.ui && window.MedievalSurvivors.game.ui.initAuth) {
+        window.MedievalSurvivors.game.ui.initAuth();
+      } else {
+        window.MedievalSurvivors.game.ui.openMainMenu('play');
+      }
     });
   </script>
 </body>

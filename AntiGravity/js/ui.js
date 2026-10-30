@@ -29,12 +29,15 @@ class UIController {
     this.pauseModal = document.getElementById('pause-modal');
     this.victoryModal = document.getElementById('victory-modal');
     this.mainMenuModal = document.getElementById('main-menu-modal');
+    this.authModal = document.getElementById('auth-modal');
     this.menuTabContent = document.getElementById('menu-tab-content');
 
     // Track selected class in menu
     this._menuSelectedClass = game.selectedClassId || 'knight';
+    this._authMode = 'login'; // 'login' or 'register'
 
     this.bindEvents();
+    this.bindAuthEvents();
   }
 
   bindEvents() {
@@ -142,6 +145,200 @@ class UIController {
         if (tab) this.switchMenuTab(tab);
       });
     });
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  //  NEON AUTHENTICATION SYSTEM (LOGIN & CADASTRO)
+  // ──────────────────────────────────────────────────────────────
+  bindAuthEvents() {
+    const tabLogin = document.getElementById('auth-tab-login');
+    const tabRegister = document.getElementById('auth-tab-register');
+    const displayGroup = document.getElementById('auth-display-group');
+    const submitBtn = document.getElementById('auth-submit-btn');
+    const submitText = document.getElementById('auth-submit-text');
+    const btnGuest = document.getElementById('btn-auth-guest');
+    const btnSwitchUser = document.getElementById('btn-switch-user');
+
+    if (tabLogin && tabRegister) {
+      tabLogin.addEventListener('click', () => {
+        this._authMode = 'login';
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        if (displayGroup) displayGroup.style.display = 'none';
+        if (submitText) submitText.textContent = 'ADENTRAR O REINO';
+        this.clearAuthMessage();
+      });
+
+      tabRegister.addEventListener('click', () => {
+        this._authMode = 'register';
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+        if (displayGroup) displayGroup.style.display = 'block';
+        if (submitText) submitText.textContent = 'CONSAGRAR CONTA';
+        this.clearAuthMessage();
+      });
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener('click', () => this.handleAuthSubmit());
+    }
+
+    // Support enter key on input fields
+    ['auth-username', 'auth-password', 'auth-display-name'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            this.handleAuthSubmit();
+          }
+        });
+      }
+    });
+
+    if (btnGuest) {
+      btnGuest.addEventListener('click', () => {
+        const guestUser = {
+          id: 'guest_' + Date.now(),
+          username: 'visitante',
+          displayName: 'Visitante de Valoria',
+          isGuest: true
+        };
+        localStorage.setItem('ms_auth_user', JSON.stringify(guestUser));
+        this.hideAuthModal();
+        this.updateUserBadge(guestUser);
+        this.openMainMenu('play');
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playSanctuaryActive) {
+          window.MedievalSurvivors.sound.playSanctuaryActive();
+        }
+      });
+    }
+
+    if (btnSwitchUser) {
+      btnSwitchUser.addEventListener('click', () => {
+        localStorage.removeItem('ms_auth_user');
+        this.closeMainMenu();
+        this.showAuthModal();
+      });
+    }
+  }
+
+  initAuth() {
+    const saved = localStorage.getItem('ms_auth_user');
+    if (saved) {
+      try {
+        const user = JSON.parse(saved);
+        this.hideAuthModal();
+        this.updateUserBadge(user);
+        this.openMainMenu('play');
+        return;
+      } catch (e) {
+        localStorage.removeItem('ms_auth_user');
+      }
+    }
+    this.showAuthModal();
+  }
+
+  showAuthModal() {
+    if (this.authModal) {
+      this.authModal.style.display = 'flex';
+    }
+  }
+
+  hideAuthModal() {
+    if (this.authModal) {
+      this.authModal.style.display = 'none';
+    }
+  }
+
+  updateUserBadge(user) {
+    const badge = document.getElementById('menu-user-badge');
+    if (!badge) return;
+    const name = (user && (user.displayName || user.username)) || 'Visitante';
+    badge.textContent = `👤 ${name}`;
+
+    // Update settings player name
+    if (this.game && this.game.saveManager && this.game.saveManager.data.settings) {
+      this.game.saveManager.data.settings.playerName = name;
+    }
+  }
+
+  setAuthMessage(text, isError = true) {
+    const box = document.getElementById('auth-msg-box');
+    if (!box) return;
+    box.textContent = text;
+    box.className = `auth-msg-box ${isError ? 'error' : 'success'}`;
+    box.style.display = 'block';
+  }
+
+  clearAuthMessage() {
+    const box = document.getElementById('auth-msg-box');
+    if (box) {
+      box.textContent = '';
+      box.style.display = 'none';
+    }
+  }
+
+  async handleAuthSubmit() {
+    const userEl = document.getElementById('auth-username');
+    const passEl = document.getElementById('auth-password');
+    const displayEl = document.getElementById('auth-display-name');
+    const submitBtn = document.getElementById('auth-submit-btn');
+
+    const username = userEl ? userEl.value.trim() : '';
+    const password = passEl ? passEl.value.trim() : '';
+    const displayName = displayEl ? displayEl.value.trim() : '';
+
+    if (!username || username.length < 3) {
+      this.setAuthMessage('O nome de usuário deve ter pelo menos 3 caracteres.', true);
+      return;
+    }
+    if (!password || password.length < 4) {
+      this.setAuthMessage('A palavra-passe deve ter pelo menos 4 caracteres.', true);
+      return;
+    }
+
+    const endpoint = this._authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+    const body = { username, password };
+    if (this._authMode === 'register' && displayName) {
+      body.displayName = displayName;
+    }
+
+    if (submitBtn) submitBtn.disabled = true;
+    this.setAuthMessage('Consultando portões de Valoria...', false);
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        this.setAuthMessage(data.error || 'Falha ao autenticar.', true);
+        if (submitBtn) submitBtn.disabled = false;
+        return;
+      }
+
+      this.setAuthMessage(data.message || 'Portões abertos!', false);
+      const user = data.user;
+      localStorage.setItem('ms_auth_user', JSON.stringify(user));
+
+      if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playSanctuaryComplete) {
+        window.MedievalSurvivors.sound.playSanctuaryComplete();
+      }
+
+      setTimeout(() => {
+        if (submitBtn) submitBtn.disabled = false;
+        this.hideAuthModal();
+        this.updateUserBadge(user);
+        this.openMainMenu('play');
+      }, 550);
+    } catch (err) {
+      this.setAuthMessage('Servidor de autenticação offline. Você pode entrar como Visitante.', true);
+      if (submitBtn) submitBtn.disabled = false;
+    }
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -820,6 +1017,7 @@ class UIController {
       case 'synergies': this.renderSynergiesTab(); break;
       case 'codex':     this.renderCodexTab();     break;
       case 'achievements': this.renderAchievementsTab(); break;
+      case 'leaderboard':  this.renderLeaderboardTab();  break;
       case 'history':   this.renderHistoryTab();   break;
       case 'settings':  this.renderSettingsTab();  break;
       default:          this.renderPlayTab();
@@ -1671,6 +1869,115 @@ class UIController {
         this.renderAchievementsTab(f);
       });
     });
+  }
+
+  // ── TAB: Placar Global Neon ──────────────────────────────────
+  renderLeaderboardTab() {
+    this.menuTabContent.innerHTML = `
+      <div class="leaderboard-tab-view" style="max-width: 820px; margin: 0 auto; padding: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(241,196,15,0.3); padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h2 style="font-family: Cinzel, Georgia, serif; color: #f1c40f; margin: 0; font-size: 1.3rem;">👑 Salão dos Heróis de Valoria</h2>
+            <p style="margin: 4px 0 0; color: #a4b0be; font-size: 0.85rem;">Placar Global sincronizado em tempo real via Neon Lakebase Postgres</p>
+          </div>
+          <div id="neon-live-badge" style="background: rgba(46, 213, 115, 0.15); border: 1px solid #2ed573; color: #2ed573; padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #2ed573; box-shadow: 0 0 8px #2ed573;"></span>
+            Neon Cloud: Conectado
+          </div>
+        </div>
+
+        <div id="neon-leaderboard-container">
+          <div style="text-align: center; padding: 40px; color: #bdc3c7;">
+            <div style="font-size: 1.5rem; margin-bottom: 8px;">⏳</div>
+            Consultando registros no Neon Postgres...
+          </div>
+        </div>
+      </div>
+    `;
+
+    fetch('/api/leaderboard?limit=15')
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById('neon-leaderboard-container');
+        if (!container) return;
+
+        if (!data.success || !data.scores || data.scores.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 40px; background: rgba(0,0,0,0.3); border: 1px dashed rgba(241,196,15,0.4); border-radius: 8px; color: #bdc3c7;">
+              <div style="font-size: 2rem; margin-bottom: 10px;">🛡️</div>
+              Nenhuma crônica registrada no reino ainda.<br>
+              Complete uma batalha para imortalizar seu nome no banco de dados Neon!
+            </div>
+          `;
+          return;
+        }
+
+        const rows = data.scores.map((s, idx) => {
+          const rankColor = idx === 0 ? '#f1c40f' : (idx === 1 ? '#dfe4ea' : (idx === 2 ? '#e17055' : '#a4b0be'));
+          const rankIcon = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `#${idx + 1}`));
+          const mins = Math.floor(s.time_survived_seconds / 60);
+          const secs = s.time_survived_seconds % 60;
+          const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+          const isHyper = s.hyper_mode ? `<span style="background: rgba(231,76,60,0.25); border: 1px solid #e74c3c; color: #ff7675; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; margin-right: 4px;">⚡ Hiper</span>` : '';
+          const curseBadge = s.curse_rank > 0 ? `<span style="background: rgba(142,68,173,0.25); border: 1px solid #9b59b6; color: #d980fa; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">💀 P${s.curse_rank}</span>` : '';
+
+          const safeName = String(s.player_name).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const safeClass = String(s.class_id).toUpperCase();
+
+          return `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+              <td style="padding: 10px 8px; font-weight: bold; color: ${rankColor}; text-align: center; font-size: 1rem;">${rankIcon}</td>
+              <td style="padding: 10px 8px; font-weight: bold; color: #ffffff;">${safeName}</td>
+              <td style="padding: 10px 8px; color: #ced6e0; font-size: 0.85rem;">${safeClass}</td>
+              <td style="padding: 10px 8px; font-weight: bold; color: #2ed573;">⏱️ ${timeStr}</td>
+              <td style="padding: 10px 8px; color: #eccc68;">Nvl ${s.level}</td>
+              <td style="padding: 10px 8px; color: #ff6b81;">💀 ${s.kills}</td>
+              <td style="padding: 10px 8px; color: #ffa502;">💰 ${s.gold}</td>
+              <td style="padding: 10px 8px;">${isHyper} ${curseBadge}</td>
+            </tr>
+          `;
+        }).join('');
+
+        container.innerHTML = `
+          <div style="overflow-x: auto; background: rgba(0,0,0,0.35); border: 1px solid rgba(241,196,15,0.25); border-radius: 8px;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 2px solid rgba(241,196,15,0.4); color: #f1c40f; font-family: Cinzel, Georgia, serif; font-size: 0.82rem; background: rgba(0,0,0,0.3);">
+                  <th style="padding: 10px 8px; text-align: center; width: 50px;">Pos</th>
+                  <th style="padding: 10px 8px;">Combatente</th>
+                  <th style="padding: 10px 8px;">Classe</th>
+                  <th style="padding: 10px 8px;">Tempo</th>
+                  <th style="padding: 10px 8px;">Nível</th>
+                  <th style="padding: 10px 8px;">Abates</th>
+                  <th style="padding: 10px 8px;">Ouro</th>
+                  <th style="padding: 10px 8px;">Modificadores</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          </div>
+        `;
+      })
+      .catch(err => {
+        const container = document.getElementById('neon-leaderboard-container');
+        const badge = document.getElementById('neon-live-badge');
+        if (badge) {
+          badge.style.borderColor = '#e74c3c';
+          badge.style.color = '#e74c3c';
+          badge.style.background = 'rgba(231,76,60,0.15)';
+          badge.innerHTML = '⚠️ Neon Cloud: Local/Offline';
+        }
+        if (container) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 30px; background: rgba(231,76,60,0.1); border: 1px dashed rgba(231,76,60,0.4); border-radius: 8px; color: #ff7675;">
+              Não foi possível sincronizar o placar online com o Neon neste momento.<br>
+              Inicie o servidor local com <code>npm start</code> para sincronização instantânea.
+            </div>
+          `;
+        }
+      });
   }
 
   // ── TAB: Opções ──────────────────────────────────────────────

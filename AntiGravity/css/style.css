@@ -3073,3 +3073,173 @@ body, html {
 .modifiers-summary-ribbon .sum-item.tempo {
   color: #f1c40f;
 }
+
+/* ==================== MEDIEVAL AUTHENTICATION MODAL ==================== */
+.auth-box {
+  max-width: 480px;
+  width: 90%;
+  background: radial-gradient(ellipse at 50% -10%, #291d3d 0%, #150f24 50%, #0a0612 100%);
+  padding: 30px 34px;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(241, 196, 15, 0.25);
+  animation: fadeInModal 0.35s ease;
+  position: relative;
+  text-align: center;
+}
+
+.auth-header {
+  margin-bottom: 20px;
+}
+
+.auth-emblem {
+  font-size: 2.8rem;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 0 12px rgba(241, 196, 15, 0.5));
+  animation: pulseAura 3s infinite alternate ease-in-out;
+}
+
+.auth-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.6rem;
+  color: #f1c40f;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8), 0 0 16px rgba(241,196,15,0.4);
+  letter-spacing: 2px;
+}
+
+.auth-subtitle {
+  font-size: 0.85rem;
+  color: #a4b0be;
+  margin: 6px 0 0;
+  line-height: 1.4;
+}
+
+.auth-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(241, 196, 15, 0.3);
+  border-radius: 6px;
+  padding: 3px;
+  margin-bottom: 20px;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #a4b0be;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-tab-btn.active {
+  background: linear-gradient(135deg, rgba(241, 196, 15, 0.3), rgba(212, 160, 23, 0.5));
+  color: #fff;
+  border: 1px solid rgba(241, 196, 15, 0.6);
+  box-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.auth-field label {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  color: #eccc68;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.auth-input {
+  width: 100%;
+  background: rgba(10, 7, 18, 0.85);
+  border: 1px solid rgba(241, 196, 15, 0.35);
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 5px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.25s ease;
+}
+
+.auth-input:focus {
+  border-color: #f1c40f;
+  box-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
+  background: rgba(18, 12, 32, 0.95);
+}
+
+.auth-msg-box {
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.auth-msg-box.error {
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid #e74c3c;
+  color: #ff7675;
+}
+
+.auth-msg-box.success {
+  background: rgba(46, 213, 115, 0.2);
+  border: 1px solid #2ed573;
+  color: #2ed573;
+}
+
+.auth-footer {
+  margin-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-guest {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  color: #dfe4ea;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-guest:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #f1c40f;
+  color: #f1c40f;
+}
+
+.auth-db-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: #747d8c;
+}
+
+.auth-db-status .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2ed573;
+  box-shadow: 0 0 6px #2ed573;
+}

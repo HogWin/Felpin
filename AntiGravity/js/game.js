@@ -546,6 +546,7 @@ class Game {
     if (this.saveManager) {
       this.saveManager.checkAchievements('run_victory', null, this);
     }
+    this.submitRunToNeon();
     this.ui.showVictory(this.player, this.gameTime, bonusGold);
   }
 
@@ -745,6 +746,7 @@ class Game {
         outcome: 'DERROTA'
       });
 
+      this.submitRunToNeon();
       this.ui.showGameOver(this.player, this.gameTime);
       return;
     }
@@ -756,6 +758,32 @@ class Game {
       }
       this.state = 'LEVEL_UP';
       this.ui.showLevelUpModal(this.player);
+    }
+  }
+
+  submitRunToNeon() {
+    if (!this.player) return;
+    try {
+      const payload = {
+        playerName: (this.saveManager && this.saveManager.data.settings && this.saveManager.data.settings.playerName) || 'Guerreiro de Valoria',
+        classId: this.player.classDef.id,
+        timeSurvived: Math.floor(this.gameTime),
+        level: this.player.level,
+        kills: this.player.killCount,
+        gold: this.player.gold,
+        hyperMode: !!this.hyperMode,
+        curseRank: this.curseRank || 0
+      };
+
+      fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(() => {
+        // Silent catch for offline runs
+      });
+    } catch (e) {
+      // Ignored
     }
   }
 }
