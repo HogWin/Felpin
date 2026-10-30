@@ -27,8 +27,10 @@ function ensureDbInit() {
   return initDbPromise;
 }
 
+const DEFAULT_AUTH_BASE = "https://ep-proud-fog-b6nfc99w.neonauth.c-2.sa-east-1.aws.neon.tech/neondb/auth";
+
 app.use(async (req, res, next) => {
-  if (req.path.startsWith('/api') && process.env.DATABASE_URL) {
+  if (req.path.startsWith('/api')) {
     try {
       await ensureDbInit();
     } catch (e) {
@@ -46,14 +48,15 @@ app.use(express.static(staticPath));
 app.get('/api/health', async (req, res) => {
   try {
     const health = await db.checkHealth();
+    const authUrl = process.env.NEON_AUTH_BASE_URL || DEFAULT_AUTH_BASE;
     res.json({
       status: 'ok',
       service: 'Medieval Survivors Backend',
       postgres: health,
       auth: {
-        enabled: Boolean(process.env.NEON_AUTH_BASE_URL),
-        baseUrl: process.env.NEON_AUTH_BASE_URL || null,
-        jwksUrl: process.env.NEON_AUTH_JWKS_URL || null
+        enabled: Boolean(authUrl),
+        baseUrl: authUrl,
+        jwksUrl: `${authUrl}/.well-known/jwks.json`
       }
     });
   } catch (err) {
@@ -63,9 +66,10 @@ app.get('/api/health', async (req, res) => {
 
 // API 2: Auth configuration for client-side identity
 app.get('/api/auth/config', (req, res) => {
+  const authUrl = process.env.NEON_AUTH_BASE_URL || DEFAULT_AUTH_BASE;
   res.json({
-    authBaseUrl: process.env.NEON_AUTH_BASE_URL || null,
-    jwksUrl: process.env.NEON_AUTH_JWKS_URL || null,
+    authBaseUrl: authUrl,
+    jwksUrl: `${authUrl}/.well-known/jwks.json`,
     branch: process.env.NEON_BRANCH || 'production'
   });
 });

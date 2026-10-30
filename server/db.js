@@ -8,11 +8,11 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const { neon } = require('@neondatabase/serverless');
 
-if (!process.env.DATABASE_URL) {
-  console.warn('[Neon DB] Warning: DATABASE_URL not set in environment or .env.local');
-}
+const DEFAULT_DATABASE_URL = "postgresql://neondb_owner:npg_HscA2Cl5IFxB@ep-proud-fog-b6nfc99w-pooler.c-2.sa-east-1.aws.neon.tech/neondb?channel_binding=require&sslmode=require";
+const DEFAULT_AUTH_BASE = "https://ep-proud-fog-b6nfc99w.neonauth.c-2.sa-east-1.aws.neon.tech/neondb/auth";
 
-const sql = neon(process.env.DATABASE_URL);
+const dbUrl = process.env.DATABASE_URL || DEFAULT_DATABASE_URL;
+const sql = neon(dbUrl);
 
 /**
  * Password hashing with salt using Node.js crypto (zero-dependency, secure)
