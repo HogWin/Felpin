@@ -24,10 +24,27 @@ class BaseEnemy {
     this.alive = true;
     this.isBoss = config.isBoss || false;
     this.bossTier = config.bossTier || 1;
+    this.isChampion = config.isChampion || false;
+    this.isEnraged = false;
     this.walkCycle = Math.random() * Math.PI * 2;
     this.knockbackX = 0;
     this.knockbackY = 0;
     this.dropChest = config.dropChest || false;
+
+    // Apply active battle modifiers (Hyper Mode & Curse Pact)
+    const game = window.MedievalSurvivors && window.MedievalSurvivors.game;
+    if (game) {
+      if (game.hyperMode) {
+        this.speed = Math.round(this.speed * 1.30);
+      }
+      if (game.curseRank > 0) {
+        const curseMult = 1.0 + (game.curseRank * 0.12);
+        this.maxHp = Math.round(this.maxHp * curseMult);
+        this.hp = this.maxHp;
+        this.damage = Math.round(this.damage * curseMult);
+        this.speed = Math.round(this.speed * (1.0 + game.curseRank * 0.05));
+      }
+    }
   }
 
   takeDamage(amount, hitDirX = 0, hitDirY = 0, knockbackForce = 0) {
@@ -35,8 +52,20 @@ class BaseEnemy {
     const actualDamage = Math.max(1, amount);
     this.hp -= actualDamage;
 
-    // Bosses have heavy knockback resistance
-    const kbResistance = this.isBoss ? 0.15 : 1.0;
+    // Boss Enrage Mechanic: triggers below 35% HP
+    if (this.isBoss && !this.isEnraged && this.hp <= this.maxHp * 0.35 && this.hp > 0) {
+      this.isEnraged = true;
+      this.speed = Math.round(this.speed * 1.25);
+      if (window.MedievalSurvivors.game) {
+        window.MedievalSurvivors.game.addFloatingText(this.x, this.y - 32, '⚡ FÚRIA OBSCURA! ⚡', '#ff3838', true);
+        if (window.MedievalSurvivors.game.renderer) {
+          window.MedievalSurvivors.game.renderer.triggerShake(10, 0.45);
+        }
+      }
+    }
+
+    // Bosses have heavy knockback resistance; enraged bosses are completely immune to knockback
+    const kbResistance = (this.isBoss && this.isEnraged) ? 0.0 : (this.isBoss ? 0.15 : 1.0);
     this.knockbackX = hitDirX * knockbackForce * kbResistance * 25;
     this.knockbackY = hitDirY * knockbackForce * kbResistance * 25;
 
@@ -54,6 +83,11 @@ class BaseEnemy {
     if (this.hp <= 0) {
       this.hp = 0;
       this.alive = false;
+      if (this.isBoss && window.MedievalSurvivors.game && window.MedievalSurvivors.game.triggerHitStop) {
+        window.MedievalSurvivors.game.triggerHitStop(0.075);
+      }
+    } else if (this.isBoss && actualDamage >= 40 && window.MedievalSurvivors.game && window.MedievalSurvivors.game.triggerHitStop) {
+      window.MedievalSurvivors.game.triggerHitStop(0.025);
     }
 
     return actualDamage;
@@ -78,21 +112,32 @@ class BaseEnemy {
     // Separation from nearby enemies using spatial grid / squared distance (O(1) cell lookup)
     if (!this.isBoss) {
       const game = window.MedievalSurvivors.game;
-      const neighbors = (game && game.getNearbyEnemies) ? game.getNearbyEnemies(this.x, this.y, 45) : allEnemies;
-      for (let i = 0, len = neighbors.length; i < len; i++) {
-        const other = neighbors[i];
-        if (other === this || !other.alive) continue;
-        const ox = this.x - other.x;
-        const oy = this.y - other.y;
-        const minDist = this.radius + other.radius;
-        const dSq = ox * ox + oy * oy;
-        if (dSq > 0 && dSq < minDist * minDist) {
-          const d = Math.sqrt(dSq);
-          const push = ((minDist - d) / minDist) * 45;
-          moveX += (ox / d) * push;
-          moveY += (oy / d) * push;
+      // Interleave separation calculations across frames to halve CPU time spent in separation math
+      if ((this.id + (game ? game.frameCount : 0)) % 2 === 0) {
+        let sepX = 0;
+        let sepY = 0;
+        const neighbors = (game && game.getNearbyEnemies) ? game.getNearbyEnemies(this.x, this.y, 45) : allEnemies;
+        // Cap neighbor checks to at most 6 nearby entities to avoid N^2 crowding stalls
+        const maxChecks = Math.min(neighbors.length, 6);
+        for (let i = 0; i < maxChecks; i++) {
+          const other = neighbors[i];
+          if (other === this || !other.alive) continue;
+          const ox = this.x - other.x;
+          const oy = this.y - other.y;
+          const minDist = this.radius + other.radius;
+          const dSq = ox * ox + oy * oy;
+          if (dSq > 0 && dSq < minDist * minDist) {
+            const d = Math.sqrt(dSq);
+            const push = ((minDist - d) / minDist) * 45;
+            sepX += (ox / d) * push;
+            sepY += (oy / d) * push;
+          }
         }
+        this._lastSepX = sepX;
+        this._lastSepY = sepY;
       }
+      moveX += (this._lastSepX || 0);
+      moveY += (this._lastSepY || 0);
     }
 
     this.vx = moveX;
@@ -124,6 +169,26 @@ class BaseEnemy {
     ctx.ellipse(0, this.radius * 0.9, this.radius * 0.85, this.radius * 0.35, 0, 0, Math.PI * 2);
     ctx.fill();
 
+    // Champion Elite Aura
+    if (this.isChampion) {
+      const pulse = Math.sin(Date.now() / 140) * 3;
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.75)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.ellipse(0, this.radius * 0.9, (this.radius + 6 + pulse) * 0.85, (this.radius + 6 + pulse) * 0.35, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Boss Enrage Aura (Pulsing crimson infernal circle)
+    if (this.isBoss && this.isEnraged) {
+      const pulse = Math.sin(Date.now() / 90) * 4;
+      ctx.strokeStyle = 'rgba(255, 23, 68, 0.85)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(0, this.radius * 0.9, (this.radius + 10 + pulse) * 0.85, (this.radius + 10 + pulse) * 0.35, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
     // Determine facing direction (1 for right, -1 for left)
     const facingX = (this.vx > 0.05 ? 1 : (this.vx < -0.05 ? -1 : (this.facingDir || 1)));
     this.facingDir = facingX;
@@ -133,24 +198,32 @@ class BaseEnemy {
     this.renderCustom(ctx);
     ctx.restore();
 
+    // Champion Title
+    if (this.isChampion && !this.isBoss && this.hp > 0) {
+      ctx.fillStyle = '#f1c40f';
+      ctx.font = 'bold 11px Cinzel, Georgia';
+      ctx.textAlign = 'center';
+      ctx.fillText('★ ELITE ★', 0, -this.radius - 8);
+    }
+
     // Boss Health Bar above head
     if (this.isBoss && this.hp > 0) {
       const barW = Math.max(70, this.radius * 2.2);
       const barH = 7;
       ctx.fillStyle = 'rgba(0,0,0,0.8)';
       ctx.fillRect(-barW / 2, -this.radius - 20, barW, barH);
-      ctx.fillStyle = '#e74c3c';
+      ctx.fillStyle = this.isEnraged ? '#ff1744' : '#e74c3c';
       const pct = Math.max(0, this.hp / this.maxHp);
       ctx.fillRect(-barW / 2, -this.radius - 20, barW * pct, barH);
-      ctx.strokeStyle = '#f1c40f';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = this.isEnraged ? '#ff5252' : '#f1c40f';
+      ctx.lineWidth = this.isEnraged ? 2.5 : 1.5;
       ctx.strokeRect(-barW / 2, -this.radius - 20, barW, barH);
 
       // Boss Name above bar
-      ctx.fillStyle = '#f1c40f';
+      ctx.fillStyle = this.isEnraged ? '#ff5252' : '#f1c40f';
       ctx.font = 'bold 11px Cinzel, Georgia';
       ctx.textAlign = 'center';
-      ctx.fillText(this.name, 0, -this.radius - 24);
+      ctx.fillText(this.isEnraged ? `⚡ ${this.name} (FURIOSO) ⚡` : this.name, 0, -this.radius - 24);
     }
 
     ctx.restore();
@@ -167,15 +240,15 @@ class BaseEnemy {
 
 // 1. RATO DA PESTE (Plague Rat)
 class PlagueRatEnemy extends BaseEnemy {
-  constructor(x, y, scaling = 1.0) {
+  constructor(x, y, scaling = 1.0, dmgScaling = 1.0) {
     super({
       type: 'rat',
       name: 'Rato da Peste',
       x, y,
       hp: Math.round(18 * scaling),
-      damage: 8,
+      damage: Math.round(8 * dmgScaling),
       speed: 105,
-      radius: 12,
+      radius: 17,
       xpValue: 1,
       color: '#555555'
     });
@@ -251,15 +324,15 @@ class PlagueRatEnemy extends BaseEnemy {
 
 // 2. ESQUELETO RENEGADO (Skeleton Footman)
 class SkeletonEnemy extends BaseEnemy {
-  constructor(x, y, scaling = 1.0) {
+  constructor(x, y, scaling = 1.0, dmgScaling = 1.0) {
     super({
       type: 'skeleton',
       name: 'Esqueleto Renegado',
       x, y,
       hp: Math.round(40 * scaling),
-      damage: 12,
+      damage: Math.round(12 * dmgScaling),
       speed: 72,
-      radius: 16,
+      radius: 22,
       xpValue: 5,
       color: '#ecf0f1'
     });
@@ -336,15 +409,15 @@ class SkeletonEnemy extends BaseEnemy {
 
 // 3. ALDEÃO AMALDIÇOADO (Possessed Villager / Zombie)
 class CursedVillagerEnemy extends BaseEnemy {
-  constructor(x, y, scaling = 1.0) {
+  constructor(x, y, scaling = 1.0, dmgScaling = 1.0) {
     super({
       type: 'villager',
       name: 'Aldeão Amaldiçoado',
       x, y,
       hp: Math.round(75 * scaling),
-      damage: 16,
+      damage: Math.round(16 * dmgScaling),
       speed: 55,
-      radius: 19,
+      radius: 26,
       xpValue: 5,
       color: '#27ae60'
     });
@@ -425,15 +498,15 @@ class CursedVillagerEnemy extends BaseEnemy {
 
 // 4. CAVALEIRO NEGRO (Dark Armored Knight)
 class DarkKnightEnemy extends BaseEnemy {
-  constructor(x, y, scaling = 1.0) {
+  constructor(x, y, scaling = 1.0, dmgScaling = 1.0) {
     super({
       type: 'dark_knight',
       name: 'Cavaleiro Negro',
       x, y,
       hp: Math.round(180 * scaling),
-      damage: 24,
+      damage: Math.round(24 * dmgScaling),
       speed: 62,
-      radius: 22,
+      radius: 30,
       xpValue: 25,
       color: '#2c3e50'
     });
@@ -517,18 +590,19 @@ class DarkKnightEnemy extends BaseEnemy {
 
 // 5. BRUXA DA PESTE (Plague Witch - Ranged)
 class WitchEnemy extends BaseEnemy {
-  constructor(x, y, scaling = 1.0) {
+  constructor(x, y, scaling = 1.0, dmgScaling = 1.0) {
     super({
       type: 'witch',
       name: 'Bruxa da Peste',
       x, y,
       hp: Math.round(55 * scaling),
-      damage: 10,
+      damage: Math.round(10 * dmgScaling),
       speed: 58,
-      radius: 16,
+      radius: 22,
       xpValue: 25,
       color: '#8e44ad'
     });
+    this.dmgScaling = dmgScaling;
     this.shootTimer = 2.0;
   }
 
@@ -546,7 +620,7 @@ class WitchEnemy extends BaseEnemy {
         y: this.y,
         angle: angle,
         speed: 180,
-        damage: 14,
+        damage: Math.round(14 * this.dmgScaling),
         color: '#9b59b6'
       }));
     }
@@ -641,6 +715,16 @@ class EnemyProjectile {
     this.life = 4.0;
     // Boss and Mini-Boss projectiles cannot be cancelled/deflected by player weapons!
     this.unblockable = Boolean(cfg.unblockable);
+
+    // Apply active battle modifiers
+    const game = window.MedievalSurvivors && window.MedievalSurvivors.game;
+    if (game) {
+      if (game.hyperMode) this.speed *= 1.25;
+      if (game.curseRank > 0) {
+        this.speed *= (1.0 + game.curseRank * 0.08);
+        this.damage = Math.round(this.damage * (1.0 + game.curseRank * 0.12));
+      }
+    }
   }
 
   update(dt, player, particles, playerProjectiles = []) {
@@ -797,7 +881,7 @@ class ExecutionerBoss extends BaseEnemy {
       hp: Math.round(1400 * scaling),
       damage: 28,
       speed: 78,
-      radius: 34,
+      radius: 46,
       xpValue: 100,
       isBoss: true,
       bossTier: 1,
@@ -812,12 +896,15 @@ class ExecutionerBoss extends BaseEnemy {
 
   update(dt, player, allEnemies, enemyProjectiles) {
     if (!this.alive) return;
-    this.walkCycle += dt * 6;
+    this.walkCycle += dt * (this.isEnraged ? 8.5 : 6);
+
+    const chargeSpd = this.isEnraged ? 310 : 240;
+    const cooldownTime = this.isEnraged ? 2.6 : 5.0;
 
     if (this.isCharging) {
       this.chargeDuration -= dt;
-      this.x += this.chargeDirX * 240 * dt;
-      this.y += this.chargeDirY * 240 * dt;
+      this.x += this.chargeDirX * chargeSpd * dt;
+      this.y += this.chargeDirY * chargeSpd * dt;
 
       // Heavy collision during charge
       const dist = Math.hypot(player.x - this.x, player.y - this.y);
@@ -827,7 +914,7 @@ class ExecutionerBoss extends BaseEnemy {
 
       if (this.chargeDuration <= 0) {
         this.isCharging = false;
-        this.chargeCooldown = 5.0;
+        this.chargeCooldown = cooldownTime;
       }
       return;
     }
@@ -836,7 +923,7 @@ class ExecutionerBoss extends BaseEnemy {
     if (this.chargeCooldown <= 0) {
       // Wind up and charge towards player!
       this.isCharging = true;
-      this.chargeDuration = 1.0;
+      this.chargeDuration = this.isEnraged ? 1.2 : 1.0;
       const dx = player.x - this.x;
       const dy = player.y - this.y;
       const d = Math.hypot(dx, dy) || 1;
@@ -923,7 +1010,7 @@ class StoneGolemBoss extends BaseEnemy {
       hp: Math.round(3200 * scaling),
       damage: 35,
       speed: 48,
-      radius: 44,
+      radius: 56,
       xpValue: 100,
       isBoss: true,
       bossTier: 2,
@@ -936,18 +1023,21 @@ class StoneGolemBoss extends BaseEnemy {
     if (!this.alive) return;
     this.stompTimer -= dt;
 
+    const stompCooldown = this.isEnraged ? 2.8 : 5.5;
+    const shardCount = this.isEnraged ? 12 : 8;
+
     if (this.stompTimer <= 0) {
-      this.stompTimer = 5.5;
-      // Stomp shockwave: fire 8 radial stone shards (Unblockable Mini-Boss Projectiles!)
-      for (let i = 0; i < 8; i++) {
-        const ang = (i / 8) * Math.PI * 2;
+      this.stompTimer = stompCooldown;
+      // Stomp shockwave: fire radial stone shards (Unblockable Mini-Boss Projectiles!)
+      for (let i = 0; i < shardCount; i++) {
+        const ang = (i / shardCount) * Math.PI * 2;
         enemyProjectiles.push(new EnemyProjectile({
           x: this.x,
           y: this.y,
           angle: ang,
-          speed: 160,
-          damage: 18,
-          color: '#7f8c8d',
+          speed: this.isEnraged ? 195 : 160,
+          damage: this.isEnraged ? 24 : 18,
+          color: this.isEnraged ? '#e17055' : '#7f8c8d',
           unblockable: true
         }));
       }
@@ -1013,7 +1103,7 @@ class DeathBaronBoss extends BaseEnemy {
       hp: Math.round(6000 * scaling),
       damage: 42,
       speed: 68,
-      radius: 46,
+      radius: 58,
       xpValue: 100,
       isBoss: true,
       bossTier: 3,
@@ -1026,18 +1116,21 @@ class DeathBaronBoss extends BaseEnemy {
     if (!this.alive) return;
     this.spellTimer -= dt;
 
+    const spellCooldown = this.isEnraged ? 2.0 : 4.0;
+    const orbCount = this.isEnraged ? 18 : 12;
+
     if (this.spellTimer <= 0) {
-      this.spellTimer = 4.0;
+      this.spellTimer = spellCooldown;
       // Spiral dark magic volley (Unblockable Boss Projectiles!)
-      for (let i = 0; i < 12; i++) {
-        const ang = (i / 12) * Math.PI * 2 + (Date.now() / 1000);
+      for (let i = 0; i < orbCount; i++) {
+        const ang = (i / orbCount) * Math.PI * 2 + (Date.now() / 1000);
         enemyProjectiles.push(new EnemyProjectile({
           x: this.x,
           y: this.y,
           angle: ang,
-          speed: 175,
-          damage: 22,
-          color: '#e056fd',
+          speed: this.isEnraged ? 200 : 175,
+          damage: this.isEnraged ? 28 : 22,
+          color: this.isEnraged ? '#ff4757' : '#e056fd',
           unblockable: true
         }));
       }
@@ -1131,7 +1224,8 @@ class WaveDirector {
   constructor() {
     this.gameTime = 0;
     this.spawnTimer = 0;
-    this.maxActiveRegularEnemies = 160;
+    this.maxActiveRegularEnemies = 180;
+    this.currentSpawnScale = 0.3;
     this.bossEvents = [
       { time: 60, type: 'executioner', name: 'O Carrasco Carmesim', spawned: false },
       { time: 180, type: 'golem', name: 'Golem das Catacumbas', spawned: false },
@@ -1147,8 +1241,16 @@ class WaveDirector {
   reset() {
     this.gameTime = 0;
     this.spawnTimer = 0;
+    this.currentSpawnScale = 0.3;
     this.bossEvents.forEach(b => b.spawned = false);
     this.lastRecurringBossTime = 840;
+  }
+
+  getSpawnScale() {
+    // Escala gradual de 0.3 (no início, 0s) até 1.0 (aos 10 minutos, 600s)
+    const t = Math.max(0, this.gameTime);
+    if (t >= 600) return 1.0;
+    return 0.3 + (0.7 * (t / 600));
   }
 
   update(dt, player, enemies, onBossSpawn) {
@@ -1171,15 +1273,30 @@ class WaveDirector {
       this.spawnBoss(chosen, player, enemies, onBossSpawn);
     }
 
-    // Dynamic spawn rate scaled for continuous survival progression
-    const interval = Math.max(0.14, 0.72 - (this.gameTime / 450));
+    // Escala gradual de spawn: 0.3 no início subindo até 1.0 aos 10 minutos (600s)
+    const spawnScale = this.getSpawnScale();
+    this.currentSpawnScale = spawnScale;
+    const progress01 = (spawnScale - 0.3) / 0.7; // Varia suavemente de 0.0 até 1.0
+
+    const game = window.MedievalSurvivors && window.MedievalSurvivors.game;
+    const isHyper = game && game.hyperMode;
+
+    // Limite máximo de inimigos ativos escalado gradativamente (de 54 até 180 monstros, +35% em Modo Hiper)
+    const baseCap = Math.round(this.maxActiveRegularEnemies * spawnScale);
+    const activeCap = isHyper ? Math.round(baseCap * 1.35) : baseCap;
+
+    // Intervalo de spawn: de 1.15s (no início) diminuindo suavemente até 0.20s (aos 10 min)
+    let interval = 1.15 - (0.95 * progress01);
+    if (isHyper) interval *= 0.65; // 35% mais rápido em Modo Hiper!
 
     if (this.spawnTimer >= interval) {
       this.spawnTimer = 0;
-      if (enemies.length >= this.maxActiveRegularEnemies) return;
-      const count = 1 + Math.floor(this.gameTime / 65);
+      if (enemies.length >= activeCap) return;
+      // Quantidade de inimigos gerados por pulso: 1 no início aumentando gradualmente até 5 (+25% em Modo Hiper)
+      const baseCount = Math.max(1, Math.round(1 + progress01 * 4));
+      const count = isHyper ? Math.round(baseCount * 1.25) : baseCount;
       for (let i = 0; i < count; i++) {
-        if (enemies.length >= this.maxActiveRegularEnemies) break;
+        if (enemies.length >= activeCap) break;
         this.spawnRegularEnemy(player, enemies);
       }
     }
@@ -1198,7 +1315,8 @@ class WaveDirector {
     y = Math.max(-spawnLimit, Math.min(spawnLimit, y));
 
     const t = this.gameTime;
-    const hpScaling = 1.0 + (t / 180);
+    const hpScaling = Math.pow(1.0 + (t / 180), 1.35);
+    const dmgScaling = 1.0 + (t / 240);
 
     // Enemy pool unlocked over time
     const pool = ['rat'];
@@ -1211,12 +1329,22 @@ class WaveDirector {
 
     let enemy;
     switch (choice) {
-      case 'rat': enemy = new PlagueRatEnemy(x, y, hpScaling); break;
-      case 'skeleton': enemy = new SkeletonEnemy(x, y, hpScaling); break;
-      case 'villager': enemy = new CursedVillagerEnemy(x, y, hpScaling); break;
-      case 'witch': enemy = new WitchEnemy(x, y, hpScaling); break;
-      case 'dark_knight': enemy = new DarkKnightEnemy(x, y, hpScaling); break;
-      default: enemy = new PlagueRatEnemy(x, y, hpScaling); break;
+      case 'rat': enemy = new PlagueRatEnemy(x, y, hpScaling, dmgScaling); break;
+      case 'skeleton': enemy = new SkeletonEnemy(x, y, hpScaling, dmgScaling); break;
+      case 'villager': enemy = new CursedVillagerEnemy(x, y, hpScaling, dmgScaling); break;
+      case 'witch': enemy = new WitchEnemy(x, y, hpScaling, dmgScaling); break;
+      case 'dark_knight': enemy = new DarkKnightEnemy(x, y, hpScaling, dmgScaling); break;
+      default: enemy = new PlagueRatEnemy(x, y, hpScaling, dmgScaling); break;
+    }
+
+    // Elite Champion Monster (2.5x HP, +25% size, +35% damage, 4x XP, golden runic aura)
+    if (t > 40 && Math.random() < 0.045) {
+      enemy.isChampion = true;
+      enemy.hp = Math.round(enemy.hp * 2.5);
+      enemy.maxHp = enemy.hp;
+      enemy.radius = Math.round(enemy.radius * 1.25);
+      enemy.damage = Math.round(enemy.damage * 1.35);
+      enemy.xpValue = Math.round(enemy.xpValue * 4);
     }
 
     enemies.push(enemy);
@@ -1233,7 +1361,8 @@ class WaveDirector {
     x = Math.max(-spawnLimit, Math.min(spawnLimit, x));
     y = Math.max(-spawnLimit, Math.min(spawnLimit, y));
 
-    const scaling = 1.0 + (this.gameTime / 240);
+    // Progressive boss scaling curve matching player DPS growth
+    const scaling = Math.pow(1.0 + (this.gameTime / 180), 1.45);
 
     let boss;
     let name = '';
@@ -1257,5 +1386,14 @@ class WaveDirector {
 }
 
 window.MedievalSurvivors = window.MedievalSurvivors || {};
+window.MedievalSurvivors.BaseEnemy = BaseEnemy;
+window.MedievalSurvivors.PlagueRatEnemy = PlagueRatEnemy;
+window.MedievalSurvivors.SkeletonEnemy = SkeletonEnemy;
+window.MedievalSurvivors.CursedVillagerEnemy = CursedVillagerEnemy;
+window.MedievalSurvivors.DarkKnightEnemy = DarkKnightEnemy;
+window.MedievalSurvivors.WitchEnemy = WitchEnemy;
+window.MedievalSurvivors.ExecutionerBoss = ExecutionerBoss;
+window.MedievalSurvivors.StoneGolemBoss = StoneGolemBoss;
+window.MedievalSurvivors.DeathBaronBoss = DeathBaronBoss;
 window.MedievalSurvivors.WaveDirector = WaveDirector;
 window.MedievalSurvivors.EnemyProjectile = EnemyProjectile;

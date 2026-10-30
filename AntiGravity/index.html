@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sobreviventes Medievais - Vampire Survivors Era Medieval</title>
-  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=16">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22><text y=%2226%22 font-size=%2228%22>⚔️</text></svg>">
 </head>
 <body>
@@ -34,6 +34,8 @@
             <span class="timer-icon">⏳</span>
             <span class="timer-item" id="timer-text">00:00</span>
           </div>
+          <!-- Active Battle Modifiers Badges (Hyper Mode & Curse) -->
+          <div id="top-modifiers-container" class="top-modifiers-container"></div>
         </div>
 
         <!-- Top Right: Kills, Gold & Quick Actions -->
@@ -64,6 +66,24 @@
       <div id="boss-warning">
         <h2>⚠️ ALERTA DE CATACLISMO! ⚠️</h2>
         <p><span id="boss-name">O Carrasco Carmesim</span> despertou das catacumbas!</p>
+      </div>
+
+      <!-- Achievement Unlock Toast Container -->
+      <div id="achievement-toast-container" class="achievement-toast-container"></div>
+
+      <!-- Dynamic Arena Event Notification Banner -->
+      <div id="arena-event-banner" class="arena-event-banner" style="display: none;">
+        <h2 id="event-banner-title">✨ SANTUÁRIO SAGRADO!</h2>
+        <p id="event-banner-subtitle">Permaneça no círculo sagrado por 10s para consagrá-lo!</p>
+      </div>
+
+      <!-- Sanctuary Consecration Active Progress HUD Bar -->
+      <div id="sanctuary-hud-progress" class="sanctuary-hud-progress" style="display: none;">
+        <div class="sanctuary-icon">✨</div>
+        <div class="sanctuary-track">
+          <div id="sanctuary-fill" class="sanctuary-fill" style="width: 0%;"></div>
+          <span id="sanctuary-text" class="sanctuary-text">Consagrando Santuário... 0.0s / 10s</span>
+        </div>
       </div>
 
       <!-- Controls Hint (Positioned unobtrusively, fades out automatically) -->
@@ -102,6 +122,13 @@
       </div>
     </div>
 
+    <!-- Virtual Touch Joystick for Mobile / Tablets -->
+    <div id="virtual-joystick" class="virtual-joystick-touch">
+      <div id="joystick-base">
+        <div id="joystick-stick"></div>
+      </div>
+    </div>
+
     <!-- ==================== MODAL: Subir de Nível (Level Up) ==================== -->
     <div class="modal-overlay" id="level-up-modal">
       <div class="modal-box ornate-frame">
@@ -125,6 +152,10 @@
           <button class="btn-royal btn-reroll" id="btn-reroll-levelup">
             <span class="btn-icon">🎲</span>
             <span>Reroll de Destino (<strong id="reroll-count-val">1</strong>)</span>
+          </button>
+          <button class="btn-royal btn-skip" id="btn-skip-levelup">
+            <span class="btn-icon">⏩</span>
+            <span>Pular Bênção (+25% HP & +35 💰)</span>
           </button>
           <button class="btn-royal btn-autogold" id="btn-auto-gold-levelup">
             <span class="btn-icon">💰</span>
@@ -307,6 +338,13 @@
           </div>
         </div>
 
+        <div class="breakdown-card" style="margin-top: 14px;">
+          <div class="breakdown-title">
+            <span>⚔️ Eficácia & Dano das Armas</span>
+          </div>
+          <div id="victory-weapon-breakdown"></div>
+        </div>
+
         <div class="modal-actions-row" style="margin-top: 22px;">
           <button class="btn-royal btn-forge" id="btn-victory-forge">
             <span>🔨 Ir para a Forja</span>
@@ -402,6 +440,10 @@
             <span class="tab-icon">📜</span>
             <span>Códice & Bestiário</span>
           </button>
+          <button class="tab-btn" data-tab="achievements">
+            <span class="tab-icon">🏆</span>
+            <span>Conquistas</span>
+          </button>
           <button class="tab-btn" data-tab="history">
             <span class="tab-icon">📊</span>
             <span>Crônicas de Batalha</span>
@@ -421,20 +463,20 @@
   </div>
 
   <!-- 3D Engine & Game Scripts -->
-  <script src="js/three.min.js?v=9"></script>
-  <script src="js/audio.js?v=9"></script>
-  <script src="js/save.js?v=9"></script>
-  <script src="js/classes.js?v=9"></script>
-  <script src="js/passives.js?v=9"></script>
-  <script src="js/weapons.js?v=9"></script>
-  <script src="js/synergies.js?v=9"></script>
-  <script src="js/entities.js?v=9"></script>
-  <script src="js/enemies.js?v=9"></script>
-  <script src="js/models3d.js?v=9"></script>
-  <script src="js/map3d.js?v=9"></script>
-  <script src="js/renderer.js?v=9"></script>
-  <script src="js/ui.js?v=9"></script>
-  <script src="js/game.js?v=9"></script>
+  <script src="js/three.min.js?v=17"></script>
+  <script src="js/audio.js?v=17"></script>
+  <script src="js/save.js?v=17"></script>
+  <script src="js/classes.js?v=17"></script>
+  <script src="js/passives.js?v=17"></script>
+  <script src="js/weapons.js?v=17"></script>
+  <script src="js/synergies.js?v=17"></script>
+  <script src="js/entities.js?v=17"></script>
+  <script src="js/enemies.js?v=17"></script>
+  <script src="js/models3d.js?v=17"></script>
+  <script src="js/map3d.js?v=17"></script>
+  <script src="js/renderer.js?v=17"></script>
+  <script src="js/ui.js?v=17"></script>
+  <script src="js/game.js?v=17"></script>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {

@@ -6,6 +6,50 @@ function getNearbyEnemiesForCollision(x, y, radius, fallbackEnemies) {
   return fallbackEnemies;
 }
 
+// Fast O(N) Top-K Nearest Enemies (Zero-allocation, replaces slow O(N log N) full array sorts)
+function getNearestEnemies(player, enemies, count = 1) {
+  if (!enemies || enemies.length === 0) return [];
+  const px = player.x;
+  const py = player.y;
+
+  if (count <= 1) {
+    let nearest = null;
+    let minDistSq = Infinity;
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const e = enemies[i];
+      if (!e.alive) continue;
+      const dx = e.x - px;
+      const dy = e.y - py;
+      const dSq = dx * dx + dy * dy;
+      if (dSq < minDistSq) {
+        minDistSq = dSq;
+        nearest = e;
+      }
+    }
+    return nearest ? [nearest] : [];
+  }
+
+  const top = [];
+  for (let i = 0, len = enemies.length; i < len; i++) {
+    const e = enemies[i];
+    if (!e.alive) continue;
+    const dx = e.x - px;
+    const dy = e.y - py;
+    const dSq = dx * dx + dy * dy;
+
+    if (top.length < count) {
+      top.push({ enemy: e, distSq: dSq });
+      if (top.length === count) {
+        top.sort((a, b) => a.distSq - b.distSq);
+      }
+    } else if (dSq < top[top.length - 1].distSq) {
+      top[top.length - 1] = { enemy: e, distSq: dSq };
+      top.sort((a, b) => a.distSq - b.distSq);
+    }
+  }
+  return top.map(t => t.enemy);
+}
+
 /**
  * Medieval Survivors - Weapons System
  * Manages all offensive weapons, projectiles, attack loops, and attribute progression.
@@ -385,12 +429,7 @@ class HolyFireWeapon extends BaseWeapon {
     const totalCount = this.count + (player.bonusProjectiles || 0);
     const baseAngle = player.facingAngle || 0;
 
-    const living = enemies ? enemies.filter(e => e.alive) : [];
-    living.sort((a, b) => {
-      const d1 = (a.x - player.x) * (a.x - player.x) + (a.y - player.y) * (a.y - player.y);
-      const d2 = (b.x - player.x) * (b.x - player.x) + (b.y - player.y) * (b.y - player.y);
-      return d1 - d2;
-    });
+    const living = getNearestEnemies(player, enemies, totalCount);
 
     for (let i = 0; i < totalCount; i++) {
       let targetX, targetY;
@@ -1468,12 +1507,7 @@ class PlagueFlaskWeapon extends BaseWeapon {
     const totalCount = this.count + (player.bonusProjectiles || 0);
     const isEvo = this.level >= 8;
 
-    const living = enemies ? enemies.filter(e => e.alive) : [];
-    living.sort((a, b) => {
-      const d1 = (a.x - player.x) * (a.x - player.x) + (a.y - player.y) * (a.y - player.y);
-      const d2 = (b.x - player.x) * (b.x - player.x) + (b.y - player.y) * (b.y - player.y);
-      return d1 - d2;
-    });
+    const living = getNearestEnemies(player, enemies, totalCount);
 
     for (let i = 0; i < totalCount; i++) {
       let targetX, targetY;
@@ -2280,21 +2314,16 @@ class EldritchTomeWeapon extends BaseWeapon {
     const vortexRadius = 65 * this.area * player.areaMultiplier;
     const vortexCount = this.count + (player.bonusProjectiles || 0);
 
-    const living = enemies.filter(e => e.alive);
+    const living = getNearestEnemies(player, enemies, vortexCount);
     if (living.length === 0) return;
-    living.sort((a, b) => {
-      const d1 = (a.x - player.x) * (a.x - player.x) + (a.y - player.y) * (a.y - player.y);
-      const d2 = (b.x - player.x) * (b.x - player.x) + (b.y - player.y) * (b.y - player.y);
-      return d1 - d2;
-    });
 
     for (let v = 0; v < vortexCount; v++) {
       const targetEnemy = living[v % living.length];
       if (!targetEnemy) continue;
 
       projectiles.push(new VoidVortex({
-        x: randEnemy.x,
-        y: randEnemy.y,
+        x: targetEnemy.x,
+        y: targetEnemy.y,
         radius: vortexRadius,
         damage: effectiveDamage,
         duration: isEvo ? 3.2 : 2.4,

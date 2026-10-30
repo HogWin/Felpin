@@ -1369,6 +1369,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       // 3. Record discovery in save manager
       if (window.MedievalSurvivors.saveManager) {
         window.MedievalSurvivors.saveManager.discoverSynergy(fusion.id);
+        window.MedievalSurvivors.saveManager.checkAchievements('synergy_born', null, window.MedievalSurvivors.game);
       }
 
       // 4. Play epic sound

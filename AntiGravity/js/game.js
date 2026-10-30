@@ -6,6 +6,7 @@ class SpatialGrid {
     this.cellSize = cellSize;
     this.invCellSize = 1 / cellSize;
     this.cells = new Map();
+    this._defaultBuffer = [];
   }
 
   _getKey(cellX, cellY) {
@@ -37,8 +38,9 @@ class SpatialGrid {
     }
   }
 
-  getNearby(x, y, radius = 90, outArr = []) {
-    outArr.length = 0;
+  getNearby(x, y, radius = 90, outArr = null) {
+    const arr = outArr || this._defaultBuffer;
+    arr.length = 0;
     const minCX = Math.floor((x - radius) * this.invCellSize);
     const maxCX = Math.floor((x + radius) * this.invCellSize);
     const minCY = Math.floor((y - radius) * this.invCellSize);
@@ -50,12 +52,12 @@ class SpatialGrid {
         const cell = this.cells.get(key);
         if (cell) {
           for (let i = 0, len = cell.length; i < len; i++) {
-            outArr.push(cell[i]);
+            arr.push(cell[i]);
           }
         }
       }
     }
-    return outArr;
+    return arr;
   }
 }
 
@@ -65,7 +67,10 @@ class Game {
     this.renderer = new MedievalSurvivors.GameRenderer(this.canvas);
     this.particles = new MedievalSurvivors.ParticleSystem();
     this.waveDirector = new MedievalSurvivors.WaveDirector();
+    this.arenaEventManager = new MedievalSurvivors.ArenaEventManager();
     this.saveManager = window.MedievalSurvivors.saveManager;
+    this.hyperMode = (this.saveManager && this.saveManager.data.settings.hyperMode) || false;
+    this.curseRank = (this.saveManager && this.saveManager.data.settings.curseRank) || 0;
 
     this.state = 'MENU'; // 'MENU', 'PLAYING', 'PAUSED', 'LEVEL_UP', 'CHEST', 'GAME_OVER', 'VICTORY'
     this.selectedClassId = 'knight'; // Default class
@@ -77,7 +82,12 @@ class Game {
     this.enemyProjectiles = [];
     this.gems = [];
     this.chests = [];
+    this.destructibles = [];
     this.floatingTexts = [];
+    this.floatingTextPool = new MedievalSurvivors.FloatingTextPool(160);
+    this.frameCount = 0;
+    this.hitStopTimer = 0;
+    this.touchInput = { x: 0, y: 0 };
 
     // High-performance 2D spatial grid for O(1) collision & proximity queries
     this.spatialGrid = new SpatialGrid(90);
@@ -127,6 +137,88 @@ class Game {
     };
     window.addEventListener('pointerdown', initAudio);
     window.addEventListener('keydown', initAudio);
+
+    this.setupVirtualJoystick();
+  }
+
+  setupVirtualJoystick() {
+    const joystick = document.getElementById('virtual-joystick');
+    const stick = document.getElementById('joystick-stick');
+    if (!joystick || !stick) return;
+
+    let touchId = null;
+    let startX = 0;
+    let startY = 0;
+    const maxRadius = 45;
+
+    const handleStart = (clientX, clientY, identifier) => {
+      touchId = identifier;
+      const rect = joystick.getBoundingClientRect();
+      startX = rect.left + rect.width / 2;
+      startY = rect.top + rect.height / 2;
+      handleMove(clientX, clientY);
+    };
+
+    const handleMove = (clientX, clientY) => {
+      let dx = clientX - startX;
+      let dy = clientY - startY;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > maxRadius) {
+        dx = (dx / dist) * maxRadius;
+        dy = (dy / dist) * maxRadius;
+      }
+
+      stick.style.transform = `translate(${dx}px, ${dy}px)`;
+      this.touchInput.x = dx / maxRadius;
+      this.touchInput.y = dy / maxRadius;
+
+      if (this.player && !this.saveManager.data.settings.mouseAim) {
+        this.player.facingAngle = Math.atan2(this.touchInput.y, this.touchInput.x);
+        if (Math.cos(this.player.facingAngle) > 0.05) this.player.facingDir = 1;
+        else if (Math.cos(this.player.facingAngle) < -0.05) this.player.facingDir = -1;
+      }
+    };
+
+    const handleEnd = () => {
+      touchId = null;
+      stick.style.transform = 'translate(0px, 0px)';
+      this.touchInput.x = 0;
+      this.touchInput.y = 0;
+    };
+
+    joystick.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (touchId === null && e.changedTouches[0]) {
+        const t = e.changedTouches[0];
+        handleStart(t.clientX, t.clientY, t.identifier);
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      if (touchId !== null) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const t = e.changedTouches[i];
+          if (t.identifier === touchId) {
+            handleMove(t.clientX, t.clientY);
+            break;
+          }
+        }
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      if (touchId !== null) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === touchId) {
+            handleEnd();
+            break;
+          }
+        }
+      }
+    });
+
+    window.addEventListener('touchcancel', () => handleEnd());
   }
 
   updateAimDirection() {
@@ -169,13 +261,29 @@ class Game {
     // Apply permanent meta-upgrades from the Forge!
     this.saveManager.applyToPlayer(this.player);
 
+    // Apply active battle modifiers (Hyper Mode & Curse Pact)
+    let goldMult = this.player.goldMultiplier || 1.0;
+    if (this.hyperMode) {
+      goldMult += 0.50; // +50% Gold in Hyper Mode
+    }
+    if (this.curseRank > 0) {
+      goldMult += this.curseRank * 0.20; // +20% Gold per Curse rank
+      this.player.critChance = (this.player.critChance || 0.05) + (this.curseRank * 0.05); // +5% crit per rank
+    }
+    this.player.goldMultiplier = goldMult;
+
     this.enemies = [];
     this.allies = [];
     this.projectiles = [];
     this.enemyProjectiles = [];
     this.gems = [];
     this.chests = [];
+    this.destructibles = [];
     this.floatingTexts = [];
+    this.floatingTextPool = new MedievalSurvivors.FloatingTextPool(160);
+    this.frameCount = 0;
+    this.hitStopTimer = 0;
+    this.touchInput = { x: 0, y: 0 };
 
     // High-performance 2D spatial grid for O(1) collision & proximity queries
     this.spatialGrid = new SpatialGrid(90);
@@ -183,7 +291,10 @@ class Game {
 
     this.gameTime = 0;
     this.waveDirector.reset();
+    if (this.arenaEventManager) this.arenaEventManager.reset();
+    if (window.MedievalSurvivors.sound) window.MedievalSurvivors.sound.setMusicIntensity(0.0, false);
     this.state = 'PLAYING';
+    this.spawnInitialDestructibles();
 
     // Start New 3D Run with Generative Procedural Map & Biome!
     if (this.renderer && this.renderer.startNewRun) {
@@ -220,7 +331,91 @@ class Game {
   }
 
   addFloatingText(x, y, text, color, isCritical) {
-    this.floatingTexts.push(new MedievalSurvivors.FloatingText(x, y, text, color, isCritical));
+    this.floatingTexts.push(this.floatingTextPool.acquire(x, y, text, color, isCritical));
+  }
+
+  triggerHitStop(duration = 0.045) {
+    this.hitStopTimer = duration;
+  }
+
+  spawnInitialDestructibles() {
+    this.destructibles = [];
+    const types = ['barrel', 'crate', 'sarcophagus'];
+    const count = 18;
+    for (let i = 0; i < count; i++) {
+      const type = types[Math.floor(Math.random() * types.length)];
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 140 + Math.random() * 850;
+      const x = Math.cos(ang) * dist;
+      const y = Math.sin(ang) * dist;
+      this.destructibles.push(new MedievalSurvivors.DestructibleObject(x, y, type));
+    }
+  }
+
+  updateDestructibles(dt) {
+    if (!this.destructibles) this.destructibles = [];
+
+    // Periodic respawn when count is low (Balanced interval of 8.5s, max 8 destructibles)
+    this._destructibleTimer = (this._destructibleTimer || 0) + dt;
+    if (this._destructibleTimer >= 8.5) {
+      this._destructibleTimer = 0;
+      if (this.destructibles.length < 8 && this.player) {
+        const types = ['barrel', 'crate', 'sarcophagus'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 320 + Math.random() * 450;
+        const x = this.player.x + Math.cos(ang) * dist;
+        const y = this.player.y + Math.sin(ang) * dist;
+        this.destructibles.push(new MedievalSurvivors.DestructibleObject(x, y, type));
+      }
+    }
+
+    // Check weapon / projectile hits on destructibles
+    for (let i = this.destructibles.length - 1; i >= 0; i--) {
+      const d = this.destructibles[i];
+      d.update(dt);
+
+      // Check projectiles
+      for (let pIdx = 0; pIdx < this.projectiles.length; pIdx++) {
+        const p = this.projectiles[pIdx];
+        if (!p || !p.alive) continue;
+        const dx = p.x - d.x;
+        const dy = p.y - d.y;
+        const distSq = dx * dx + dy * dy;
+        const hitR = (p.radius || 10) + d.radius;
+        if (distSq <= hitR * hitR) {
+          d.takeDamage(1, this);
+          break;
+        }
+      }
+
+      // Check Holy Aura weapon
+      if (d.alive && this.player) {
+        const aura = this.player.weapons.find(w => w.id === 'holy_aura' && w.level > 0);
+        if (aura) {
+          const dx = this.player.x - d.x;
+          const dy = this.player.y - d.y;
+          const auraR = (aura.activeRadius || 70) * this.player.effectiveAreaMultiplier;
+          if (dx * dx + dy * dy <= auraR * auraR) {
+            d.takeDamage(1, this);
+          }
+        }
+      }
+
+      // Check player proximity hit (kick/smash on contact)
+      if (d.alive && this.player) {
+        const dx = this.player.x - d.x;
+        const dy = this.player.y - d.y;
+        const contactR = this.player.radius + d.radius;
+        if (dx * dx + dy * dy <= contactR * contactR) {
+          d.takeDamage(1, this);
+        }
+      }
+
+      if (!d.alive) {
+        this.destructibles.splice(i, 1);
+      }
+    }
   }
 
   // Returns array of enemies within radius (O(1) spatial grid lookup)
@@ -292,6 +487,12 @@ class Game {
     if (this.keys['KeyA'] || this.keys['ArrowLeft']) dx -= 1;
     if (this.keys['KeyD'] || this.keys['ArrowRight']) dx += 1;
 
+    // Virtual Touch Joystick
+    if (this.touchInput.x !== 0 || this.touchInput.y !== 0) {
+      dx = this.touchInput.x;
+      dy = this.touchInput.y;
+    }
+
     // Gamepad support
     const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
     if (gamepads && gamepads[0]) {
@@ -342,11 +543,26 @@ class Game {
 
     this.renderer.triggerShake(16, 1.0);
     window.MedievalSurvivors.sound.playLevelUp();
+    if (this.saveManager) {
+      this.saveManager.checkAchievements('run_victory', null, this);
+    }
     this.ui.showVictory(this.player, this.gameTime, bonusGold);
   }
 
   update(dt) {
+    if (this.hitStopTimer > 0) {
+      this.hitStopTimer -= dt;
+      return;
+    }
+
+    this.frameCount++;
     this.gameTime += dt;
+
+    // Check timed survival achievements (5 minutes = 300s)
+    if (this.gameTime >= 300 && this.saveManager) {
+      if (this.hyperMode) this.saveManager.checkAchievements('hyper_survived_5min', null, this);
+      if (this.curseRank >= 5) this.saveManager.checkAchievements('curse_survived_5min', null, this);
+    }
 
     // Fast O(N) Spatial Partitioning for this frame
     this.spatialGrid.clear();
@@ -367,6 +583,20 @@ class Game {
       this.ui.showBossWarning(bossName);
       this.renderer.triggerShake(12, 0.6);
     });
+
+    // 3.1. Dynamic Arena Events (Flash Swarms, Sacred Sanctuaries, Celestial Storms)
+    if (this.arenaEventManager) {
+      this.arenaEventManager.update(dt, this);
+    }
+
+    // 3.2. Adaptive Layered Procedural Music
+    if (window.MedievalSurvivors.sound) {
+      const timeFactor = Math.min(1.0, this.gameTime / 600); // 0 at start, 1.0 at 10 mins
+      const enemyFactor = Math.min(1.0, this.enemies.length / 85);
+      const intensity = Math.min(1.0, timeFactor * 0.65 + enemyFactor * 0.35);
+      const isBossActive = this.enemies.some(e => e.isBoss && e.alive);
+      window.MedievalSurvivors.sound.setMusicIntensity(intensity, isBossActive);
+    }
 
     // 3. Update Projectiles
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
@@ -399,6 +629,21 @@ class Game {
 
       if (!enemy.alive) {
         this.player.killCount++;
+        if (this.saveManager) {
+          if (!this.saveManager.data.stats) this.saveManager.data.stats = {};
+          this.saveManager.data.stats.totalEnemiesKilled = (this.saveManager.data.stats.totalEnemiesKilled || 0) + 1;
+          this.saveManager.checkAchievements('enemy_killed', null, this);
+
+          if (enemy.isBoss) {
+            let bossKey = '';
+            if (enemy.type === 'boss_executioner' || enemy.type === 'executioner') bossKey = 'executioner';
+            else if (enemy.type === 'boss_golem' || enemy.type === 'golem') bossKey = 'golem';
+            else if (enemy.type === 'boss_baron' || enemy.type === 'death_baron') bossKey = 'death_baron';
+            this.saveManager.data.stats.totalBossesKilled = (this.saveManager.data.stats.totalBossesKilled || 0) + 1;
+            this.saveManager.checkAchievements('boss_killed', { type: bossKey }, this);
+          }
+        }
+
         if (this.player.onEnemyKilled) {
           this.player.onEnemyKilled(enemy, this);
         }
@@ -431,7 +676,7 @@ class Game {
     }
 
     // 6. Update XP Gems (with intelligent background clustering to avoid performance degradation)
-    if (this.gems.length > 130) {
+    if (this.gems.length > 75) {
       this.consolidateGems();
     }
     let triggeredLevelUp = false;
@@ -445,6 +690,9 @@ class Game {
       }
     }
 
+    // 6.5. Update Destructible Objects
+    this.updateDestructibles(dt);
+
     // 7. Update Chests
     for (let i = this.chests.length - 1; i >= 0; i--) {
       const chestTier = this.chests[i].update(dt, this.player);
@@ -456,11 +704,13 @@ class Game {
       }
     }
 
-    // 8. Update Particles & Floating Text
+    // 8. Update Particles & Floating Text (Zero-allocation recycled via Object Pool)
     this.particles.update(dt);
     for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
-      const keep = this.floatingTexts[i].update(dt);
+      const ft = this.floatingTexts[i];
+      const keep = ft.update(dt);
       if (!keep) {
+        this.floatingTextPool.release(ft);
         this.floatingTexts.splice(i, 1);
       }
     }
@@ -501,6 +751,9 @@ class Game {
 
     // 11. Check Level Up
     if (triggeredLevelUp) {
+      if (this.saveManager) {
+        this.saveManager.checkAchievements('level_up', null, this);
+      }
       this.state = 'LEVEL_UP';
       this.ui.showLevelUpModal(this.player);
     }

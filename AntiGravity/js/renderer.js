@@ -30,7 +30,7 @@ class GameRenderer {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
+    this.renderer.toneMappingExposure = 1.40;
 
     // 2. Camera setup: Isometric angled top-down
     this.camElevation = 320;
@@ -44,21 +44,21 @@ class GameRenderer {
     this.shakeDuration = 0;
     this.shakeIntensity = 0;
 
-    // 3. Dynamic Scene Lighting
-    this.ambientLight = new THREE.AmbientLight(0x3d354a, 0.7);
+    // 3. Dynamic Scene Lighting (Brighter, clearer visibility)
+    this.ambientLight = new THREE.AmbientLight(0x756f85, 1.35);
     this.scene.add(this.ambientLight);
 
-    this.dirLight = new THREE.DirectionalLight(0x9fa8da, 0.85);
-    this.dirLight.position.set(150, 400, 200);
+    this.dirLight = new THREE.DirectionalLight(0xcfd8ff, 1.30);
+    this.dirLight.position.set(150, 420, 200);
     this.scene.add(this.dirLight);
 
-    // Player Torchlight (Flickering golden point light attached to hero)
-    this.playerLight = new THREE.PointLight(0xffb74d, 1.4, 220, 1.6);
-    this.playerLight.position.set(0, 20, 0);
+    // Player Torchlight (Wider, warmer, brighter radiant glow)
+    this.playerLight = new THREE.PointLight(0xffd180, 2.2, 360, 1.3);
+    this.playerLight.position.set(0, 22, 0);
     this.scene.add(this.playerLight);
 
-    // 4. Fog
-    this.scene.fog = new THREE.FogExp2(0x090710, 0.0016);
+    // 4. Fog (Soft distance atmosphere, doesn't hide the battlefield)
+    this.scene.fog = new THREE.FogExp2(0x1a162b, 0.0007);
 
     // 5. Generative 3D Map
     this.map3D = new window.MedievalSurvivors.GenerativeMap3D(this.scene);
@@ -70,9 +70,23 @@ class GameRenderer {
     this.allyMeshMap = new Map();  // ally -> THREE.Group
     this.gemMeshMap = new Map();   // gem -> THREE.Group
     this.chestMeshMap = new Map(); // chest -> THREE.Group
+    this.destructibleMeshMap = new Map(); // destructible -> THREE.Group
+    this.sanctuaryMeshMap = new Map(); // sanctuary -> THREE.Group
+    this.celestialStrikeMap = new Map(); // celestialStrike -> { telegraphMesh, impactMesh }
+    this.damageFlashTimer = 0;
     this.projectileMeshMap = new Map(); // projectile -> THREE.Group
     this.holyAuraMesh = null;
     this.holyFirePoolsMap = new Map();
+
+    // Reusable tracking Sets to eliminate per-frame heap allocations & GC stutters
+    this._activeEnemyIds = new Set();
+    this._activeAllies = new Set();
+    this._activeGems = new Set();
+    this._activeChests = new Set();
+    this._activeDestructibles = new Set();
+    this._activeSanctuaries = new Set();
+    this._activeStrikes = new Set();
+    this._activeProjectiles = new Set();
 
     // 7. Raycaster for Mouse Aim in 3D ground plane
     this.raycaster = new THREE.Raycaster();
@@ -130,8 +144,8 @@ class GameRenderer {
     const h = this.overlayCanvas.height;
     const grad = this.ctx.createRadialGradient(w / 2, h / 2, 140, w / 2, h / 2, Math.max(w, h) * 0.72);
     grad.addColorStop(0, 'rgba(0, 0, 0, 0.0)');
-    grad.addColorStop(0.55, 'rgba(6, 4, 10, 0.35)');
-    grad.addColorStop(1, 'rgba(3, 2, 6, 0.82)');
+    grad.addColorStop(0.70, 'rgba(6, 4, 10, 0.10)');
+    grad.addColorStop(1, 'rgba(6, 4, 10, 0.35)');
     this.vignetteGradient = grad;
   }
 
@@ -145,8 +159,9 @@ class GameRenderer {
     this.scene.fog.color.setHex(biome.fogColor);
     this.scene.fog.density = biome.fogDensity;
     this.ambientLight.color.setHex(biome.ambientColor);
+    this.ambientLight.intensity = 1.35;
     this.dirLight.color.setHex(biome.dirLightColor);
-    this.dirLight.intensity = biome.dirLightIntensity;
+    this.dirLight.intensity = Math.max(1.25, biome.dirLightIntensity);
 
     // Clear old tracked meshes
     this.clearMeshPools();
@@ -231,6 +246,30 @@ class GameRenderer {
       this.disposeMesh(mesh);
     }
     this.chestMeshMap.clear();
+
+    for (let [, mesh] of this.destructibleMeshMap) {
+      this.scene.remove(mesh);
+      this.disposeMesh(mesh);
+    }
+    this.destructibleMeshMap.clear();
+
+    for (let [, mesh] of this.sanctuaryMeshMap) {
+      this.scene.remove(mesh);
+      this.disposeMesh(mesh);
+    }
+    this.sanctuaryMeshMap.clear();
+
+    for (let [, item] of this.celestialStrikeMap) {
+      if (item.telegraphMesh) {
+        this.scene.remove(item.telegraphMesh);
+        this.disposeMesh(item.telegraphMesh);
+      }
+      if (item.impactMesh) {
+        this.scene.remove(item.impactMesh);
+        this.disposeMesh(item.impactMesh);
+      }
+    }
+    this.celestialStrikeMap.clear();
 
     for (let [, mesh] of this.projectileMeshMap) {
       this.scene.remove(mesh);
@@ -462,17 +501,27 @@ class GameRenderer {
     // 3. Update Player 3D Mesh
     this.updatePlayerMesh(player, dt);
 
-    // 4. Update Enemy 3D Meshes
-    this.updateEnemies(game.enemies, dt);
+    // 4. Update Enemy 3D Meshes (with Distance LOD / Frustum Culling)
+    this.updateEnemies(game.enemies, dt, player);
 
     // 4.5. Update Allied Minion 3D Meshes (Necromancer minions)
     this.updateAllies(game.allies, dt);
 
-    // 5. Update XP Gems 3D Meshes
-    this.updateGems(game.gems, dt);
+    // 5. Update XP Gems 3D Meshes (with Distance LOD)
+    this.updateGems(game.gems, dt, player);
 
     // 6. Update Chests 3D Meshes
     this.updateChests(game.chests, dt);
+
+    // 6.5. Update Destructible Objects (Barrels, Crates, Sarcophagi)
+    if (game.destructibles) {
+      this.updateDestructibles(game.destructibles, dt);
+    }
+
+    // 6.7. Update Dynamic Arena Events (Sacred Sanctuaries & Celestial Strikes)
+    if (game.arenaEventManager) {
+      this.updateArenaEvents(game.arenaEventManager, dt);
+    }
 
     // 7. Update Projectiles & Weapon Visuals (Bolts, Axes, Flasks, Aura, Slashes)
     this.updateProjectiles(game, dt);
@@ -497,14 +546,17 @@ class GameRenderer {
     }
   }
 
-  updateEnemies(enemies, dt) {
-    const activeEnemyIds = new Set();
+  updateEnemies(enemies, dt, player) {
+    this._activeEnemyIds.clear();
+    const px = player ? player.x : 0;
+    const py = player ? player.y : 0;
+    const viewDistSq = 580 * 580; // Frustum / camera visible threshold
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const e = enemies[i];
       if (!e.alive) continue;
 
-      activeEnemyIds.add(e.id);
+      this._activeEnemyIds.add(e.id);
       let mesh = this.enemyMeshMap.get(e.id);
 
       if (!mesh) {
@@ -514,14 +566,26 @@ class GameRenderer {
       }
 
       mesh.position.set(e.x, 0, e.y);
-      if (mesh.updateVisuals) {
-        mesh.updateVisuals(dt, e);
+
+      // Animation LOD & Frustum Culling:
+      // Offscreen enemies skip articulated limb math, sin/cos sweeps, and mesh rendering!
+      const dx = e.x - px;
+      const dy = e.y - py;
+      const inView = (dx * dx + dy * dy) <= viewDistSq;
+
+      if (inView || e.isBoss) {
+        mesh.visible = true;
+        if (mesh.updateVisuals) {
+          mesh.updateVisuals(dt, e);
+        }
+      } else {
+        mesh.visible = false;
       }
     }
 
     // Clean up dead/despawned enemies
     for (const [id, mesh] of this.enemyMeshMap.entries()) {
-      if (!activeEnemyIds.has(id)) {
+      if (!this._activeEnemyIds.has(id)) {
         // Spawn death blood/soul particles at enemy position
         this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0xa81923, 6, 30);
         this.scene.remove(mesh);
@@ -533,13 +597,13 @@ class GameRenderer {
 
   updateAllies(allies, dt) {
     if (!allies) return;
-    const activeAllies = new Set();
+    this._activeAllies.clear();
 
     for (let i = 0, len = allies.length; i < len; i++) {
       const a = allies[i];
       if (!a.alive) continue;
 
-      activeAllies.add(a);
+      this._activeAllies.add(a);
       let mesh = this.allyMeshMap.get(a);
 
       if (!mesh) {
@@ -556,7 +620,7 @@ class GameRenderer {
 
     // Clean up expired allies
     for (const [a, mesh] of this.allyMeshMap.entries()) {
-      if (!activeAllies.has(a)) {
+      if (!this._activeAllies.has(a)) {
         this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0x9b59b6, 6, 25);
         this.scene.remove(mesh);
         this.disposeMesh(mesh);
@@ -565,11 +629,15 @@ class GameRenderer {
     }
   }
 
-  updateGems(gems, dt) {
-    const activeGems = new Set(gems);
+  updateGems(gems, dt, player) {
+    this._activeGems.clear();
+    const px = player ? player.x : 0;
+    const py = player ? player.y : 0;
+    const viewDistSq = 560 * 560;
 
     for (let i = 0, len = gems.length; i < len; i++) {
       const gem = gems[i];
+      this._activeGems.add(gem);
       let mesh = this.gemMeshMap.get(gem);
 
       if (!mesh) {
@@ -578,15 +646,24 @@ class GameRenderer {
         this.gemMeshMap.set(gem, mesh);
       }
 
-      mesh.position.set(gem.x, 0, gem.y);
-      if (mesh.updateVisuals) {
-        mesh.updateVisuals(dt);
+      const dx = gem.x - px;
+      const dy = gem.y - py;
+      const inView = (dx * dx + dy * dy) <= viewDistSq;
+
+      if (inView) {
+        mesh.visible = true;
+        mesh.position.set(gem.x, 0, gem.y);
+        if (mesh.updateVisuals) {
+          mesh.updateVisuals(dt);
+        }
+      } else {
+        mesh.visible = false;
       }
     }
 
     // Remove collected gems
     for (const [gem, mesh] of this.gemMeshMap.entries()) {
-      if (!activeGems.has(gem)) {
+      if (!this._activeGems.has(gem)) {
         // Golden sparkling collection particle
         this.spawn3DParticle(mesh.position.x, 12, mesh.position.z, 0xf0c05a, 5, 20);
         this.scene.remove(mesh);
@@ -597,10 +674,11 @@ class GameRenderer {
   }
 
   updateChests(chests, dt) {
-    const activeChests = new Set(chests);
+    this._activeChests.clear();
 
     for (let i = 0, len = chests.length; i < len; i++) {
       const chest = chests[i];
+      this._activeChests.add(chest);
       let mesh = this.chestMeshMap.get(chest);
 
       if (!mesh) {
@@ -616,7 +694,7 @@ class GameRenderer {
     }
 
     for (const [chest, mesh] of this.chestMeshMap.entries()) {
-      if (!activeChests.has(chest)) {
+      if (!this._activeChests.has(chest)) {
         this.scene.remove(mesh);
         this.disposeMesh(mesh);
         this.chestMeshMap.delete(chest);
@@ -624,8 +702,125 @@ class GameRenderer {
     }
   }
 
+  triggerDamageFlash(duration = 0.25) {
+    this.damageFlashTimer = duration;
+  }
+
+  updateDestructibles(destructibles, dt) {
+    this._activeDestructibles.clear();
+
+    for (let i = 0, len = destructibles.length; i < len; i++) {
+      const d = destructibles[i];
+      if (!d.alive) continue;
+      this._activeDestructibles.add(d);
+      let mesh = this.destructibleMeshMap.get(d);
+
+      if (!mesh) {
+        mesh = window.MedievalSurvivors.models3d.createDestructibleModel(d.type);
+        this.scene.add(mesh);
+        this.destructibleMeshMap.set(d, mesh);
+      }
+
+      mesh.position.set(d.x, 0, d.y);
+      if (d.hitFlash > 0) {
+        mesh.scale.set(1.15, 0.85, 1.15);
+      } else {
+        mesh.scale.set(1, 1, 1);
+      }
+    }
+
+    for (const [d, mesh] of this.destructibleMeshMap.entries()) {
+      if (!this._activeDestructibles.has(d)) {
+        this.scene.remove(mesh);
+        this.disposeMesh(mesh);
+        this.destructibleMeshMap.delete(d);
+      }
+    }
+  }
+
+  updateArenaEvents(eventManager, dt) {
+    if (!eventManager) return;
+
+    // 1. Update Sacred Sanctuaries
+    this._activeSanctuaries.clear();
+    for (let i = 0, len = eventManager.sanctuaryZones.length; i < len; i++) {
+      const s = eventManager.sanctuaryZones[i];
+      if (!s.alive) continue;
+      this._activeSanctuaries.add(s);
+      let mesh = this.sanctuaryMeshMap.get(s);
+
+      if (!mesh) {
+        mesh = window.MedievalSurvivors.models3d.createSanctuaryZoneMesh(s.radius);
+        this.scene.add(mesh);
+        this.sanctuaryMeshMap.set(s, mesh);
+      }
+
+      mesh.position.set(s.x, 0, s.y);
+      if (mesh.updateVisuals) {
+        const progress = s.consecrateTime / s.requiredTime;
+        mesh.updateVisuals(dt, progress, s.playerInside);
+      }
+    }
+
+    for (const [s, mesh] of this.sanctuaryMeshMap.entries()) {
+      if (!this._activeSanctuaries.has(s)) {
+        this.scene.remove(mesh);
+        this.disposeMesh(mesh);
+        this.sanctuaryMeshMap.delete(s);
+      }
+    }
+
+    // 2. Update Celestial Strikes (Telegraph warning & holy fire detonation)
+    this._activeStrikes.clear();
+    for (let i = 0, len = eventManager.celestialStrikes.length; i < len; i++) {
+      const cs = eventManager.celestialStrikes[i];
+      if (!cs.alive) continue;
+      this._activeStrikes.add(cs);
+      let item = this.celestialStrikeMap.get(cs);
+
+      if (!item) {
+        const telegraphMesh = window.MedievalSurvivors.models3d.createCelestialStrikeTelegraphMesh(cs.radius);
+        const impactMesh = window.MedievalSurvivors.models3d.createCelestialStrikeImpactMesh(cs.radius);
+        impactMesh.visible = false;
+        this.scene.add(telegraphMesh);
+        this.scene.add(impactMesh);
+        item = { telegraphMesh, impactMesh };
+        this.celestialStrikeMap.set(cs, item);
+      }
+
+      item.telegraphMesh.position.set(cs.x, 0, cs.y);
+      item.impactMesh.position.set(cs.x, 0, cs.y);
+
+      if (!cs.detonated) {
+        item.telegraphMesh.visible = true;
+        item.impactMesh.visible = false;
+        const prog = 1.0 - (cs.timer / cs.maxTimer);
+        if (item.telegraphMesh.updateVisuals) {
+          item.telegraphMesh.updateVisuals(prog);
+        }
+      } else {
+        item.telegraphMesh.visible = false;
+        item.impactMesh.visible = true;
+        const lifePct = cs.impactDuration / 0.50;
+        if (item.impactMesh.updateVisuals) {
+          item.impactMesh.updateVisuals(dt, lifePct);
+        }
+      }
+    }
+
+    for (const [cs, item] of this.celestialStrikeMap.entries()) {
+      if (!this._activeStrikes.has(cs)) {
+        this.scene.remove(item.telegraphMesh);
+        this.scene.remove(item.impactMesh);
+        this.disposeMesh(item.telegraphMesh);
+        this.disposeMesh(item.impactMesh);
+        this.celestialStrikeMap.delete(cs);
+      }
+    }
+  }
+
   updateProjectiles(game, dt) {
-    const activeProjectiles = new Set();
+    this._activeProjectiles.clear();
 
     // 1. Holy Aura Weapon
     const auraWep = game.player.weapons.find(w => w.id === 'holy_aura');
@@ -648,7 +843,7 @@ class GameRenderer {
       const p = game.projectiles[i];
       if (!p.alive && p.state !== 'burning') continue;
 
-      activeProjectiles.add(p);
+      this._activeProjectiles.add(p);
 
       if (p.state === 'burning') {
         let poolMesh = this.holyFirePoolsMap.get(p);
@@ -750,7 +945,7 @@ class GameRenderer {
       const ep = game.enemyProjectiles[i];
       if (!ep.alive) continue;
 
-      activeProjectiles.add(ep);
+      this._activeProjectiles.add(ep);
       let epMesh = this.projectileMeshMap.get(ep);
       if (!epMesh) {
         epMesh = window.MedievalSurvivors.models3d.createEnemyProjectileMesh(ep.type || 'dark');
@@ -770,7 +965,7 @@ class GameRenderer {
         for (let i = 0; i < effectsList.length; i++) {
           const slash = effectsList[i];
           if (slash.duration > 0) {
-            activeProjectiles.add(slash);
+            this._activeProjectiles.add(slash);
             let sMesh = this.projectileMeshMap.get(slash);
             if (!sMesh) {
               if (slash.isSupreme) {
@@ -814,7 +1009,7 @@ class GameRenderer {
       for (let i = 0; i < spearWep.thrustEffects.length; i++) {
         const thrust = spearWep.thrustEffects[i];
         if (thrust.duration > 0) {
-          activeProjectiles.add(thrust);
+          this._activeProjectiles.add(thrust);
           let tMesh = this.projectileMeshMap.get(thrust);
           if (!tMesh) {
             tMesh = window.MedievalSurvivors.models3d.createSpearThrustMesh(thrust.isEvolved);
@@ -834,7 +1029,7 @@ class GameRenderer {
 
     // Clean up finished projectiles
     for (const [p, mesh] of this.projectileMeshMap.entries()) {
-      if (!activeProjectiles.has(p)) {
+      if (!this._activeProjectiles.has(p)) {
         this.scene.remove(mesh);
         this.disposeMesh(mesh);
         this.projectileMeshMap.delete(p);
@@ -842,7 +1037,7 @@ class GameRenderer {
     }
 
     for (const [p, poolMesh] of this.holyFirePoolsMap.entries()) {
-      if (!activeProjectiles.has(p)) {
+      if (!this._activeProjectiles.has(p)) {
         this.scene.remove(poolMesh);
         this.disposeMesh(poolMesh);
         this.holyFirePoolsMap.delete(p);
@@ -868,14 +1063,19 @@ class GameRenderer {
       return this._screenPos;
     };
 
-    // 1. Floating Damage Numbers (shared stroke/font setup outside loop)
+    // 1. Floating Damage Numbers (cull numbers outside viewport before running 4x4 matrix projection)
     if (game.floatingTexts.length > 0) {
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 3;
       ctx.textAlign = 'center';
 
+      const px = game.player ? game.player.x : 0;
+      const py = game.player ? game.player.y : 0;
+
       for (let i = 0, len = game.floatingTexts.length; i < len; i++) {
         const ft = game.floatingTexts[i];
+        if (Math.abs(ft.x - px) > 460 || Math.abs(ft.y - py) > 340) continue;
+
         const screenPos = project3D(ft.x, ft.y);
         if (screenPos.onScreen) {
           ctx.globalAlpha = Math.max(0, Math.min(1, ft.life));
@@ -889,43 +1089,165 @@ class GameRenderer {
       ctx.globalAlpha = 1.0;
     }
 
-    // 2. Offscreen Boss Indicators (Red Skulls pointing towards boss danger)
-    const margin = 45;
+    // 2. Offscreen Boss & Chest Radar Indicators
+    const margin = 48;
+    const player = game.player;
+
+    // 2.1 Boss Indicators
     for (let i = 0, len = game.enemies.length; i < len; i++) {
       const e = game.enemies[i];
       if (!e.isBoss || !e.alive) continue;
 
       const screenPos = project3D(e.x, e.y);
-      const isOffscreen = screenPos.x < 0 || screenPos.x > w || screenPos.y < 0 || screenPos.y > h;
+      const isOffscreen = screenPos.x < 15 || screenPos.x > w - 15 || screenPos.y < 15 || screenPos.y > h - 15 || !screenPos.onScreen;
 
-      if (isOffscreen) {
-        const clampedX = Math.max(margin, Math.min(w - margin, screenPos.x));
-        const clampedY = Math.max(margin, Math.min(h - margin, screenPos.y));
-        const angle = Math.atan2(e.y - game.player.y, e.x - game.player.x);
+      if (isOffscreen && player) {
+        const angle = Math.atan2(e.y - player.y, e.x - player.x);
+        const clampedX = Math.max(margin, Math.min(w - margin, (w / 2) + Math.cos(angle) * (w / 2 - margin)));
+        const clampedY = Math.max(margin, Math.min(h - margin, (h / 2) + Math.sin(angle) * (h / 2 - margin)));
+        const distMeters = Math.max(1, Math.round(Math.hypot(e.x - player.x, e.y - player.y) / 14));
 
+        // Arrow Pointer
         ctx.save();
         ctx.translate(clampedX, clampedY);
         ctx.rotate(angle);
-
-        ctx.fillStyle = '#e74c3c';
+        ctx.fillStyle = '#ff3333';
+        ctx.shadowColor = '#ff0000';
+        ctx.shadowBlur = 10;
         ctx.beginPath();
-        ctx.moveTo(14, 0);
-        ctx.lineTo(-10, -9);
-        ctx.lineTo(-4, 0);
-        ctx.lineTo(-10, 9);
+        ctx.moveTo(16, 0);
+        ctx.lineTo(-11, -9);
+        ctx.lineTo(-5, 0);
+        ctx.lineTo(-11, 9);
         ctx.closePath();
         ctx.fill();
-
         ctx.restore();
 
-        ctx.fillStyle = '#f1c40f';
+        // Label with Skull and Distance
+        ctx.save();
         ctx.font = 'bold 12px Cinzel, Georgia';
         ctx.textAlign = 'center';
-        ctx.fillText(e.name, clampedX, clampedY - 14);
+        ctx.fillStyle = '#ff4d4d';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 3;
+        const text = `💀 ${e.name} (${distMeters}m)`;
+        ctx.strokeText(text, clampedX, clampedY - 14);
+        ctx.fillText(text, clampedX, clampedY - 14);
+        ctx.restore();
       }
     }
 
-    // 3. Dark Gothic Vignette
+    // 2.2 Chest Indicators
+    if (game.chests && game.chests.length > 0) {
+      for (let i = 0, len = game.chests.length; i < len; i++) {
+        const c = game.chests[i];
+        if (!c.alive) continue;
+
+        const screenPos = project3D(c.x, c.y);
+        const isOffscreen = screenPos.x < 15 || screenPos.x > w - 15 || screenPos.y < 15 || screenPos.y > h - 15 || !screenPos.onScreen;
+
+        if (isOffscreen && player) {
+          const angle = Math.atan2(c.y - player.y, c.x - player.x);
+          const clampedX = Math.max(margin, Math.min(w - margin, (w / 2) + Math.cos(angle) * (w / 2 - margin)));
+          const clampedY = Math.max(margin, Math.min(h - margin, (h / 2) + Math.sin(angle) * (h / 2 - margin)));
+          const distMeters = Math.max(1, Math.round(Math.hypot(c.x - player.x, c.y - player.y) / 14));
+
+          // Golden Arrow Pointer
+          ctx.save();
+          ctx.translate(clampedX, clampedY);
+          ctx.rotate(angle);
+          ctx.fillStyle = '#ffd700';
+          ctx.shadowColor = '#e5a93b';
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.moveTo(15, 0);
+          ctx.lineTo(-10, -8);
+          ctx.lineTo(-4, 0);
+          ctx.lineTo(-10, 8);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+
+          // Label
+          ctx.save();
+          ctx.font = 'bold 12px Cinzel, Georgia';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ffd700';
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 3;
+          const text = `📦 Baú Real (${distMeters}m)`;
+          ctx.strokeText(text, clampedX, clampedY - 13);
+          ctx.fillText(text, clampedX, clampedY - 13);
+          ctx.restore();
+        }
+      }
+    }
+
+    // 2.3 Sacred Sanctuary Zone Radar Pointer
+    if (game.arenaEventManager && game.arenaEventManager.sanctuaryZones && player) {
+      for (let i = 0, len = game.arenaEventManager.sanctuaryZones.length; i < len; i++) {
+        const s = game.arenaEventManager.sanctuaryZones[i];
+        if (!s.alive) continue;
+
+        const screenPos = project3D(s.x, s.y);
+        const isOffscreen = screenPos.x < 15 || screenPos.x > w - 15 || screenPos.y < 15 || screenPos.y > h - 15 || !screenPos.onScreen;
+
+        if (isOffscreen) {
+          const angle = Math.atan2(s.y - player.y, s.x - player.x);
+          const clampedX = Math.max(margin, Math.min(w - margin, (w / 2) + Math.cos(angle) * (w / 2 - margin)));
+          const clampedY = Math.max(margin, Math.min(h - margin, (h / 2) + Math.sin(angle) * (h / 2 - margin)));
+          const distMeters = Math.max(1, Math.round(Math.hypot(s.x - player.x, s.y - player.y) / 14));
+
+          // Sacred Golden Star Arrow
+          ctx.save();
+          ctx.translate(clampedX, clampedY);
+          ctx.rotate(angle);
+          ctx.fillStyle = '#fffa65';
+          ctx.shadowColor = '#f1c40f';
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.moveTo(17, 0);
+          ctx.lineTo(-12, -9);
+          ctx.lineTo(-5, 0);
+          ctx.lineTo(-12, 9);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+
+          // Label
+          ctx.save();
+          ctx.font = 'bold 12px Cinzel, Georgia';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#fffa65';
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 3;
+          const text = `✨ Santuário Sagrado (${distMeters}m)`;
+          ctx.strokeText(text, clampedX, clampedY - 14);
+          ctx.fillText(text, clampedX, clampedY - 14);
+          ctx.restore();
+        }
+      }
+    }
+
+    // 3. Player Damage Flash Overlay
+    if (this.damageFlashTimer > 0) {
+      const alpha = Math.min(0.45, this.damageFlashTimer * 1.5);
+      ctx.fillStyle = `rgba(231, 76, 60, ${alpha})`;
+      ctx.fillRect(0, 0, w, h);
+      this.damageFlashTimer -= 0.016;
+    }
+
+    // 4. Critical Low HP Pulsing Danger Vignette (< 28% HP)
+    if (player && player.alive && (player.hp / player.maxHp) < 0.28) {
+      const pulse = 0.35 + Math.sin(Date.now() / 180) * 0.25;
+      const redVignette = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.75);
+      redVignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      redVignette.addColorStop(1, `rgba(180, 20, 20, ${pulse})`);
+      ctx.fillStyle = redVignette;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    // 5. Dark Gothic Vignette
     if (!this.vignetteGradient) this.buildVignetteCache();
     ctx.fillStyle = this.vignetteGradient;
     ctx.fillRect(0, 0, w, h);

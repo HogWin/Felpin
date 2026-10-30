@@ -1353,7 +1353,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       buildExecutionerBossModel(root, anim);
     } else if (type === 'boss_golem') {
       buildStoneGolemBossModel(root, anim);
-    } else if (type === 'boss_baron') {
+    } else if (type === 'boss_baron' || type === 'boss_death_baron') {
       buildDeathBaronBossModel(root, anim);
     } else {
       // Fallback stylized skeleton
@@ -1451,6 +1451,13 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         anim.wasFlashing = false;
       }
     };
+
+    // Scale enemy 3D model up substantially for high visibility, presence, and clarity
+    let enemyScale = enemy.isBoss ? 1.45 : 1.40;
+    if (enemy.isChampion) {
+      enemyScale *= 1.25;
+    }
+    root.scale.set(enemyScale, enemyScale, enemyScale);
 
     return root;
   }
@@ -2128,6 +2135,51 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       const pulse = 1 + Math.sin(Date.now() / 200) * 0.15;
       aura.scale.set(pulse, pulse, 1);
     };
+
+    return root;
+  }
+
+  function createDestructibleModel(type) {
+    const root = new THREE.Group();
+    if (type === 'crate') {
+      const woodMat = materials.wood;
+      const ironMat = materials.darkSteel;
+      const box = new THREE.Mesh(new THREE.BoxGeometry(14, 14, 14), woodMat);
+      box.position.y = 7;
+      root.add(box);
+
+      const bandX = new THREE.Mesh(new THREE.BoxGeometry(14.4, 2.5, 14.4), ironMat);
+      bandX.position.y = 7;
+      root.add(bandX);
+    } else if (type === 'sarcophagus') {
+      const stoneMat = materials.stoneGrey;
+      const goldMat = materials.gold;
+      const base = new THREE.Mesh(new THREE.BoxGeometry(14, 12, 26), stoneMat);
+      base.position.y = 6;
+      root.add(base);
+
+      const cross = new THREE.Mesh(new THREE.BoxGeometry(4, 1.5, 12), goldMat);
+      cross.position.set(0, 12.5, 0);
+      root.add(cross);
+      const crossBar = new THREE.Mesh(new THREE.BoxGeometry(8, 1.5, 3.5), goldMat);
+      crossBar.position.set(0, 12.5, -2);
+      root.add(crossBar);
+    } else {
+      // Default: barrel
+      const woodMat = materials.wood;
+      const ironMat = materials.darkSteel;
+      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(7, 7.5, 16, 10), woodMat);
+      barrel.position.y = 8;
+      root.add(barrel);
+
+      const ringTop = new THREE.Mesh(new THREE.CylinderGeometry(7.2, 7.2, 1.8, 10), ironMat);
+      ringTop.position.y = 12;
+      root.add(ringTop);
+
+      const ringBottom = new THREE.Mesh(new THREE.CylinderGeometry(7.6, 7.6, 1.8, 10), ironMat);
+      ringBottom.position.y = 4;
+      root.add(ringBottom);
+    }
 
     return root;
   }
@@ -3017,6 +3069,198 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
+  // 3D Visual Mesh for Sacred Sanctuary Zone
+  function createSanctuaryZoneMesh(radius = 90) {
+    const root = new THREE.Group();
+    const r = radius || 90;
+
+    // 1. Glowing golden runic outer ring on the ground
+    const outerGeo = new THREE.RingGeometry(r * 0.90, r, 36);
+    outerGeo.rotateX(-Math.PI / 2);
+    const outerMat = new THREE.MeshBasicMaterial({
+      color: 0xffd700,
+      transparent: true,
+      opacity: 0.75,
+      side: THREE.DoubleSide
+    });
+    const outerRing = new THREE.Mesh(outerGeo, outerMat);
+    outerRing.position.y = 0.4;
+    root.add(outerRing);
+
+    // 2. Translucent golden ground seal disc
+    const discGeo = new THREE.CircleGeometry(r * 0.88, 32);
+    discGeo.rotateX(-Math.PI / 2);
+    const discMat = new THREE.MeshBasicMaterial({
+      color: 0xf1c40f,
+      transparent: true,
+      opacity: 0.22,
+      side: THREE.DoubleSide
+    });
+    const disc = new THREE.Mesh(discGeo, discMat);
+    disc.position.y = 0.35;
+    root.add(disc);
+
+    // 3. Inner rotating runic star ring
+    const innerGeo = new THREE.RingGeometry(r * 0.40, r * 0.50, 24);
+    innerGeo.rotateX(-Math.PI / 2);
+    const innerMat = new THREE.MeshBasicMaterial({
+      color: 0xffea79,
+      transparent: true,
+      opacity: 0.65,
+      side: THREE.DoubleSide
+    });
+    const innerRing = new THREE.Mesh(innerGeo, innerMat);
+    innerRing.position.y = 0.5;
+    root.add(innerRing);
+
+    // 4. Consecration progress ring (starts small, expands to r)
+    const progGeo = new THREE.RingGeometry(0.1, r * 0.88, 32);
+    progGeo.rotateX(-Math.PI / 2);
+    const progMat = new THREE.MeshBasicMaterial({
+      color: 0xfffa65,
+      transparent: true,
+      opacity: 0.45,
+      side: THREE.DoubleSide
+    });
+    const progRing = new THREE.Mesh(progGeo, progMat);
+    progRing.position.y = 0.45;
+    progRing.scale.set(0.01, 1, 0.01);
+    root.add(progRing);
+
+    // 5. Vertical ethereal light beam reaching into the sky
+    const beamGeo = new THREE.CylinderGeometry(r * 0.70, r * 0.85, 420, 24, 1, true);
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: 0xffd700,
+      transparent: true,
+      opacity: 0.25,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const beam = new THREE.Mesh(beamGeo, beamMat);
+    beam.position.y = 210;
+    root.add(beam);
+
+    root.updateVisuals = function(dt, consecrateProgress = 0, playerInside = false) {
+      outerRing.rotation.y += dt * 0.35;
+      innerRing.rotation.y -= dt * 0.75;
+
+      // Pulse brightness
+      const pulse = Math.sin(Date.now() * 0.004) * 0.12;
+      outerMat.opacity = playerInside ? 0.90 + pulse : 0.65 + pulse;
+      beamMat.opacity = playerInside ? 0.42 + pulse : 0.22 + pulse;
+      discMat.opacity = playerInside ? 0.35 : 0.18;
+
+      // Progress scale
+      const progScale = Math.max(0.01, Math.min(1.0, consecrateProgress));
+      progRing.scale.set(progScale, 1, progScale);
+      progRing.visible = consecrateProgress > 0.01;
+    };
+
+    return root;
+  }
+
+  // 3D Visual Mesh for Celestial Strike Telegraph Decal
+  function createCelestialStrikeTelegraphMesh(radius = 68) {
+    const root = new THREE.Group();
+    const r = radius || 68;
+
+    // 1. Red-orange fiery hazard perimeter ring
+    const ringGeo = new THREE.RingGeometry(r * 0.90, r, 32);
+    ringGeo.rotateX(-Math.PI / 2);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xff3838,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.position.y = 0.45;
+    root.add(ring);
+
+    // 2. Shrinking / expanding countdown circle
+    const countGeo = new THREE.CircleGeometry(r * 0.88, 32);
+    countGeo.rotateX(-Math.PI / 2);
+    const countMat = new THREE.MeshBasicMaterial({
+      color: 0xff793f,
+      transparent: true,
+      opacity: 0.35,
+      side: THREE.DoubleSide
+    });
+    const countCircle = new THREE.Mesh(countGeo, countMat);
+    countCircle.position.y = 0.4;
+    root.add(countCircle);
+
+    root.updateVisuals = function(progress01) {
+      const p = Math.max(0, Math.min(1, progress01));
+      const flash = Math.sin(Date.now() * (0.01 + p * 0.02)) > 0 ? 0.95 : 0.60;
+      ringMat.opacity = flash;
+      countCircle.scale.set(p, 1, p);
+    };
+
+    return root;
+  }
+
+  // 3D Visual Mesh for Celestial Strike Impact Column of Holy Fire
+  function createCelestialStrikeImpactMesh(radius = 68) {
+    const root = new THREE.Group();
+    const r = radius || 68;
+
+    // 1. Ground scorched blast circle
+    const blastGeo = new THREE.CircleGeometry(r, 24);
+    blastGeo.rotateX(-Math.PI / 2);
+    const blastMat = new THREE.MeshBasicMaterial({
+      color: 0xfffa65,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide
+    });
+    const blastDisc = new THREE.Mesh(blastGeo, blastMat);
+    blastDisc.position.y = 0.5;
+    root.add(blastDisc);
+
+    // 2. Towering Celestial Flame Pillar
+    const pillarGeo = new THREE.CylinderGeometry(r * 0.75, r * 1.1, 460, 24, 1, true);
+    const pillarMat = new THREE.MeshBasicMaterial({
+      color: 0xffd32a,
+      transparent: true,
+      opacity: 0.95,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+    pillar.position.y = 230;
+    root.add(pillar);
+
+    // Inner bright core
+    const coreGeo = new THREE.CylinderGeometry(r * 0.35, r * 0.45, 480, 16, 1, true);
+    const coreMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.95,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const core = new THREE.Mesh(coreGeo, coreMat);
+    core.position.y = 240;
+    root.add(core);
+
+    root.updateVisuals = function(dt, lifePct01) {
+      const alpha = Math.max(0, Math.min(1, lifePct01));
+      blastMat.opacity = alpha * 0.85;
+      pillarMat.opacity = alpha * 0.90;
+      coreMat.opacity = alpha * 0.95;
+      pillar.rotation.y += dt * 3;
+      core.rotation.y -= dt * 4;
+      const s = 1.0 + (1.0 - alpha) * 0.35;
+      pillar.scale.set(s, 1, s);
+    };
+
+    return root;
+  }
+
   // Export to namespace
   window.MedievalSurvivors.models3d = {
     createPlayerModel,
@@ -3024,6 +3268,10 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     createAlliedMinionModel,
     createGemModel,
     createChestModel,
+    createDestructibleModel,
+    createSanctuaryZoneMesh,
+    createCelestialStrikeTelegraphMesh,
+    createCelestialStrikeImpactMesh,
     createCrossbowBoltMesh,
     createThrownAxeMesh,
     createHolyFireFlaskMesh,

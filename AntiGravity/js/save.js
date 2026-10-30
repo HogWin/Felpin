@@ -7,6 +7,7 @@ class SaveManager {
     this.storageKey = 'medieval_survivors_save_v1';
     this.data = this.getDefaultData();
     this.metaUpgradeDefinitions = this.initMetaDefinitions();
+    this.achievementDefinitions = this.initAchievementDefinitions();
     this.load();
   }
 
@@ -19,7 +20,9 @@ class SaveManager {
       settings: {
         mouseAim: true,
         soundMuted: false,
-        autoGoldOnMax: false
+        autoGoldOnMax: false,
+        hyperMode: false,
+        curseRank: 0
       },
       metaUpgrades: {
         health: 0,      // Max HP
@@ -35,7 +38,14 @@ class SaveManager {
         fire_boost: 0   // Holy Fire Base Damage
       },
       history: [],
-      discoveredSynergies: []
+      discoveredSynergies: [],
+      unlockedAchievements: {},
+      stats: {
+        totalEnemiesKilled: 0,
+        totalDestructiblesSmashed: 0,
+        totalSanctuariesConsecrated: 0,
+        totalBossesKilled: 0
+      }
     };
   }
 
@@ -143,6 +153,209 @@ class SaveManager {
     ];
   }
 
+  initAchievementDefinitions() {
+    return [
+      {
+        id: 'first_blood',
+        name: 'Primeiro Sangue',
+        icon: '🩸',
+        description: 'Elimine seu primeiro inimigo na arena.',
+        category: 'combat',
+        reward: { gold: 50 },
+        check: (game, trigger) => trigger === 'enemy_killed'
+      },
+      {
+        id: 'executioner_slayer',
+        name: 'O Fim do Carrasco',
+        icon: '🪓',
+        description: 'Derrote o Carrasco Carmesim despertado das catacumbas.',
+        category: 'bosses',
+        reward: { gold: 150 },
+        check: (game, trigger, params) => trigger === 'boss_killed' && params && params.type === 'executioner'
+      },
+      {
+        id: 'golem_crusher',
+        name: 'Demolidor de Monólitos',
+        icon: '🗿',
+        description: 'Destrua o colossal Golem de Pedra das Catacumbas.',
+        category: 'bosses',
+        reward: { gold: 250 },
+        check: (game, trigger, params) => trigger === 'boss_killed' && params && params.type === 'golem'
+      },
+      {
+        id: 'baron_vanquisher',
+        name: 'Fim da Tirania',
+        icon: '👑',
+        description: 'Elimine o temido Barão da Morte Von Kroll.',
+        category: 'bosses',
+        reward: { gold: 500 },
+        check: (game, trigger, params) => trigger === 'boss_killed' && params && params.type === 'death_baron'
+      },
+      {
+        id: 'sanctuary_consecration',
+        name: 'Bênção dos Ancestrais',
+        icon: '✨',
+        description: 'Permaneça 10s no Santuário Sagrado e conclua a consagração divina.',
+        category: 'exploration',
+        reward: { gold: 150 },
+        check: (game, trigger) => trigger === 'sanctuary_consecrated'
+      },
+      {
+        id: 'swarm_survivor',
+        name: 'Exterminador de Pragas',
+        icon: '🐀',
+        description: 'Sobreviva e dizime a investida veloz de um Enxame Relâmpago.',
+        category: 'combat',
+        reward: { gold: 120 },
+        check: (game, trigger) => trigger === 'swarm_survived'
+      },
+      {
+        id: 'meteor_walker',
+        name: 'Andarilho do Firmamento',
+        icon: '⚡',
+        description: 'Sobreviva a uma tempestade de Fogo Celestial devastadora.',
+        category: 'exploration',
+        reward: { gold: 120 },
+        check: (game, trigger) => trigger === 'meteor_survived'
+      },
+      {
+        id: 'horde_100',
+        name: 'Ceifador de Almas',
+        icon: '💀',
+        description: 'Elimine 100 monstros em uma única expedição.',
+        category: 'combat',
+        reward: { gold: 100 },
+        target: 100,
+        getProgress: (game) => ({ current: (game && game.player && game.player.killCount) || 0, max: 100 }),
+        check: (game, trigger) => trigger === 'enemy_killed' && game && game.player && game.player.killCount >= 100
+      },
+      {
+        id: 'horde_500',
+        name: 'Flagelo das Trevas',
+        icon: '⚔️',
+        description: 'Elimine 500 monstros em uma única expedição.',
+        category: 'combat',
+        reward: { gold: 300 },
+        target: 500,
+        getProgress: (game) => ({ current: (game && game.player && game.player.killCount) || 0, max: 500 }),
+        check: (game, trigger) => trigger === 'enemy_killed' && game && game.player && game.player.killCount >= 500
+      },
+      {
+        id: 'horde_1000',
+        name: 'A Morte Encarnada',
+        icon: '☠️',
+        description: 'Elimine 1.000 monstros em uma única expedição.',
+        category: 'combat',
+        reward: { gold: 600 },
+        target: 1000,
+        getProgress: (game) => ({ current: (game && game.player && game.player.killCount) || 0, max: 1000 }),
+        check: (game, trigger) => trigger === 'enemy_killed' && game && game.player && game.player.killCount >= 1000
+      },
+      {
+        id: 'level_10',
+        name: 'Iniciado nas Lâminas',
+        icon: '🌟',
+        description: 'Alcance o Nível 10 em uma partida.',
+        category: 'progression',
+        reward: { gold: 80 },
+        target: 10,
+        getProgress: (game) => ({ current: (game && game.player && game.player.level) || 1, max: 10 }),
+        check: (game, trigger) => trigger === 'level_up' && game && game.player && game.player.level >= 10
+      },
+      {
+        id: 'level_25',
+        name: 'Veterano de Guerra',
+        icon: '🔥',
+        description: 'Alcance o Nível 25 em uma partida.',
+        category: 'progression',
+        reward: { gold: 200 },
+        target: 25,
+        getProgress: (game) => ({ current: (game && game.player && game.player.level) || 1, max: 25 }),
+        check: (game, trigger) => trigger === 'level_up' && game && game.player && game.player.level >= 25
+      },
+      {
+        id: 'level_50',
+        name: 'Avatar dos Deuses',
+        icon: '⚜️',
+        description: 'Alcance o Nível 50 em uma partida.',
+        category: 'progression',
+        reward: { gold: 500 },
+        target: 50,
+        getProgress: (game) => ({ current: (game && game.player && game.player.level) || 1, max: 50 }),
+        check: (game, trigger) => trigger === 'level_up' && game && game.player && game.player.level >= 50
+      },
+      {
+        id: 'armory_master',
+        name: 'Arsenal Completo',
+        icon: '🗡️',
+        description: 'Equipe 6 armas simultaneamente no seu arsenal.',
+        category: 'progression',
+        reward: { gold: 180 },
+        target: 6,
+        getProgress: (game) => ({ current: (game && game.player && game.player.weapons && game.player.weapons.length) || 0, max: 6 }),
+        check: (game, trigger) => trigger === 'weapon_acquired' && game && game.player && game.player.weapons.length >= 6
+      },
+      {
+        id: 'synergy_born',
+        name: 'Forja Mítica',
+        icon: '🔮',
+        description: 'Evolua qualquer arma para sua forma Mítica/Suprema através de uma Sinergia.',
+        category: 'progression',
+        reward: { gold: 350 },
+        check: (game, trigger) => trigger === 'synergy_evolved'
+      },
+      {
+        id: 'destructor_25',
+        name: 'Expurgo de Relíquias',
+        icon: '📦',
+        description: 'Destrua 25 caixas, barris ou sarcófagos pelo campo de batalha.',
+        category: 'exploration',
+        reward: { gold: 120 },
+        target: 25,
+        getProgress: () => ({ current: (this.data && this.data.stats && this.data.stats.totalDestructiblesSmashed) || 0, max: 25 }),
+        check: (game, trigger) => trigger === 'destructible_smashed' && this.data.stats.totalDestructiblesSmashed >= 25
+      },
+      {
+        id: 'gold_hoarder_1000',
+        name: 'Tesouro da Cidadela',
+        icon: '💰',
+        description: 'Acumule um total de 1.000 de Ouro entre suas expedições.',
+        category: 'exploration',
+        reward: { gold: 250 },
+        target: 1000,
+        getProgress: () => ({ current: (this.data && this.data.totalGoldEarned) || 0, max: 1000 }),
+        check: (game, trigger) => this.data.totalGoldEarned >= 1000
+      },
+      {
+        id: 'ultimate_victory',
+        name: 'Libertador do Reino',
+        icon: '🏆',
+        description: 'Conquiste a vitória absoluta sobrevivendo aos 15 minutos de batalha.',
+        category: 'progression',
+        reward: { gold: 1000 },
+        check: (game, trigger) => trigger === 'run_victory'
+      },
+      {
+        id: 'hyper_survivor',
+        name: 'Velocidade da Luz',
+        icon: '⚡',
+        description: 'Sobreviva 5 minutos de batalha no Modo Hiper.',
+        category: 'combat',
+        reward: { gold: 250 },
+        check: (game, trigger) => trigger === 'hyper_survived_5min'
+      },
+      {
+        id: 'curse_pact_5',
+        name: 'Pacto com a Morte',
+        icon: '💀',
+        description: 'Inicie e sobreviva a 5 minutos sob a Maldição de Grau 5.',
+        category: 'combat',
+        reward: { gold: 400 },
+        check: (game, trigger) => trigger === 'curse_survived_5min'
+      }
+    ];
+  }
+
   load() {
     try {
       const raw = localStorage.getItem(this.storageKey);
@@ -151,11 +364,73 @@ class SaveManager {
         this.data = Object.assign(this.getDefaultData(), parsed);
         this.data.settings = Object.assign(this.getDefaultData().settings, parsed.settings || {});
         this.data.metaUpgrades = Object.assign(this.getDefaultData().metaUpgrades, parsed.metaUpgrades || {});
+        this.data.unlockedAchievements = Object.assign({}, parsed.unlockedAchievements || {});
+        this.data.stats = Object.assign(this.getDefaultData().stats, parsed.stats || {});
       }
     } catch (e) {
       console.warn('Erro ao carregar save:', e);
       this.data = this.getDefaultData();
     }
+  }
+
+  isAchievementUnlocked(id) {
+    if (!this.data.unlockedAchievements) this.data.unlockedAchievements = {};
+    return Boolean(this.data.unlockedAchievements[id]);
+  }
+
+  unlockAchievement(id, game) {
+    if (this.isAchievementUnlocked(id)) return false;
+    const def = this.achievementDefinitions.find(a => a.id === id);
+    if (!def) return false;
+
+    // Record unlocked
+    this.data.unlockedAchievements[id] = {
+      unlockedAt: new Date().toISOString()
+    };
+
+    // Award Gold
+    if (def.reward && def.reward.gold) {
+      this.addGold(def.reward.gold);
+      if (game && game.player) {
+        game.player.gold += def.reward.gold;
+      }
+    }
+
+    this.save();
+
+    // Sound Fanfare
+    if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playAchievementUnlock) {
+      window.MedievalSurvivors.sound.playAchievementUnlock();
+    }
+
+    // UI Toast Notification
+    if (window.MedievalSurvivors.ui && window.MedievalSurvivors.ui.showAchievementToast) {
+      window.MedievalSurvivors.ui.showAchievementToast(def);
+    } else if (game && game.ui && game.ui.showAchievementToast) {
+      game.ui.showAchievementToast(def);
+    }
+
+    return true;
+  }
+
+  checkAchievements(triggerType, params, game) {
+    if (!this.data.unlockedAchievements) this.data.unlockedAchievements = {};
+    for (const def of this.achievementDefinitions) {
+      if (!this.data.unlockedAchievements[def.id]) {
+        try {
+          if (def.check(game, triggerType, params)) {
+            this.unlockAchievement(def.id, game);
+          }
+        } catch (e) {
+          console.warn('Erro ao checar conquista:', def.id, e);
+        }
+      }
+    }
+  }
+
+  getUnlockedAchievementsCount() {
+    if (!this.data.unlockedAchievements) return 0;
+    return Object.keys(this.data.unlockedAchievements).length;
   }
 
   save() {
@@ -171,6 +446,7 @@ class SaveManager {
     this.data.gold += amount;
     this.data.totalGoldEarned += amount;
     this.save();
+    this.checkAchievements('gold_updated', null, window.MedievalSurvivors.game);
   }
 
   getGold() {
@@ -214,6 +490,29 @@ class SaveManager {
     this.data.metaUpgrades[id] = (this.data.metaUpgrades[id] || 0) + 1;
     this.save();
     return true;
+  }
+
+  getTotalSpentGold() {
+    let total = 0;
+    for (const def of this.metaUpgradeDefinitions) {
+      const lvl = this.getUpgradeLevel(def.id);
+      for (let i = 0; i < lvl; i++) {
+        total += def.costs[i] || 0;
+      }
+    }
+    return total;
+  }
+
+  refundAllUpgrades() {
+    const refund = this.getTotalSpentGold();
+    if (refund <= 0) return 0;
+
+    for (const def of this.metaUpgradeDefinitions) {
+      this.data.metaUpgrades[def.id] = 0;
+    }
+    this.data.gold += refund;
+    this.save();
+    return refund;
   }
 
   recordRun(run) {
@@ -284,6 +583,9 @@ class SaveManager {
 
     // Permanent Reroll charges per run (1 base + purchased permanent charges)
     player.rerolls = 1 + (up.reroll || 0);
+    player.maxRerolls = player.rerolls;
+    player.banishCharges = 2;
+    player.bannedIds = new Set();
 
     // Base Weapon Boosts
     player.weapons.forEach(w => {

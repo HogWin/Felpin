@@ -217,6 +217,39 @@ class UIController {
 
     // Equipment Slots (rebuilt only when items or levels mutate)
     this.updateEquipmentSlots(player);
+
+    // Active Battle Modifiers Badges (Hyper Mode & Curse)
+    this.updateHUDModifiers(this.game);
+  }
+
+  updateHUDModifiers(game) {
+    if (!game) return;
+    const container = document.getElementById('top-modifiers-container');
+    if (!container) return;
+    const sig = `${game.hyperMode ? 1 : 0}-${game.curseRank}`;
+    if (this._lastModifiersSig === sig) return;
+    this._lastModifiersSig = sig;
+
+    let html = '';
+    if (game.hyperMode) {
+      html += `<span class="modifier-hud-pill hyper-pill">⚡ HIPER (+50% 💰 / +30% 💎)</span>`;
+    }
+    if (game.curseRank > 0) {
+      html += `<span class="modifier-hud-pill curse-pill">💀 MALDIÇÃO ${game.curseRank} (+${game.curseRank * 20}% 💰)</span>`;
+    }
+    container.innerHTML = html;
+  }
+
+  getCurseDescription(rank) {
+    switch (rank) {
+      case 0: return 'Nenhuma maldição ativa. Inimigos possuem velocidade, vida e dano normais.';
+      case 1: return 'Pacto de Sangue I: Monstros +12% Vida & Dano, projéteis +8% rápidos (+20% Ouro).';
+      case 2: return 'Pacto de Sangue II: Monstros +24% Vida & Dano, projéteis +16% rápidos (+40% Ouro).';
+      case 3: return 'Pacto das Sombras III: Monstros +36% Vida & Dano, projéteis +24% rápidos (+60% Ouro).';
+      case 4: return 'Pacto do Pesadelo IV: Monstros +48% Vida & Dano, projéteis +32% rápidos (+80% Ouro).';
+      case 5: return 'Pacto Infernal V: Monstros +60% Vida & Dano, projéteis +40% rápidos (+100% Ouro / +25% Crítico).';
+      default: return '';
+    }
   }
 
   onGameStart() {
@@ -296,6 +329,82 @@ class UIController {
     }, 4500);
   }
 
+  showEventBanner(title, subtitle, color = '#f1c40f') {
+    const banner = document.getElementById('arena-event-banner');
+    if (!banner) return;
+    const titleEl = document.getElementById('event-banner-title');
+    const subEl = document.getElementById('event-banner-subtitle');
+    if (titleEl) {
+      titleEl.textContent = title;
+      titleEl.style.color = color;
+      titleEl.style.textShadow = `0 0 15px ${color}`;
+    }
+    if (subEl) {
+      subEl.textContent = subtitle;
+    }
+    banner.style.borderColor = color;
+    banner.style.boxShadow = `0 0 35px ${color}88, inset 0 0 20px ${color}33`;
+    banner.style.display = 'flex';
+
+    if (this._eventBannerTimeout) clearTimeout(this._eventBannerTimeout);
+    this._eventBannerTimeout = setTimeout(() => {
+      banner.style.display = 'none';
+    }, 4500);
+  }
+
+  updateSanctuaryProgress(active, current = 0, max = 10) {
+    const hud = document.getElementById('sanctuary-hud-progress');
+    if (!hud) return;
+    if (!active) {
+      hud.style.display = 'none';
+      return;
+    }
+    hud.style.display = 'flex';
+    const fill = document.getElementById('sanctuary-fill');
+    const txt = document.getElementById('sanctuary-text');
+    const pct = Math.min(100, Math.max(0, (current / max) * 100));
+    if (fill) fill.style.width = `${pct}%`;
+    if (txt) txt.textContent = `Consagrando Santuário... ${current.toFixed(1)}s / ${max.toFixed(0)}s`;
+  }
+
+  showAchievementToast(achievement) {
+    if (!this._toastContainer) {
+      this._toastContainer = document.getElementById('achievement-toast-container');
+      if (!this._toastContainer) {
+        this._toastContainer = document.createElement('div');
+        this._toastContainer.id = 'achievement-toast-container';
+        this._toastContainer.className = 'achievement-toast-container';
+        document.body.appendChild(this._toastContainer);
+      }
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'achievement-toast';
+    toast.innerHTML = `
+      <div class="toast-emblem-wrap">
+        <span class="toast-emblem">${achievement.icon || '🏆'}</span>
+      </div>
+      <div class="toast-content">
+        <div class="toast-ribbon">
+          <span class="toast-tag">🏆 CONQUISTA DESBLOQUEADA!</span>
+          ${achievement.reward && achievement.reward.gold ? `<span class="toast-gold">+${achievement.reward.gold} 💰</span>` : ''}
+        </div>
+        <div class="toast-title">${achievement.name}</div>
+        <div class="toast-desc">${achievement.description}</div>
+      </div>
+    `;
+
+    this._toastContainer.appendChild(toast);
+
+    // Auto-dismiss after 4.5 seconds with graceful slide up & fade
+    setTimeout(() => {
+      toast.classList.add('fade-out');
+      setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 500);
+    }, 4500);
+  }
+
   // ──────────────────────────────────────────────────────────────
   //  LEVEL UP MODAL
   // ──────────────────────────────────────────────────────────────
@@ -323,7 +432,12 @@ class UIController {
 
       card.className = cardClass;
 
+      const banishBtnHTML = (player.banishCharges > 0 && opt.type !== 'heal' && !opt.isSupreme)
+        ? `<button class="card-banish-btn" title="Banir este item pelo restante da run">🚫 Banir (${player.banishCharges})</button>`
+        : '';
+
       card.innerHTML = `
+        ${banishBtnHTML}
         <span class="card-badge ${badgeClass}">${badgeText}</span>
         <div class="card-icon">${opt.icon}</div>
         <div class="card-name">${opt.name}</div>
@@ -331,6 +445,22 @@ class UIController {
         <div class="card-desc">${opt.description}</div>
         <div class="card-stats">${opt.diff}</div>
       `;
+
+      if (player.banishCharges > 0 && opt.type !== 'heal' && !opt.isSupreme) {
+        const banishBtn = card.querySelector('.card-banish-btn');
+        if (banishBtn) {
+          banishBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            player.banishCharges--;
+            if (!player.bannedIds) player.bannedIds = new Set();
+            player.bannedIds.add(opt.id);
+            if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playWoodHit) {
+              window.MedievalSurvivors.sound.playWoodHit();
+            }
+            this.showLevelUpModal(player);
+          });
+        }
+      }
 
       card.addEventListener('click', () => {
         opt.apply();
@@ -340,6 +470,36 @@ class UIController {
 
       this.levelUpCards.appendChild(card);
     });
+
+    // Update and wire Reroll Button
+    const rerollBtn = document.getElementById('btn-reroll-levelup');
+    const rerollCount = document.getElementById('reroll-count-val');
+    if (rerollCount) rerollCount.textContent = player.rerolls || 0;
+    if (rerollBtn) {
+      rerollBtn.disabled = (player.rerolls || 0) <= 0;
+      rerollBtn.style.opacity = (player.rerolls || 0) > 0 ? '1' : '0.5';
+      rerollBtn.onclick = () => {
+        if ((player.rerolls || 0) > 0) {
+          player.rerolls--;
+          if (rerollCount) rerollCount.textContent = player.rerolls;
+          window.MedievalSurvivors.sound.playGemPickup();
+          this.showLevelUpModal(player);
+        }
+      };
+    }
+
+    // Update and wire Skip Button
+    const skipBtn = document.getElementById('btn-skip-levelup');
+    if (skipBtn) {
+      skipBtn.onclick = () => {
+        player.heal(player.maxHp * 0.25);
+        player.gold += 35;
+        this.game.addFloatingText(player.x, player.y - 15, '+35 💰 & +25% HP', '#2ecc71', true);
+        window.MedievalSurvivors.sound.playGemPickup();
+        this.levelUpModal.classList.remove('active');
+        this.game.resume();
+      };
+    }
 
     this.levelUpModal.classList.add('active');
   }
@@ -430,6 +590,9 @@ class UIController {
                 const newWep = window.MedievalSurvivors.weapons.create(wid);
                 newWep.upgrade();
                 player.weapons.push(newWep);
+                if (window.MedievalSurvivors.saveManager) {
+                  window.MedievalSurvivors.saveManager.checkAchievements('weapon_acquired', null, this.game);
+                }
               }
             });
           }
@@ -480,8 +643,11 @@ class UIController {
       });
     }
 
-    // If everything maxed, grant a banquet reward
-    if (options.length === 0) {
+    // Filter out banned options
+    const filteredOptions = options.filter(opt => !player.bannedIds || !player.bannedIds.has(opt.id));
+
+    // If everything maxed or banned, grant a banquet reward
+    if (filteredOptions.length === 0) {
       return [{
         type: 'heal',
         name: 'Banquete do Cavaleiro',
@@ -496,8 +662,8 @@ class UIController {
       }];
     }
 
-    const supremeOptions = options.filter(o => o.isSupreme || o.isAscension);
-    const standardOptions = options.filter(o => !o.isSupreme && !o.isAscension);
+    const supremeOptions = filteredOptions.filter(o => o.isSupreme || o.isAscension);
+    const standardOptions = filteredOptions.filter(o => !o.isSupreme && !o.isAscension);
     shuffleArray(standardOptions);
     const result = supremeOptions.concat(standardOptions);
     return result.slice(0, 3);
@@ -550,6 +716,32 @@ class UIController {
   // ──────────────────────────────────────────────────────────────
   //  GAME OVER MODAL
   // ──────────────────────────────────────────────────────────────
+  renderWeaponBreakdown(containerEl, player, gameTime) {
+    if (!containerEl || !player || !player.weapons) return;
+    const totalDmg = player.weapons.reduce((sum, w) => sum + (w.totalDamageDealt || 0), 0) || 1;
+    const timeSafe = Math.max(1, gameTime);
+
+    containerEl.innerHTML = player.weapons.map(w => {
+      const dmg = w.totalDamageDealt || 0;
+      const pct = Math.min(100, Math.round((dmg / totalDmg) * 100));
+      const dps = (dmg / timeSafe).toFixed(1);
+      const isMax = w.level >= w.maxLevel;
+      const lvlLabel = w.hasAscended ? '✨ Ascensão' : (isMax ? 'Nv. MAX' : `Nv. ${w.level}`);
+
+      return `
+      <div style="margin-bottom:8px; background:rgba(0,0,0,0.22); padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex; justify-content:space-between; margin-bottom:3px; font-size:0.86rem; align-items:center;">
+          <span>${w.icon} <strong>${w.name}</strong> <span style="color:#d4af37; font-size:0.75rem;">(${lvlLabel})</span>:</span>
+          <span style="color:#f7d774; font-weight:700;">${dmg.toLocaleString()} dano <span style="color:#00e5ff; font-size:0.78rem;">(${dps} DPS | ${pct}%)</span></span>
+        </div>
+        <div style="width:100%; height:7px; background:#120c18; border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.08);">
+          <div style="width:${pct}%; height:100%; background:linear-gradient(90deg, #d35400, #f1c40f); border-radius:4px;"></div>
+        </div>
+      </div>
+      `;
+    }).join('');
+  }
+
   showGameOver(player, gameTime) {
     const mins = Math.floor(gameTime / 60);
     const secs = Math.floor(gameTime % 60);
@@ -564,24 +756,7 @@ class UIController {
 
     // Weapon DPS breakdown with visual progress bars
     const breakdown = document.getElementById('weapon-breakdown');
-    if (breakdown) {
-      const totalDmg = player.weapons.reduce((sum, w) => sum + (w.totalDamageDealt || 0), 0) || 1;
-      breakdown.innerHTML = player.weapons.map(w => {
-        const dmg = w.totalDamageDealt || 0;
-        const pct = Math.min(100, Math.round((dmg / totalDmg) * 100));
-        return `
-        <div style="margin-bottom:8px;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:3px; font-size:0.85rem;">
-            <span>${w.icon} <strong>${w.name}</strong> (Nv. ${w.level}):</span>
-            <span style="color:#f7d774; font-weight:700;">${dmg.toLocaleString()} dano (${pct}%)</span>
-          </div>
-          <div style="width:100%; height:6px; background:#120c18; border-radius:3px; overflow:hidden; border:1px solid rgba(255,255,255,0.06);">
-            <div style="width:${pct}%; height:100%; background:linear-gradient(90deg, #d35400, #f1c40f); border-radius:3px;"></div>
-          </div>
-        </div>
-        `;
-      }).join('');
-    }
+    this.renderWeaponBreakdown(breakdown, player, gameTime);
 
     this.gameOverModal.classList.add('active');
   }
@@ -594,6 +769,9 @@ class UIController {
     const goldEl = document.getElementById('victory-gold');
     if (killsEl) killsEl.textContent = player.killCount;
     if (goldEl) goldEl.textContent = `${player.gold} 💰`;
+
+    const victoryBreakdown = document.getElementById('victory-weapon-breakdown');
+    this.renderWeaponBreakdown(victoryBreakdown, player, gameTime);
 
     this.victoryModal.classList.add('active');
   }
@@ -641,6 +819,7 @@ class UIController {
       case 'forge':     this.renderForgeTab();     break;
       case 'synergies': this.renderSynergiesTab(); break;
       case 'codex':     this.renderCodexTab();     break;
+      case 'achievements': this.renderAchievementsTab(); break;
       case 'history':   this.renderHistoryTab();   break;
       case 'settings':  this.renderSettingsTab();  break;
       default:          this.renderPlayTab();
@@ -715,6 +894,55 @@ class UIController {
               ` : ''}
             </div>
 
+            <!-- Battle Modifiers Panel (Modo Hiper & Pacto de Maldição) -->
+            <div class="modifiers-selection-panel">
+              <div class="modifiers-panel-header">
+                <span class="mod-icon">📜</span>
+                <span>PACTOS DE BATALHA & MODIFICADORES</span>
+              </div>
+
+              <div class="modifiers-row">
+                <!-- Modo Hiper Toggle -->
+                <div class="modifier-box ${this.game.hyperMode ? 'active' : ''}" id="mod-toggle-hyper" title="Alternar Modo Hiper">
+                  <div class="mod-top">
+                    <span class="mod-tag ${this.game.hyperMode ? 'on' : 'off'}">${this.game.hyperMode ? '⚡ ATIVADO' : 'DESATIVADO'}</span>
+                    <span class="mod-title">MODO HIPER</span>
+                  </div>
+                  <p class="mod-desc">Ritmo acelerado: +25% velocidade do herói, +35% velocidade dos monstros e hordas 50% mais densas.</p>
+                  <div class="mod-rewards">
+                    <span class="reward-pill gold">💰 +50% Ouro</span>
+                    <span class="reward-pill xp">💎 +30% XP</span>
+                  </div>
+                </div>
+
+                <!-- Pacto de Maldição Stepper -->
+                <div class="modifier-box curse-box ${this.game.curseRank > 0 ? 'active' : ''}" id="mod-box-curse">
+                  <div class="mod-top">
+                    <span class="mod-tag curse-tag ${this.game.curseRank > 0 ? 'on' : 'off'}">${this.game.curseRank === 0 ? 'DESATIVADO' : `💀 GRAU ${this.game.curseRank}`}</span>
+                    <span class="mod-title">PACTO DE MALDIÇÃO</span>
+                  </div>
+                  <p class="mod-desc">${this.getCurseDescription(this.game.curseRank)}</p>
+                  <div class="curse-stepper-controls">
+                    <button class="btn-stepper" id="btn-curse-dec" ${this.game.curseRank === 0 ? 'disabled' : ''}>◀</button>
+                    <span class="curse-stepper-value">${this.game.curseRank === 0 ? 'Sem Maldição' : `Grau ${this.game.curseRank} / 5`}</span>
+                    <button class="btn-stepper" id="btn-curse-inc" ${this.game.curseRank >= 5 ? 'disabled' : ''}>▶</button>
+                  </div>
+                  <div class="mod-rewards">
+                    <span class="reward-pill gold">💰 +${this.game.curseRank * 20}% Ouro</span>
+                    <span class="reward-pill luck">🍀 +${this.game.curseRank * 5}% Crítico</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modifiers Summary Ribbon -->
+              <div class="modifiers-summary-ribbon">
+                <span class="sum-label">Bônus da Expedição:</span>
+                <span class="sum-item gold">💰 +${(this.game.hyperMode ? 50 : 0) + (this.game.curseRank * 20)}% Ouro</span>
+                <span class="sum-item xp">💎 +${this.game.hyperMode ? 30 : 0}% XP</span>
+                <span class="sum-item tempo">⚡ Ritmo: ${this.game.hyperMode ? 'Frenético (Hiper)' : 'Padrão'}</span>
+              </div>
+            </div>
+
             <!-- Action CTA Buttons -->
             <div class="prep-actions-row">
               <button class="btn-primary btn-epic-start" id="btn-start-battle">
@@ -731,6 +959,49 @@ class UIController {
         </div>
       </div>
     `;
+
+    // Battle Modifiers Event Handlers
+    document.getElementById('mod-toggle-hyper').addEventListener('click', () => {
+      this.game.hyperMode = !this.game.hyperMode;
+      if (this.game.saveManager) {
+        this.game.saveManager.data.settings.hyperMode = this.game.hyperMode;
+        this.game.saveManager.save();
+      }
+      if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playSwordSlash) {
+        window.MedievalSurvivors.sound.playSwordSlash();
+      }
+      this.renderPlayTab();
+    });
+
+    document.getElementById('btn-curse-dec').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (this.game.curseRank > 0) {
+        this.game.curseRank--;
+        if (this.game.saveManager) {
+          this.game.saveManager.data.settings.curseRank = this.game.curseRank;
+          this.game.saveManager.save();
+        }
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playWoodHit) {
+          window.MedievalSurvivors.sound.playWoodHit();
+        }
+        this.renderPlayTab();
+      }
+    });
+
+    document.getElementById('btn-curse-inc').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (this.game.curseRank < 5) {
+        this.game.curseRank++;
+        if (this.game.saveManager) {
+          this.game.saveManager.data.settings.curseRank = this.game.curseRank;
+          this.game.saveManager.save();
+        }
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playBossHorn) {
+          window.MedievalSurvivors.sound.playBossHorn();
+        }
+        this.renderPlayTab();
+      }
+    });
 
     document.getElementById('btn-start-battle').addEventListener('click', () => {
       this.game.selectedClassId = this._menuSelectedClass;
@@ -813,19 +1084,39 @@ class UIController {
   renderForgeTab() {
     const sm = this.game.saveManager;
     const upgrades = sm.metaUpgradeDefinitions;
+    const totalSpent = sm.getTotalSpentGold();
 
     this.menuTabContent.innerHTML = `
       <div class="forge-header-banner">
         <h3>🔨 FORJA REAL DOS ANCESTRAIS</h3>
         <p>Invoque as chamas arcanas para fundir seu ouro em bênçãos de combate eternas.</p>
-        <div class="forge-balance-pill">
-          <span>Ouro Disponível:</span>
-          <strong>${sm.getGold().toLocaleString()}</strong>
-          <span>💰</span>
+        <div class="forge-top-actions">
+          <div class="forge-balance-pill">
+            <span>Ouro Disponível:</span>
+            <strong>${sm.getGold().toLocaleString()}</strong>
+            <span>💰</span>
+          </div>
+          <button class="btn-refund-gold" id="btn-refund-forge" ${totalSpent <= 0 ? 'disabled' : ''}>
+            🔄 Reembolsar Ouro (${totalSpent.toLocaleString()} 💰 gastos)
+          </button>
         </div>
       </div>
       <div class="forge-grid" id="forge-grid-inner"></div>
     `;
+
+    const refundBtn = document.getElementById('btn-refund-forge');
+    if (refundBtn) {
+      refundBtn.addEventListener('click', () => {
+        const refunded = sm.refundAllUpgrades();
+        if (refunded > 0) {
+          if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playGemPickup) {
+            window.MedievalSurvivors.sound.playGemPickup();
+          }
+          this.updateMenuGoldDisplay();
+          this.renderForgeTab();
+        }
+      });
+    }
 
     const grid = document.getElementById('forge-grid-inner');
     if (!grid) return;
@@ -1251,6 +1542,135 @@ class UIController {
         </table>
       </div>
     `;
+  }
+
+  // ── TAB: Conquistas ──────────────────────────────────────────
+  renderAchievementsTab(filter = 'all') {
+    this._achievementsFilter = filter;
+    const sm = this.game.saveManager;
+    const all = sm.achievementDefinitions || [];
+    const unlockedMap = sm.data.unlockedAchievements || {};
+    const unlockedCount = Object.keys(unlockedMap).length;
+    const totalCount = all.length;
+    const pct = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
+
+    let filtered = all;
+    if (filter === 'completed') {
+      filtered = all.filter(a => unlockedMap[a.id]);
+    } else if (filter === 'locked') {
+      filtered = all.filter(a => !unlockedMap[a.id]);
+    }
+
+    // Total gold claimed from achievements
+    const goldClaimed = all
+      .filter(a => unlockedMap[a.id])
+      .reduce((sum, a) => sum + ((a.reward && a.reward.gold) || 0), 0);
+
+    this.menuTabContent.innerHTML = `
+      <div class="achievements-header-banner">
+        <div class="achievements-banner-left">
+          <div class="trophy-icon">🏆</div>
+          <div>
+            <h3>SALÃO DAS CONQUISTAS ANCESTRAIS</h3>
+            <p>Supere desafios colossais, expurgue as hordas e reivindique glória e ouro para a Cidadela.</p>
+          </div>
+        </div>
+        <div class="achievements-banner-stats">
+          <div class="stat-badge">
+            <span class="stat-num">${unlockedCount} / ${totalCount}</span>
+            <span class="stat-lbl">Desbloqueadas (${pct}%)</span>
+          </div>
+          <div class="stat-badge gold-badge">
+            <span class="stat-num">+${goldClaimed.toLocaleString()} 💰</span>
+            <span class="stat-lbl">Ouro Reivindicado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Completion Bar -->
+      <div class="achievements-overall-bar">
+        <div class="achievements-bar-fill" style="width: ${pct}%;"></div>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="achievements-filter-bar">
+        <button class="filter-chip ${filter === 'all' ? 'active' : ''}" data-filter="all">
+          Todas (${totalCount})
+        </button>
+        <button class="filter-chip ${filter === 'completed' ? 'active' : ''}" data-filter="completed">
+          ✅ Concluídas (${unlockedCount})
+        </button>
+        <button class="filter-chip ${filter === 'locked' ? 'active' : ''}" data-filter="locked">
+          🔒 Bloqueadas (${totalCount - unlockedCount})
+        </button>
+      </div>
+
+      <!-- Achievements Grid -->
+      <div class="achievements-grid">
+        ${filtered.map(a => {
+          const isUnlocked = Boolean(unlockedMap[a.id]);
+          const unlockInfo = unlockedMap[a.id];
+          let dateStr = '';
+          if (unlockInfo && unlockInfo.unlockedAt) {
+            try {
+              dateStr = new Date(unlockInfo.unlockedAt).toLocaleDateString('pt-BR');
+            } catch (e) {}
+          }
+
+          let progressHtml = '';
+          if (!isUnlocked && a.getProgress) {
+            const prog = a.getProgress(this.game);
+            if (prog && prog.max) {
+              const current = Math.min(prog.max, prog.current);
+              const barPct = Math.round((current / prog.max) * 100);
+              progressHtml = `
+                <div class="achievement-progress-wrap">
+                  <div class="progress-bar-mini">
+                    <div class="progress-fill-mini" style="width: ${barPct}%;"></div>
+                  </div>
+                  <span class="progress-txt-mini">${current} / ${prog.max}</span>
+                </div>
+              `;
+            }
+          }
+
+          return `
+            <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
+              <div class="achievement-card-icon">
+                ${isUnlocked ? a.icon : '🔒'}
+              </div>
+              <div class="achievement-card-info">
+                <div class="achievement-card-header">
+                  <h4 class="achievement-card-title">${a.name}</h4>
+                  ${a.reward && a.reward.gold ? `
+                    <span class="achievement-reward-tag ${isUnlocked ? 'claimed' : 'unclaimed'}">
+                      +${a.reward.gold} 💰
+                    </span>
+                  ` : ''}
+                </div>
+                <p class="achievement-card-desc">${a.description}</p>
+                ${progressHtml}
+                <div class="achievement-card-footer">
+                  ${isUnlocked
+                    ? `<span class="achievement-status-done">⚜️ Concluída ${dateStr ? `em ${dateStr}` : ''}</span>`
+                    : `<span class="achievement-status-lock">Desafio Pendente</span>`
+                  }
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    // Bind filter buttons
+    const filterBtns = this.menuTabContent.querySelectorAll('.filter-chip');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const f = e.currentTarget.getAttribute('data-filter');
+        this.renderAchievementsTab(f);
+      });
+    });
   }
 
   // ── TAB: Opções ──────────────────────────────────────────────
