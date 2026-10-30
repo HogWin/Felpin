@@ -179,13 +179,10 @@ class Player {
       else if (Math.cos(this.facingAngle) < -0.1) this.facingDir = -1;
     }
 
-    // Bounded Arena Constraint: player stays firmly within the gothic fortress arena
-    const arenaLimit = 770;
-    const distFromOrigin = Math.hypot(this.x, this.y);
-    if (distFromOrigin > arenaLimit) {
-      this.x = (this.x / distFromOrigin) * arenaLimit;
-      this.y = (this.y / distFromOrigin) * arenaLimit;
-    }
+    // Bounded Square Arena Constraint: player stays firmly within the gothic fortress arena
+    const arenaLimit = (window.MedievalSurvivors && window.MedievalSurvivors.ARENA_HALF_LIMIT) || 1525;
+    this.x = Math.max(-arenaLimit, Math.min(arenaLimit, this.x));
+    this.y = Math.max(-arenaLimit, Math.min(arenaLimit, this.y));
 
     // Health Regeneration
     if (this.effectiveHpRegen > 0 && this.hp < this.maxHp) {

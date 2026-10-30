@@ -14,9 +14,9 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       id: 'ruins',
       name: 'Ruínas de Valoria',
       subtitle: 'Antiga Cidadela dos Reis Caídos',
-      icon: '🏰',
+      icon: '🏛️',
       fogColor: 0x090710,
-      fogDensity: 0.0016,
+      fogDensity: 0.0011,
       ambientColor: 0x3d354a,
       dirLightColor: 0x9fa8da,
       dirLightIntensity: 0.85,
@@ -29,7 +29,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       subtitle: 'Catacumbas e Criptas Ancestrais',
       icon: '⚰️',
       fogColor: 0x051210,
-      fogDensity: 0.0018,
+      fogDensity: 0.0012,
       ambientColor: 0x243e38,
       dirLightColor: 0x80cbc4,
       dirLightIntensity: 0.75,
@@ -42,7 +42,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       subtitle: 'Bosque Amaldiçoado pela Peste',
       icon: '🌲',
       fogColor: 0x0a140a,
-      fogDensity: 0.0017,
+      fogDensity: 0.0011,
       ambientColor: 0x273b28,
       dirLightColor: 0xa5d6a7,
       dirLightIntensity: 0.8,
@@ -53,9 +53,9 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       id: 'crimson',
       name: 'Fortaleza do Carrasco Carmesim',
       subtitle: 'Bastião das Sombras e Cinzas',
-      icon: '🔥',
+      icon: '🏰',
       fogColor: 0x140507,
-      fogDensity: 0.0016,
+      fogDensity: 0.0011,
       ambientColor: 0x4a2024,
       dirLightColor: 0xffab91,
       dirLightIntensity: 0.9,
@@ -75,10 +75,16 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     };
   }
 
+  // Global Arena Limits for Entities & Enemies
+  window.MedievalSurvivors.ARENA_HALF_SIZE = 1550;
+  window.MedievalSurvivors.ARENA_HALF_LIMIT = 1525;
+  window.MedievalSurvivors.ARENA_HALF_LIMIT_ENEMY = 1540;
+
   class GenerativeMap3D {
     constructor(scene) {
       this.scene = scene;
-      this.arenaRadius = 800; // Bounded procedural arena: limits map to 1600x1600 units
+      this.arenaSize = 3200; // Grand square arena: 3200x3200 units (~5x previous area)
+      this.halfSize = 1600;
       this.arenaGroup = null;
       this.currentBiome = null;
       this.seed = 12345;
@@ -123,53 +129,92 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         metalness: 0.1
       });
 
-      // Build the complete bounded arena (zero chunk allocation during gameplay!)
+      // Build the complete bounded square arena (zero chunk allocation during gameplay!)
       this.buildBoundedArena();
 
       return {
         biome: this.currentBiome,
         seed: this.seed,
-        arenaRadius: this.arenaRadius
+        arenaSize: this.arenaSize
       };
     }
 
     buildBoundedArena() {
       this.arenaGroup = new THREE.Group();
       const rng = this.prng;
+      const hs = this.halfSize; // 1600
 
-      // 1. Single unified circular ground floor with detailed flagstone texture
-      const groundGeo = new THREE.CircleGeometry(this.arenaRadius + 50, 48);
+      // 1. Single unified SQUARE ground floor with detailed flagstone texture
+      const groundGeo = new THREE.PlaneGeometry(this.arenaSize, this.arenaSize, 1, 1);
       groundGeo.rotateX(-Math.PI / 2);
       const groundMesh = new THREE.Mesh(groundGeo, this.groundMaterial);
       groundMesh.position.set(0, 0, 0);
       this.arenaGroup.add(groundMesh);
 
-      // Outer darkened perimeter fade ring
-      const borderFadeGeo = new THREE.RingGeometry(this.arenaRadius - 20, this.arenaRadius + 60, 48);
-      borderFadeGeo.rotateX(-Math.PI / 2);
-      const borderFadeMat = new THREE.MeshBasicMaterial({ color: 0x040306, side: THREE.DoubleSide });
-      const borderFade = new THREE.Mesh(borderFadeGeo, borderFadeMat);
-      borderFade.position.y = 0.1;
-      this.arenaGroup.add(borderFade);
+      // Outer darkened perimeter abyss plane (outside the fortress walls)
+      const abyssGeo = new THREE.PlaneGeometry(this.arenaSize + 1400, this.arenaSize + 1400, 1, 1);
+      abyssGeo.rotateX(-Math.PI / 2);
+      const abyssMat = new THREE.MeshBasicMaterial({ color: 0x030205 });
+      const abyssMesh = new THREE.Mesh(abyssGeo, abyssMat);
+      abyssMesh.position.set(0, -0.6, 0);
+      this.arenaGroup.add(abyssMesh);
 
-      // 2. Procedural Boundary Walls & Watchtowers encircling the arena
-      const wallCount = 36;
-      for (let i = 0; i < wallCount; i++) {
-        const angle = (i / wallCount) * Math.PI * 2;
-        const wx = Math.cos(angle) * this.arenaRadius;
-        const wz = Math.sin(angle) * this.arenaRadius;
+      // 2. High-Performance Perimeter Walls on the 4 Edges of the Square
+      const step = 50;
+      const count = Math.floor((this.arenaSize) / step);
 
-        const wallPiece = this.createBoundaryWallPiece(this.currentBiome.id, angle, rng);
-        if (wallPiece) {
-          wallPiece.position.set(wx, 0, wz);
-          wallPiece.rotation.y = -angle - Math.PI / 2;
-          this.arenaGroup.add(wallPiece);
+      for (let i = 0; i <= count; i++) {
+        const offset = -hs + (i * step);
+
+        // North Wall (Z = -hs)
+        const wallN = this.createBoundaryWallPiece(this.currentBiome.id, 0, rng);
+        if (wallN) {
+          wallN.position.set(offset, 0, -hs);
+          wallN.rotation.y = 0;
+          this.arenaGroup.add(wallN);
+        }
+
+        // South Wall (Z = +hs)
+        const wallS = this.createBoundaryWallPiece(this.currentBiome.id, Math.PI, rng);
+        if (wallS) {
+          wallS.position.set(offset, 0, hs);
+          wallS.rotation.y = Math.PI;
+          this.arenaGroup.add(wallS);
+        }
+
+        // West Wall (X = -hs)
+        const wallW = this.createBoundaryWallPiece(this.currentBiome.id, -Math.PI / 2, rng);
+        if (wallW) {
+          wallW.position.set(-hs, 0, offset);
+          wallW.rotation.y = Math.PI / 2;
+          this.arenaGroup.add(wallW);
+        }
+
+        // East Wall (X = +hs)
+        const wallE = this.createBoundaryWallPiece(this.currentBiome.id, Math.PI / 2, rng);
+        if (wallE) {
+          wallE.position.set(hs, 0, offset);
+          wallE.rotation.y = -Math.PI / 2;
+          this.arenaGroup.add(wallE);
         }
       }
 
-      // 3. Central Sanctuary Courtyard (open area for clean combat maneuvering)
+      // 4 Grand Bastion Corner Towers
+      const corners = [
+        [-hs, -hs],
+        [hs, -hs],
+        [-hs, hs],
+        [hs, hs]
+      ];
+      corners.forEach(([cx, cz]) => {
+        const tower = this.createCornerTower(rng);
+        tower.position.set(cx, 0, cz);
+        this.arenaGroup.add(tower);
+      });
+
+      // 3. Central Sanctuary Courtyard (Braziers around start area)
       const sanctuaryCorners = [
-        [-90, -90], [90, -90], [-90, 90], [90, 90]
+        [-120, -120], [120, -120], [-120, 120], [120, 120]
       ];
       sanctuaryCorners.forEach(([bx, bz]) => {
         const brazier = this.createBrazier('gold', rng);
@@ -180,22 +225,25 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         }
       });
 
-      // 4. Randomized Thematic Interior Props scattered throughout the arena
-      const propCount = 28 + Math.floor(rng() * 10);
+      // 4. Randomized Thematic Interior Props scattered throughout the vast square arena
+      const propCount = 75 + Math.floor(rng() * 15);
       for (let i = 0; i < propCount; i++) {
         const propType = this.currentBiome.accentProps[Math.floor(rng() * this.currentBiome.accentProps.length)];
 
-        // Random position within arena (excluding center sanctuary circle r < 140)
-        const propAngle = rng() * Math.PI * 2;
-        const propDist = 145 + rng() * (this.arenaRadius - 220);
-        const px = Math.cos(propAngle) * propDist;
-        const pz = Math.sin(propAngle) * propDist;
+        // Random coordinates avoiding center sanctuary (|x| < 140 && |z| < 140) and keeping away from walls
+        let px = (rng() * 2 - 1) * (hs - 130);
+        let pz = (rng() * 2 - 1) * (hs - 130);
+
+        if (Math.abs(px) < 140 && Math.abs(pz) < 140) {
+          px += (px >= 0 ? 180 : -180);
+          pz += (pz >= 0 ? 180 : -180);
+        }
 
         const prop = this.createProp(propType, rng);
         if (prop) {
           prop.position.set(px, 0, pz);
           prop.rotation.y = rng() * Math.PI * 2;
-          const sc = 0.85 + rng() * 0.35;
+          const sc = 0.85 + rng() * 0.4;
           prop.scale.set(sc, sc, sc);
           this.arenaGroup.add(prop);
 
@@ -206,6 +254,27 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       }
 
       this.scene.add(this.arenaGroup);
+    }
+
+    createCornerTower(rng) {
+      const group = new THREE.Group();
+      // Octagonal/square heavy bastion base
+      const base = new THREE.Mesh(new THREE.BoxGeometry(32, 48, 32), this.materials.darkStone);
+      base.position.y = 24;
+      group.add(base);
+
+      // Tower upper battlements
+      const top = new THREE.Mesh(new THREE.BoxGeometry(36, 12, 36), this.materials.stone);
+      top.position.y = 54;
+      group.add(top);
+
+      // Corner pinnacle spire
+      const spire = new THREE.Mesh(new THREE.ConeGeometry(9, 26, 4), this.materials.darkStone);
+      spire.position.y = 73;
+      spire.rotation.y = Math.PI / 4;
+      group.add(spire);
+
+      return group;
     }
 
     createBoundaryWallPiece(biomeId, angle, rng) {
@@ -309,7 +378,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       const texture = new THREE.CanvasTexture(canvas);
       texture.wrapS = THREE.RepeatWrapping;
       texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(4, 4);
+      texture.repeat.set(36, 36);
       return texture;
     }
 

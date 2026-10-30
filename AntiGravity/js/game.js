@@ -124,6 +124,7 @@ class Game {
 
     this.ui.updateHUD(this.player, this.gameTime);
     this.ui.updateMouseAimButton();
+    if (this.ui.onGameStart) this.ui.onGameStart();
     window.MedievalSurvivors.sound.startBgm();
 
     this.lastTimestamp = performance.now();
@@ -218,12 +219,6 @@ class Game {
 
   update(dt) {
     this.gameTime += dt;
-
-    // 15-Minute Stage Limit (900 seconds)
-    if (this.gameTime >= 900) {
-      this.triggerVictory();
-      return;
-    }
 
     // 1. Update Aim Direction (locks aim to mouse position continuously)
     this.updateAimDirection();
@@ -335,11 +330,17 @@ class Game {
       // Save gold and run to history
       this.saveManager.addGold(this.player.gold);
       const totalDmg = this.player.weapons.reduce((sum, w) => sum + w.totalDamageDealt, 0);
-      const mins = Math.floor(this.gameTime / 60);
-      const secs = Math.floor(this.gameTime % 60);
+      const totalSecs = Math.floor(this.gameTime);
+      const hrs = Math.floor(totalSecs / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+      const timeSurvived = hrs > 0
+        ? `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+        : `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
       this.saveManager.recordRun({
         hero: this.player.classDef.name,
-        timeSurvived: `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`,
+        timeSurvived: timeSurvived,
         timeSeconds: this.gameTime,
         level: this.player.level,
         kills: this.player.killCount,

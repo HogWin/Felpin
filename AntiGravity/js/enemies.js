@@ -102,13 +102,10 @@ class BaseEnemy {
     this.x += (moveX + this.knockbackX) * dt;
     this.y += (moveY + this.knockbackY) * dt;
 
-    // Keep enemy inside bounded arena
-    const arenaLimit = 795;
-    const distCenter = Math.hypot(this.x, this.y);
-    if (distCenter > arenaLimit) {
-      this.x = (this.x / distCenter) * arenaLimit;
-      this.y = (this.y / distCenter) * arenaLimit;
-    }
+    // Keep enemy inside bounded square arena
+    const arenaLimit = (window.MedievalSurvivors && window.MedievalSurvivors.ARENA_HALF_LIMIT_ENEMY) || 1540;
+    this.x = Math.max(-arenaLimit, Math.min(arenaLimit, this.x));
+    this.y = Math.max(-arenaLimit, Math.min(arenaLimit, this.y));
 
     // Collision with player
     if (dist <= this.radius + player.radius) {
@@ -1129,7 +1126,7 @@ class DeathBaronBoss extends BaseEnemy {
   }
 }
 
-// Wave Spawner & Difficulty Director (10-Minute Run Pacing)
+// Wave Spawner & Difficulty Director (Endless Survival Mode)
 class WaveDirector {
   constructor() {
     this.gameTime = 0;
@@ -1139,21 +1136,26 @@ class WaveDirector {
       { time: 60, type: 'executioner', name: 'O Carrasco Carmesim', spawned: false },
       { time: 180, type: 'golem', name: 'Golem das Catacumbas', spawned: false },
       { time: 330, type: 'death_baron', name: 'Barão da Morte Von Kroll', spawned: false },
-      { time: 480, type: 'death_baron', name: 'Barão da Morte Von Kroll', spawned: false }
+      { time: 480, type: 'executioner', name: 'O Carrasco Carmesim II', spawned: false },
+      { time: 660, type: 'golem', name: 'Colosso Titânico Ancestral', spawned: false },
+      { time: 840, type: 'death_baron', name: 'Arquiduque das Sombras', spawned: false }
     ];
+    this.recurringBossInterval = 150; // After 840s, spawn dynamic bosses every 2.5 minutes
+    this.lastRecurringBossTime = 840;
   }
 
   reset() {
     this.gameTime = 0;
     this.spawnTimer = 0;
     this.bossEvents.forEach(b => b.spawned = false);
+    this.lastRecurringBossTime = 840;
   }
 
   update(dt, player, enemies, onBossSpawn) {
     this.gameTime += dt;
     this.spawnTimer += dt;
 
-    // Check boss schedule
+    // Check scripted boss schedule
     this.bossEvents.forEach(event => {
       if (!event.spawned && this.gameTime >= event.time) {
         event.spawned = true;
@@ -1161,7 +1163,15 @@ class WaveDirector {
       }
     });
 
-    // Dynamic spawn rate scaled for 10-minute (600s) run
+    // Endless Survival Mode: dynamic periodic high-tier bosses after 840s
+    if (this.gameTime >= this.lastRecurringBossTime + this.recurringBossInterval) {
+      this.lastRecurringBossTime = this.gameTime;
+      const bossTypes = ['executioner', 'golem', 'death_baron'];
+      const chosen = bossTypes[Math.floor(Math.random() * bossTypes.length)];
+      this.spawnBoss(chosen, player, enemies, onBossSpawn);
+    }
+
+    // Dynamic spawn rate scaled for continuous survival progression
     const interval = Math.max(0.14, 0.72 - (this.gameTime / 450));
 
     if (this.spawnTimer >= interval) {
@@ -1176,18 +1186,16 @@ class WaveDirector {
   }
 
   spawnRegularEnemy(player, enemies) {
-    // Spawn in a ring off-screen, clamped within the bounded arena
+    // Spawn in a ring off-screen, clamped within the square arena
     const spawnDist = 450 + Math.random() * 260;
     const angle = Math.random() * Math.PI * 2;
     let x = player.x + Math.cos(angle) * spawnDist;
     let y = player.y + Math.sin(angle) * spawnDist;
 
-    // Clamp inside arena walls (radius 780)
-    const dist = Math.hypot(x, y);
-    if (dist > 770) {
-      x = (x / dist) * 750;
-      y = (y / dist) * 750;
-    }
+    // Clamp inside square arena walls
+    const spawnLimit = ((window.MedievalSurvivors && window.MedievalSurvivors.ARENA_HALF_LIMIT) || 1525) - 25;
+    x = Math.max(-spawnLimit, Math.min(spawnLimit, x));
+    y = Math.max(-spawnLimit, Math.min(spawnLimit, y));
 
     const t = this.gameTime;
     const hpScaling = 1.0 + (t / 180);
@@ -1219,11 +1227,12 @@ class WaveDirector {
     const dist = 480;
     let x = player.x + Math.cos(angle) * dist;
     let y = player.y + Math.sin(angle) * dist;
-    const bd = Math.hypot(x, y);
-    if (bd > 740) {
-      x = (x / bd) * 720;
-      y = (y / bd) * 720;
-    }
+
+    // Clamp inside square arena walls
+    const spawnLimit = ((window.MedievalSurvivors && window.MedievalSurvivors.ARENA_HALF_LIMIT) || 1525) - 40;
+    x = Math.max(-spawnLimit, Math.min(spawnLimit, x));
+    y = Math.max(-spawnLimit, Math.min(spawnLimit, y));
+
     const scaling = 1.0 + (this.gameTime / 240);
 
     let boss;

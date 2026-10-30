@@ -157,11 +157,14 @@ class UIController {
     this.hpFill.style.width = `${hpPercent}%`;
     this.hpText.textContent = `${Math.ceil(player.hp)} / ${player.maxHp} HP`;
 
-    // Timer → "MM:SS / 15:00"
-    const elapsed = Math.min(gameTime, 900);
-    const mins = Math.floor(elapsed / 60);
-    const secs = Math.floor(elapsed % 60);
-    this.timerText.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')} / 15:00`;
+    // Timer → MM:SS (or HH:MM:SS for long runs) - Endless Survival Pacing
+    const totalSecs = Math.floor(gameTime);
+    const hrs = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    this.timerText.textContent = hrs > 0
+      ? `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+      : `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 
     // Kills
     this.killsText.textContent = player.killCount;
@@ -175,6 +178,17 @@ class UIController {
     this.updateEquipmentSlots(player);
   }
 
+  onGameStart() {
+    const hint = document.getElementById('controls-hint');
+    if (hint) {
+      hint.classList.remove('fade-out');
+      clearTimeout(this._hintTimeout);
+      this._hintTimeout = setTimeout(() => {
+        hint.classList.add('fade-out');
+      }, 7000);
+    }
+  }
+
   updateEquipmentSlots(player) {
     // Weapons slots (up to 6)
     this.weaponSlotsContainer.innerHTML = '';
@@ -183,11 +197,15 @@ class UIController {
       slot.className = 'item-slot';
       if (player.weapons[i]) {
         slot.classList.add('active');
+        if (player.weapons[i].isEvolved) {
+          slot.classList.add('evolved');
+        }
+        const lvlStr = player.weapons[i].isEvolved ? 'EVO' : (player.weapons[i].level >= player.weapons[i].maxLevel ? 'MAX' : 'Nv.' + player.weapons[i].level);
         slot.innerHTML = `
           <span class="slot-icon">${player.weapons[i].icon}</span>
-          <span class="slot-lvl">${player.weapons[i].level >= player.weapons[i].maxLevel ? 'MAX' : 'Nv.' + player.weapons[i].level}</span>
+          <span class="slot-lvl">${lvlStr}</span>
         `;
-        slot.title = `${player.weapons[i].name} (Nv. ${player.weapons[i].level})`;
+        slot.title = `${player.weapons[i].name} (${player.weapons[i].isEvolved ? 'Evoluída' : 'Nv. ' + player.weapons[i].level})`;
       }
       this.weaponSlotsContainer.appendChild(slot);
     }

@@ -19,8 +19,8 @@
       <div class="top-hud-bar">
         <!-- Top Left: Player HP -->
         <div class="top-left-stats">
-          <div class="stat-group">
-            <span class="icon">❤️</span>
+          <div class="stat-group hp-group">
+            <span class="icon hp-icon">❤️</span>
             <div class="hp-bar-hud">
               <div class="hp-bar-fill" id="hp-fill"></div>
               <div class="hp-text" id="hp-text">120 / 120 HP</div>
@@ -38,7 +38,7 @@
 
         <!-- Top Right: Kills, Gold & Quick Actions -->
         <div class="top-right-stats">
-          <div class="stat-group">
+          <div class="stat-group mini-stats">
             <div class="stat-item" title="Inimigos Derrotados">
               <span class="icon">💀</span>
               <span id="kills-text">0</span>
@@ -48,14 +48,14 @@
               <span class="icon">💰</span>
               <span id="gold-text">0</span>
             </div>
+          </div>
 
-            <div class="hud-actions">
-              <button class="hud-btn" id="btn-auto-gold-hud" title="Escolher Ouro Real automaticamente quando não houver nada para aumentar o nível">💰 Auto-Ouro: Deslig.</button>
-              <button class="hud-btn" id="btn-mouse-aim" title="Alternar controle de mira com o mouse">🎯 Mira: Mouse</button>
-              <button class="hud-btn" id="btn-sound-toggle">🔊 Som: Ligado</button>
-              <button class="hud-btn" id="btn-pause">⏸️ Pausa</button>
-              <button class="hud-btn" id="btn-main-menu">📜 Menu</button>
-            </div>
+          <div class="hud-actions">
+            <button class="hud-btn" id="btn-auto-gold-hud" title="Escolher Ouro Real automaticamente ao atingir nível máximo">💰 Auto-Ouro: Deslig.</button>
+            <button class="hud-btn" id="btn-mouse-aim" title="Alternar mira: Mouse ou Teclas">🎯 Mira: Mouse</button>
+            <button class="hud-btn" id="btn-sound-toggle" title="Ligar/Desligar Áudio">🔊 Som: Ligado</button>
+            <button class="hud-btn" id="btn-pause" title="Pausar o jogo">⏸️ Pausa</button>
+            <button class="hud-btn" id="btn-main-menu" title="Menu Principal">📜 Menu</button>
           </div>
         </div>
       </div>
@@ -66,27 +66,27 @@
         <p><span id="boss-name">O Carrasco Carmesim</span> despertou das catacumbas!</p>
       </div>
 
-      <!-- Controls Hint -->
-      <div class="controls-hint">
-        <span>Mover / Mirar: <span class="key-badge">W</span> <span class="key-badge">A</span> <span class="key-badge">S</span> <span class="key-badge">D</span> ou <span class="key-badge">Mouse</span></span>
-        <span>Ataque: <strong>Automático na Direção da Seta</strong></span>
-        <span>Pausa: <span class="key-badge">ESC</span> / <span class="key-badge">P</span></span>
+      <!-- Controls Hint (Positioned unobtrusively, fades out automatically) -->
+      <div class="controls-hint" id="controls-hint">
+        <div class="hint-item"><span class="hint-label">Mover / Mirar:</span> <span class="key-badge">W</span> <span class="key-badge">A</span> <span class="key-badge">S</span> <span class="key-badge">D</span> <span class="hint-sep">ou</span> <span class="key-badge">Mouse</span></div>
+        <div class="hint-item"><span class="hint-label">Ataque:</span> <strong>Automático na Direção da Seta</strong></div>
+        <div class="hint-item"><span class="hint-label">Pausa:</span> <span class="key-badge">ESC</span> / <span class="key-badge">P</span></div>
       </div>
 
       <!-- Bottom HUD Section (Equipment + XP Bar at the Bottom) -->
       <div class="bottom-hud-section">
         <!-- Equipment Bar -->
         <div class="bottom-equipment-bar">
-          <div class="equipment-container">
+          <div class="equipment-panel">
             <!-- Weapons Row -->
             <div class="equipment-row">
-              <div class="equipment-label">Armas:</div>
-              <div id="weapon-slots" style="display:flex; gap:8px;"></div>
+              <div class="equipment-label">⚔️ Armas:</div>
+              <div id="weapon-slots" class="slots-row"></div>
             </div>
             <!-- Passives Row -->
             <div class="equipment-row">
-              <div class="equipment-label">Passivas:</div>
-              <div id="passive-slots" style="display:flex; gap:8px;"></div>
+              <div class="equipment-label">✨ Passivas:</div>
+              <div id="passive-slots" class="slots-row"></div>
             </div>
           </div>
         </div>
