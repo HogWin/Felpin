@@ -2673,6 +2673,18 @@ class WeaponRegistry {
     this.factories.set('frost_lance', () => new FrostLanceWeapon());
     this.factories.set('retribution_shield', () => new RetributionShieldWeapon());
     this.factories.set('hellfire_cauldron', () => new HellfireCauldronWeapon());
+
+    // 10 Armas Supremas (Fusões Lendárias)
+    this.factories.set('supreme_excalibur', () => new window.MedievalSurvivors.SupremeExcaliburWeapon());
+    this.factories.set('supreme_artillery_cannon', () => new window.MedievalSurvivors.SupremeArtilleryCannonWeapon());
+    this.factories.set('supreme_purgatory_fire', () => new window.MedievalSurvivors.SupremePurgatoryFireWeapon());
+    this.factories.set('supreme_titan_storm', () => new window.MedievalSurvivors.SupremeTitanStormWeapon());
+    this.factories.set('supreme_celestial_fortress', () => new window.MedievalSurvivors.SupremeCelestialFortressWeapon());
+    this.factories.set('supreme_soul_singularity', () => new window.MedievalSurvivors.SupremeSoulSingularityWeapon());
+    this.factories.set('supreme_blood_dance', () => new window.MedievalSurvivors.SupremeBloodDanceWeapon());
+    this.factories.set('supreme_cataclysm_breaker', () => new window.MedievalSurvivors.SupremeCataclysmBreakerWeapon());
+    this.factories.set('supreme_black_death', () => new window.MedievalSurvivors.SupremeBlackDeathWeapon());
+    this.factories.set('supreme_stellar_frost', () => new window.MedievalSurvivors.SupremeStellarFrostWeapon());
   }
 
   create(id) {
@@ -2680,8 +2692,10 @@ class WeaponRegistry {
     return factory ? factory() : null;
   }
 
-  getAllWeaponIds() {
-    return Array.from(this.factories.keys());
+  getAllWeaponIds(includeSupreme = false) {
+    const all = Array.from(this.factories.keys());
+    if (includeSupreme) return all;
+    return all.filter(id => !id.startsWith('supreme_'));
   }
 }
 

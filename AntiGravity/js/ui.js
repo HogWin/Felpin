@@ -119,6 +119,22 @@ class UIController {
       });
     }
 
+    // Pause → Synergies Modal
+    const pauseSynBtn = document.getElementById('btn-pause-synergies');
+    if (pauseSynBtn) {
+      pauseSynBtn.addEventListener('click', () => {
+        this.openSynergiesModal();
+      });
+    }
+
+    // Close Synergies Modal
+    const closeSynBtn = document.getElementById('btn-close-synergies');
+    if (closeSynBtn) {
+      closeSynBtn.addEventListener('click', () => {
+        this.closeSynergiesModal();
+      });
+    }
+
     // Tab buttons in Main Menu
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -254,17 +270,27 @@ class UIController {
 
     options.forEach(opt => {
       const card = document.createElement('div');
-      card.className = 'card-option';
+      let badgeClass = opt.currentLevel === 0 ? 'badge-new' : 'badge-upgrade';
+      let badgeText = opt.currentLevel === 0 ? 'NOVO' : `NÍVEL ${opt.currentLevel + 1}`;
+      let cardClass = 'card-option';
 
-      const isNew = opt.currentLevel === 0;
-      const badgeClass = isNew ? 'badge-new' : 'badge-upgrade';
-      const badgeText = isNew ? 'NOVO' : `NÍVEL ${opt.currentLevel + 1}`;
+      if (opt.isSupreme) {
+        badgeClass = 'badge-supreme';
+        badgeText = '👑 FUSÃO SUPREMA!';
+        cardClass += ' card-supreme';
+      } else if (opt.isAscension) {
+        badgeClass = 'badge-ascension';
+        badgeText = '✨ ASCENSÃO DIVINA!';
+        cardClass += ' card-ascension';
+      }
+
+      card.className = cardClass;
 
       card.innerHTML = `
         <span class="card-badge ${badgeClass}">${badgeText}</span>
         <div class="card-icon">${opt.icon}</div>
         <div class="card-name">${opt.name}</div>
-        <div class="card-level">${isNew ? 'Adquirir Armamento/Poder' : `Nv. ${opt.currentLevel} ➔ ${opt.currentLevel + 1}`}</div>
+        <div class="card-level">${opt.isSupreme ? '✨ Fusão Mítica de Armas' : (opt.isAscension ? '✨ Despertar de Sinergia' : (opt.currentLevel === 0 ? 'Adquirir Armamento/Poder' : `Nv. ${opt.currentLevel} ➔ ${opt.currentLevel + 1}`))}</div>
         <div class="card-desc">${opt.description}</div>
         <div class="card-stats">${opt.diff}</div>
       `;
@@ -283,6 +309,52 @@ class UIController {
 
   generateUpgradeOptions(player) {
     const options = [];
+
+    // 0. Check for Supreme Weapon Fusions (Both weapons at Level 8)
+    if (window.MedievalSurvivors.synergies) {
+      const fusions = window.MedievalSurvivors.synergies.getAvailableFusions(player);
+      fusions.forEach(fusion => {
+        options.push({
+          type: 'supreme_fusion',
+          id: fusion.id,
+          name: fusion.name,
+          icon: fusion.icon,
+          currentLevel: 8,
+          isSupreme: true,
+          description: fusion.description,
+          diff: `FUSÃO SUPREMA! Funde ${fusion.item1.name} (Nv. 8) + ${fusion.item2.name} (Nv. 8) em uma ARMA SUPREMA! Libera 1 slot de arma!`,
+          apply: () => {
+            window.MedievalSurvivors.synergies.executeFusion(player, fusion.id);
+          }
+        });
+      });
+
+      // Check for Weapon + Passive Ascensions
+      const ascensions = window.MedievalSurvivors.synergies.getAvailableAscensions(player);
+      ascensions.forEach(asc => {
+        options.push({
+          type: 'weapon_ascension',
+          id: asc.id,
+          name: asc.name,
+          icon: '✨ ' + asc.weaponIcon,
+          currentLevel: 8,
+          isAscension: true,
+          description: `Despertar Sagrado: ${asc.weaponName} + ${asc.passiveName}!`,
+          diff: asc.effect,
+          apply: () => {
+            const wep = player.weapons.find(w => w.id === asc.weaponId);
+            if (wep) {
+              wep.hasAscended = true;
+              wep.baseDamage = Math.round(wep.baseDamage * 1.45);
+              wep.baseArea = wep.baseArea * 1.35;
+              if (window.MedievalSurvivors.saveManager) {
+                window.MedievalSurvivors.saveManager.discoverSynergy(asc.id);
+              }
+            }
+          }
+        });
+      });
+    }
 
     // 1. Existing weapon upgrades
     player.weapons.forEach(w => {
@@ -387,8 +459,11 @@ class UIController {
       }];
     }
 
-    shuffleArray(options);
-    return options.slice(0, 3);
+    const supremeOptions = options.filter(o => o.isSupreme || o.isAscension);
+    const standardOptions = options.filter(o => !o.isSupreme && !o.isAscension);
+    shuffleArray(standardOptions);
+    const result = supremeOptions.concat(standardOptions);
+    return result.slice(0, 3);
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -515,13 +590,14 @@ class UIController {
 
     // Render the tab content
     switch (tabName) {
-      case 'play':     this.renderPlayTab();     break;
-      case 'heroes':   this.renderHeroesTab();   break;
-      case 'forge':    this.renderForgeTab();     break;
-      case 'codex':    this.renderCodexTab();     break;
-      case 'history':  this.renderHistoryTab();   break;
-      case 'settings': this.renderSettingsTab();  break;
-      default:         this.renderPlayTab();
+      case 'play':      this.renderPlayTab();      break;
+      case 'heroes':    this.renderHeroesTab();    break;
+      case 'forge':     this.renderForgeTab();     break;
+      case 'synergies': this.renderSynergiesTab(); break;
+      case 'codex':     this.renderCodexTab();     break;
+      case 'history':   this.renderHistoryTab();   break;
+      case 'settings':  this.renderSettingsTab();  break;
+      default:          this.renderPlayTab();
     }
   }
 
@@ -759,6 +835,177 @@ class UIController {
 
       grid.appendChild(card);
     });
+  }
+
+  // ── TAB: Grimório de Sinergias & Alquimia ─────────────────────
+  renderSynergiesTab() {
+    this.menuTabContent.innerHTML = `
+      <div class="synergies-tab-wrap">
+        <div class="synergies-header-banner">
+          <h3>✨ GRIMÓRIO DE SINERGIAS & ALQUIMIA REAL ✨</h3>
+          <p>Descubra combinações lendárias de armas e bênçãos passivas no nível máximo para forjar Armas Supremas!</p>
+          <div class="synergies-meta-bar" id="synergies-meta-stats"></div>
+        </div>
+
+        <div class="synergy-filter-pills">
+          <button class="filter-pill active" data-filter="all">Todas as Sinergias (30)</button>
+          <button class="filter-pill" data-filter="fusions">⚔️ Fusões de Armas (10 Supremas)</button>
+          <button class="filter-pill" data-filter="ascensions">🔮 Ascensões (20 Arma + Passiva)</button>
+        </div>
+
+        <div class="synergies-catalog-grid" id="synergies-catalog-grid"></div>
+      </div>
+    `;
+
+    const grid = document.getElementById('synergies-catalog-grid');
+    const statsBar = document.getElementById('synergies-meta-stats');
+    this._currentSynergyFilter = this._currentSynergyFilter || 'all';
+
+    const filterBtns = this.menuTabContent.querySelectorAll('.filter-pill');
+    filterBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-filter') === this._currentSynergyFilter);
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this._currentSynergyFilter = btn.getAttribute('data-filter');
+        this.renderSynergiesGrid(grid, statsBar, this._currentSynergyFilter);
+      });
+    });
+
+    this.renderSynergiesGrid(grid, statsBar, this._currentSynergyFilter);
+  }
+
+  renderSynergiesGrid(container, statsBar, filter = 'all') {
+    if (!container || !window.MedievalSurvivors.synergies) return;
+    const sm = this.game.saveManager;
+    const syn = window.MedievalSurvivors.synergies;
+    const fusions = syn.getAllFusions();
+    const ascensions = syn.getAllAscensions();
+
+    let items = [];
+    if (filter === 'all' || filter === 'fusions') {
+      items = items.concat(fusions.map(f => ({ ...f, kind: 'fusion' })));
+    }
+    if (filter === 'all' || filter === 'ascensions') {
+      items = items.concat(ascensions.map(a => ({ ...a, kind: 'ascension' })));
+    }
+
+    const totalCount = fusions.length + ascensions.length;
+    let discoveredCount = 0;
+    fusions.forEach(f => { if (sm.isSynergyDiscovered(f.id)) discoveredCount++; });
+    ascensions.forEach(a => { if (sm.isSynergyDiscovered(a.id)) discoveredCount++; });
+
+    if (statsBar) {
+      const pct = Math.round((discoveredCount / totalCount) * 100);
+      statsBar.innerHTML = `
+        <div class="synergy-progress-wrap">
+          <div class="synergy-progress-text">
+            <span>Sinergias Descobertas: <strong>${discoveredCount} / ${totalCount} (${pct}%)</strong></span>
+          </div>
+          <div class="synergy-progress-bar"><div class="synergy-progress-fill" style="width:${pct}%;"></div></div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = items.map(item => {
+      const isDiscovered = sm.isSynergyDiscovered(item.id);
+      if (item.kind === 'fusion') {
+        return `
+          <div class="synergy-card ${isDiscovered ? 'discovered' : 'locked'}">
+            <div class="synergy-card-badge ${isDiscovered ? 'badge-supreme-card' : 'badge-locked-card'}">
+              ${isDiscovered ? '👑 FUSÃO SUPREMA' : '🔒 FUSÃO DESCONHECIDA'}
+            </div>
+
+            <!-- Fusion Equation Row -->
+            <div class="synergy-equation">
+              <div class="eq-item">
+                <span class="eq-icon">${item.item1.icon}</span>
+                <span class="eq-name">${item.item1.name}</span>
+                <span class="eq-lvl">Nv. 8</span>
+              </div>
+              <span class="eq-plus">+</span>
+              <div class="eq-item">
+                <span class="eq-icon">${item.item2.icon}</span>
+                <span class="eq-name">${item.item2.name}</span>
+                <span class="eq-lvl">Nv. 8</span>
+              </div>
+              <span class="eq-arrow">➔</span>
+              <div class="eq-result">
+                <span class="eq-res-icon">${item.icon}</span>
+                <span class="eq-res-name">${item.name}</span>
+              </div>
+            </div>
+
+            <div class="synergy-card-body">
+              <h4 class="synergy-res-title">${item.icon} ${item.name}</h4>
+              <p class="synergy-res-desc">${isDiscovered ? item.effect : 'Funda ambos os armamentos no nível 8 durante a batalha para desvendar este poder supremo!'}</p>
+              ${isDiscovered ? `<div class="synergy-res-lore">📜 "${item.lore}"</div>` : ''}
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="synergy-card ascension-card ${isDiscovered ? 'discovered' : 'locked'}">
+            <div class="synergy-card-badge ${isDiscovered ? 'badge-ascension-card' : 'badge-locked-card'}">
+              ${isDiscovered ? '✨ ASCENSÃO DIVINA' : '🔒 ASCENSÃO OCULTA'}
+            </div>
+
+            <!-- Ascension Equation Row -->
+            <div class="synergy-equation">
+              <div class="eq-item">
+                <span class="eq-icon">${item.weaponIcon}</span>
+                <span class="eq-name">${item.weaponName}</span>
+                <span class="eq-lvl">Nv. 8</span>
+              </div>
+              <span class="eq-plus">+</span>
+              <div class="eq-item">
+                <span class="eq-icon">${item.passiveIcon}</span>
+                <span class="eq-name">${item.passiveName}</span>
+                <span class="eq-lvl">Passiva</span>
+              </div>
+              <span class="eq-arrow">➔</span>
+              <div class="eq-result">
+                <span class="eq-res-icon">✨</span>
+                <span class="eq-res-name">${item.name}</span>
+              </div>
+            </div>
+
+            <div class="synergy-card-body">
+              <h4 class="synergy-res-title">${item.name}</h4>
+              <p class="synergy-res-desc">${isDiscovered ? item.effect : 'Maximize esta arma enquanto possui a bênção passiva para desbloquear o despertar de sinergia!'}</p>
+            </div>
+          </div>
+        `;
+      }
+    }).join('');
+  }
+
+  openSynergiesModal(filter = 'all') {
+    const modal = document.getElementById('synergies-modal');
+    if (!modal) return;
+    const grid = document.getElementById('synergies-grid-content');
+    const badge = document.getElementById('synergy-stats-badge');
+
+    const filterBtns = modal.querySelectorAll('.filter-pill');
+    let currentFilter = filter;
+
+    filterBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-filter') === currentFilter);
+      btn.onclick = () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.getAttribute('data-filter');
+        this.renderSynergiesGrid(grid, badge, currentFilter);
+      };
+    });
+
+    this.renderSynergiesGrid(grid, badge, currentFilter);
+    modal.classList.add('active');
+  }
+
+  closeSynergiesModal() {
+    const modal = document.getElementById('synergies-modal');
+    if (modal) modal.classList.remove('active');
   }
 
   // ── TAB: Códice & Bestiário ──────────────────────────────────

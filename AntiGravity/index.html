@@ -153,6 +153,7 @@
         <p class="modal-subtitle">Descanse sua lâmina guerreiro...</p>
         <div style="display:flex; flex-direction:column; gap:14px; margin: 24px 0;">
           <button class="btn-primary" id="btn-resume">Continuar Batalha</button>
+          <button class="btn-primary" id="btn-pause-synergies" style="background:linear-gradient(180deg,#8e44ad,#2c3e50);">✨ Grimório de Sinergias</button>
           <button class="btn-primary btn-restart" style="background:linear-gradient(180deg,#7f8c8d,#2c3e50);">Reiniciar Partida</button>
         </div>
       </div>
@@ -227,6 +228,31 @@
       </div>
     </div>
 
+    <!-- MODAL: Grimório de Sinergias (In-Game / Quick View) -->
+    <div class="modal-overlay" id="synergies-modal">
+      <div class="modal-box synergies-modal-box">
+        <div class="synergies-header">
+          <h1 class="modal-title">✨ GRIMÓRIO DE SINERGIAS & ALQUIMIA ✨</h1>
+          <p class="modal-subtitle">Combine armas e passivas no nível máximo para forjar Armas Supremas e Despertares divinos.</p>
+          <div class="synergy-stats-badge" id="synergy-stats-badge">Descobertas: 0 / 30</div>
+        </div>
+
+        <div class="synergy-filter-pills">
+          <button class="filter-pill active" data-filter="all">Todas as Sinergias</button>
+          <button class="filter-pill" data-filter="fusions">⚔️ Fusões de Armas (Supremas)</button>
+          <button class="filter-pill" data-filter="ascensions">🔮 Ascensões (Arma + Passiva)</button>
+        </div>
+
+        <div class="synergies-grid" id="synergies-grid-content">
+          <!-- Dynamically populated cards -->
+        </div>
+
+        <div style="margin-top: 18px; text-align: center;">
+          <button class="btn-primary" id="btn-close-synergies">Fechar Grimório</button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL: Menu Principal e Central de Valoria -->
     <div class="modal-overlay" id="main-menu-modal">
       <div class="modal-box main-menu-box">
@@ -248,6 +274,7 @@
           <button class="tab-btn active" data-tab="play">⚔️ Iniciar Batalha</button>
           <button class="tab-btn" data-tab="heroes">🛡️ Combatentes</button>
           <button class="tab-btn" data-tab="forge">🔨 Forja (Aprimoramentos)</button>
+          <button class="tab-btn" data-tab="synergies">✨ Grimório</button>
           <button class="tab-btn" data-tab="codex">📜 Códice & Bestiário</button>
           <button class="tab-btn" data-tab="history">📊 Histórico de Runs</button>
           <button class="tab-btn" data-tab="settings">⚙️ Opções</button>
@@ -262,19 +289,20 @@
   </div>
 
   <!-- 3D Engine & Game Scripts -->
-  <script src="js/three.min.js?v=4"></script>
-  <script src="js/audio.js?v=4"></script>
-  <script src="js/save.js?v=4"></script>
-  <script src="js/classes.js?v=4"></script>
-  <script src="js/passives.js?v=4"></script>
-  <script src="js/weapons.js?v=4"></script>
-  <script src="js/entities.js?v=4"></script>
-  <script src="js/enemies.js?v=4"></script>
-  <script src="js/models3d.js?v=4"></script>
-  <script src="js/map3d.js?v=4"></script>
-  <script src="js/renderer.js?v=4"></script>
-  <script src="js/ui.js?v=4"></script>
-  <script src="js/game.js?v=4"></script>
+  <script src="js/three.min.js?v=5"></script>
+  <script src="js/audio.js?v=5"></script>
+  <script src="js/save.js?v=5"></script>
+  <script src="js/classes.js?v=5"></script>
+  <script src="js/passives.js?v=5"></script>
+  <script src="js/weapons.js?v=5"></script>
+  <script src="js/synergies.js?v=5"></script>
+  <script src="js/entities.js?v=5"></script>
+  <script src="js/enemies.js?v=5"></script>
+  <script src="js/models3d.js?v=5"></script>
+  <script src="js/map3d.js?v=5"></script>
+  <script src="js/renderer.js?v=5"></script>
+  <script src="js/ui.js?v=5"></script>
+  <script src="js/game.js?v=5"></script>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {

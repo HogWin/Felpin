@@ -600,7 +600,9 @@ class GameRenderer {
       if (p.state === 'burning') {
         let poolMesh = this.holyFirePoolsMap.get(p);
         if (!poolMesh) {
-          if (p.isPlague) {
+          if (p.isPurgatory) {
+            poolMesh = window.MedievalSurvivors.models3d.createPurgatoryFireMesh(p.radius || 55);
+          } else if (p.isPlague) {
             poolMesh = window.MedievalSurvivors.models3d.createPlaguePuddleMesh(p.radius || 40, p.isEvolved);
           } else if (p.isHellfire) {
             poolMesh = window.MedievalSurvivors.models3d.createHellfireCauldronMesh(p.radius || 36, p.isEvolved);
@@ -625,6 +627,10 @@ class GameRenderer {
           pMesh = window.MedievalSurvivors.models3d.createSpearShockwaveMesh(p.isEvolved);
         } else if (p.constructor && p.constructor.name === 'SpectralOrb') {
           pMesh = window.MedievalSurvivors.models3d.createSpectralOrbMesh(p.isEvolved);
+        } else if (p.isArtillery) {
+          pMesh = window.MedievalSurvivors.models3d.createArtilleryShellMesh();
+        } else if (p.isSupremeSpear) {
+          pMesh = window.MedievalSurvivors.models3d.createSupremeSpearMesh();
         } else if (p.isFlail) {
           pMesh = window.MedievalSurvivors.models3d.createFlailMesh(p.isEvolved);
         } else if (p.isPellet) {
@@ -696,8 +702,8 @@ class GameRenderer {
       epMesh.position.set(ep.x, 8, ep.y);
     }
 
-    // 4. Slashes & Lashes (Broadsword, Twin Daggers, Dark Greatsword, Penitent Whip)
-    const slashWeapons = ['broadsword', 'twin_daggers', 'dark_greatsword', 'penitent_whip'];
+    // 4. Slashes & Lashes (Broadsword, Twin Daggers, Dark Greatsword, Penitent Whip, Supremes)
+    const slashWeapons = ['broadsword', 'twin_daggers', 'dark_greatsword', 'penitent_whip', 'supreme_excalibur', 'supreme_blood_dance', 'supreme_cataclysm_breaker'];
     for (let wIdx = 0; wIdx < slashWeapons.length; wIdx++) {
       const wepId = slashWeapons[wIdx];
       const wep = game.player.weapons.find(w => w.id === wepId);
@@ -709,7 +715,9 @@ class GameRenderer {
             activeProjectiles.add(slash);
             let sMesh = this.projectileMeshMap.get(slash);
             if (!sMesh) {
-              if (wepId === 'twin_daggers') {
+              if (slash.isSupreme) {
+                sMesh = window.MedievalSurvivors.models3d.createSupremeSlashMesh();
+              } else if (wepId === 'twin_daggers') {
                 sMesh = window.MedievalSurvivors.models3d.createDaggerSlashMesh(slash.isEvolved);
               } else if (wepId === 'dark_greatsword') {
                 sMesh = window.MedievalSurvivors.models3d.createDarkSlashMesh(slash.isEvolved);

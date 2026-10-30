@@ -2611,6 +2611,89 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
+  // SUPREME WEAPON 3D MESH BUILDERS
+  function createSupremeSlashMesh() {
+    const root = new THREE.Group();
+    const bladeGeo = new THREE.RingGeometry(8, 55, 24, 1, -Math.PI * 0.42, Math.PI * 0.84);
+    bladeGeo.rotateX(-Math.PI / 2);
+    const bladeMat = new THREE.MeshBasicMaterial({
+      color: 0xffd32a,
+      transparent: true,
+      opacity: 0.92,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    root.add(new THREE.Mesh(bladeGeo, bladeMat));
+
+    // Outer plasma rim
+    const rimGeo = new THREE.RingGeometry(50, 58, 24, 1, -Math.PI * 0.42, Math.PI * 0.84);
+    rimGeo.rotateX(-Math.PI / 2);
+    const rimMat = new THREE.MeshBasicMaterial({
+      color: 0x0be881,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    root.add(new THREE.Mesh(rimGeo, rimMat));
+    return root;
+  }
+
+  function createArtilleryShellMesh() {
+    const root = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.8, 11, 8), materials.darkSteel);
+    body.rotation.x = Math.PI / 2;
+    root.add(body);
+
+    const head = new THREE.Mesh(new THREE.ConeGeometry(2.8, 6, 8), materials.gold);
+    head.rotation.x = Math.PI / 2;
+    head.position.z = 7;
+    root.add(head);
+    return root;
+  }
+
+  function createPurgatoryFireMesh(radius) {
+    const root = new THREE.Group();
+    const r = radius || 55;
+    const ringGeo = new THREE.RingGeometry(3, r, 24);
+    ringGeo.rotateX(-Math.PI / 2);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0x38ada9,
+      transparent: true,
+      opacity: 0.65,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    root.add(new THREE.Mesh(ringGeo, ringMat));
+
+    const coreGeo = new THREE.RingGeometry(1, r * 0.6, 18);
+    coreGeo.rotateX(-Math.PI / 2);
+    const coreMat = new THREE.MeshBasicMaterial({
+      color: 0xf6b93b,
+      transparent: true,
+      opacity: 0.8,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    const core = new THREE.Mesh(coreGeo, coreMat);
+    core.position.y = 0.2;
+    root.add(core);
+    return root;
+  }
+
+  function createSupremeSpearMesh() {
+    const root = new THREE.Group();
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 38, 6), materials.holyGlow);
+    shaft.rotation.x = Math.PI / 2;
+    root.add(shaft);
+
+    const head = new THREE.Mesh(new THREE.ConeGeometry(2.5, 12, 5), materials.gold);
+    head.rotation.x = Math.PI / 2;
+    head.position.z = 24;
+    root.add(head);
+    return root;
+  }
+
   function createAlliedMinionModel() {
     const root = new THREE.Group();
     const anim = {
@@ -2670,6 +2753,10 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     createHellfireCauldronMesh,
     createSpearThrustMesh,
     createSpearShockwaveMesh,
+    createSupremeSlashMesh,
+    createArtilleryShellMesh,
+    createPurgatoryFireMesh,
+    createSupremeSpearMesh,
     createEnemyProjectileMesh,
     materials
   };

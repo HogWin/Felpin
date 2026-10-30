@@ -34,7 +34,8 @@ class SaveManager {
         bow_boost: 0,   // Crossbow Base Damage
         fire_boost: 0   // Holy Fire Base Damage
       },
-      history: []
+      history: [],
+      discoveredSynergies: []
     };
   }
 
@@ -174,6 +175,23 @@ class SaveManager {
 
   getGold() {
     return this.data.gold;
+  }
+
+  isSynergyDiscovered(id) {
+    if (!this.data.discoveredSynergies) this.data.discoveredSynergies = [];
+    return this.data.discoveredSynergies.includes(id);
+  }
+
+  discoverSynergy(id) {
+    if (!this.data.discoveredSynergies) this.data.discoveredSynergies = [];
+    if (!this.data.discoveredSynergies.includes(id)) {
+      this.data.discoveredSynergies.push(id);
+      this.save();
+    }
+  }
+
+  getDiscoveredSynergiesCount() {
+    return (this.data.discoveredSynergies || []).length;
   }
 
   getUpgradeLevel(id) {

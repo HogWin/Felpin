@@ -1650,3 +1650,323 @@ body, html {
   color: #2ecc71 !important;
   text-shadow: 0 0 20px rgba(46, 204, 113, 0.8), 2px 2px 4px #000 !important;
 }
+
+/* ==================== SUPREME FUSION & SYNERGIES SYSTEM ==================== */
+
+/* Level-Up Badges & Pulsing Cards */
+.card-supreme {
+  border: 2px solid #ffd32a !important;
+  background: radial-gradient(ellipse at top, rgba(142, 68, 173, 0.45), rgba(18, 12, 28, 0.95)) !important;
+  box-shadow: 0 0 25px rgba(255, 211, 42, 0.6), inset 0 0 15px rgba(155, 89, 182, 0.3) !important;
+  animation: pulseSupreme 2s infinite alternate ease-in-out;
+}
+
+@keyframes pulseSupreme {
+  0% { transform: translateY(0); box-shadow: 0 0 20px rgba(255, 211, 42, 0.5); }
+  100% { transform: translateY(-4px); box-shadow: 0 0 35px rgba(255, 211, 42, 0.9), 0 0 15px rgba(155, 89, 182, 0.7); }
+}
+
+.badge-supreme {
+  background: linear-gradient(90deg, #f1c40f, #e67e22) !important;
+  color: #120902 !important;
+  font-weight: 900 !important;
+  border-color: #fff !important;
+  box-shadow: 0 0 10px rgba(241, 196, 15, 0.8) !important;
+}
+
+.card-ascension {
+  border: 2px solid #00d2d3 !important;
+  background: radial-gradient(ellipse at top, rgba(0, 210, 211, 0.3), rgba(16, 24, 38, 0.95)) !important;
+  box-shadow: 0 0 20px rgba(0, 210, 211, 0.5) !important;
+}
+
+.badge-ascension {
+  background: linear-gradient(90deg, #00d2d3, #54a0ff) !important;
+  color: #06192a !important;
+  font-weight: 900 !important;
+  border-color: #fff !important;
+}
+
+/* Synergies Tab & Modal Box */
+.synergies-modal-box {
+  max-width: 1040px;
+  width: 95%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 30px;
+  border: 2px solid #9b59b6;
+  box-shadow: 0 0 35px rgba(155, 89, 182, 0.4), var(--shadow-medieval);
+  overflow-y: auto;
+}
+
+.synergies-tab-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.synergies-header-banner {
+  text-align: center;
+  background: radial-gradient(ellipse at center, rgba(44, 18, 60, 0.95), rgba(18, 10, 26, 0.95));
+  border: 1px solid #9b59b6;
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: 0 0 20px rgba(155, 89, 182, 0.3);
+}
+
+.synergies-header-banner h3 {
+  color: #e056fd;
+  font-size: 1.35rem;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.synergies-header-banner p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.synergy-stats-badge {
+  display: inline-block;
+  background: rgba(155, 89, 182, 0.2);
+  border: 1px solid #9b59b6;
+  padding: 4px 14px;
+  border-radius: 20px;
+  color: #f5cd79;
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+
+.synergy-progress-wrap {
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+.synergy-progress-text {
+  font-size: 0.88rem;
+  color: #ffeaa7;
+  margin-bottom: 6px;
+}
+
+.synergy-progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #1e1329;
+  border: 1px solid #8e44ad;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.synergy-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9b59b6, #f1c40f);
+  box-shadow: 0 0 10px rgba(241, 196, 15, 0.6);
+  transition: width 0.4s ease;
+}
+
+/* Filter Pills */
+.synergy-filter-pills,
+.synergies-filter-bar {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.filter-pill {
+  background: rgba(26, 18, 36, 0.85);
+  border: 1px solid rgba(155, 89, 182, 0.4);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-pill:hover {
+  background: rgba(58, 30, 84, 0.85);
+  color: #fff;
+  border-color: #9b59b6;
+}
+
+.filter-pill.active {
+  background: linear-gradient(90deg, #8e44ad, #d35400);
+  color: #fff;
+  border-color: #f1c40f;
+  box-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
+}
+
+/* Synergies Catalog Grid */
+.synergies-catalog-grid,
+.synergies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.synergy-card {
+  background: rgba(20, 14, 28, 0.92);
+  border: 1px solid rgba(155, 89, 182, 0.35);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  transition: all 0.25s;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+}
+
+.synergy-card:hover {
+  transform: translateY(-2px);
+  border-color: #f1c40f;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.8), 0 0 14px rgba(241, 196, 15, 0.25);
+}
+
+.synergy-card.discovered {
+  border-color: rgba(241, 196, 15, 0.5);
+  background: radial-gradient(ellipse at top left, rgba(46, 20, 64, 0.9), rgba(16, 10, 24, 0.95));
+}
+
+.synergy-card.locked {
+  opacity: 0.72;
+  filter: grayscale(0.2);
+}
+
+.synergy-card-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.badge-supreme-card {
+  background: rgba(241, 196, 15, 0.2);
+  color: #f1c40f;
+  border: 1px solid #f1c40f;
+}
+
+.badge-ascension-card {
+  background: rgba(0, 210, 211, 0.2);
+  color: #00d2d3;
+  border: 1px solid #00d2d3;
+}
+
+.badge-locked-card {
+  background: rgba(100, 100, 100, 0.25);
+  color: #bbb;
+  border: 1px solid #666;
+}
+
+/* Synergy Formula Equation */
+.synergy-equation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 8px;
+  margin-top: 14px;
+  gap: 4px;
+}
+
+.eq-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 80px;
+}
+
+.eq-icon {
+  font-size: 1.6rem;
+  margin-bottom: 2px;
+}
+
+.eq-name {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ddd;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+.eq-lvl {
+  font-size: 0.62rem;
+  color: #f1c40f;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.eq-plus,
+.eq-arrow {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #8e44ad;
+}
+
+.eq-arrow {
+  color: #f1c40f;
+}
+
+.eq-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 90px;
+}
+
+.eq-res-icon {
+  font-size: 1.8rem;
+  filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.6));
+}
+
+.eq-res-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #f1c40f;
+  line-height: 1.1;
+}
+
+/* Card Body Details */
+.synergy-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.synergy-res-title {
+  color: #ffeaa7;
+  font-size: 1.05rem;
+  margin: 0;
+  font-family: 'Cinzel', serif;
+}
+
+.synergy-res-desc {
+  font-size: 0.8rem;
+  color: #ccc;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.synergy-res-lore {
+  font-size: 0.74rem;
+  color: #a29bfe;
+  font-style: italic;
+  margin-top: 4px;
+  border-top: 1px dashed rgba(162, 155, 254, 0.2);
+  padding-top: 6px;
+}
