@@ -602,6 +602,8 @@ class GameRenderer {
         if (!poolMesh) {
           if (p.isPlague) {
             poolMesh = window.MedievalSurvivors.models3d.createPlaguePuddleMesh(p.radius || 40, p.isEvolved);
+          } else if (p.isHellfire) {
+            poolMesh = window.MedievalSurvivors.models3d.createHellfireCauldronMesh(p.radius || 36, p.isEvolved);
           } else {
             poolMesh = window.MedievalSurvivors.models3d.createHolyFirePoolMesh(p.radius || 40, p.isEvolved);
           }
@@ -623,6 +625,22 @@ class GameRenderer {
           pMesh = window.MedievalSurvivors.models3d.createSpearShockwaveMesh(p.isEvolved);
         } else if (p.constructor && p.constructor.name === 'SpectralOrb') {
           pMesh = window.MedievalSurvivors.models3d.createSpectralOrbMesh(p.isEvolved);
+        } else if (p.isFlail) {
+          pMesh = window.MedievalSurvivors.models3d.createFlailMesh(p.isEvolved);
+        } else if (p.isPellet) {
+          pMesh = window.MedievalSurvivors.models3d.createPelletMesh(p.isEvolved);
+        } else if (p.isGlaive) {
+          pMesh = window.MedievalSurvivors.models3d.createCelestialGlaiveMesh(p.isEvolved);
+        } else if (p.isThunder) {
+          pMesh = window.MedievalSurvivors.models3d.createThunderStrikeMesh(p.isEvolved);
+        } else if (p.isDart) {
+          pMesh = window.MedievalSurvivors.models3d.createViperDartMesh(p.isEvolved);
+        } else if (p.isVortex) {
+          pMesh = window.MedievalSurvivors.models3d.createVoidVortexMesh(p.radius, p.isEvolved);
+        } else if (p.isIce) {
+          pMesh = window.MedievalSurvivors.models3d.createFrostLanceMesh(p.isEvolved);
+        } else if (p.isShield) {
+          pMesh = window.MedievalSurvivors.models3d.createRetributionShieldMesh(p.isEvolved);
         } else if (p.isPlague || (p.constructor && p.constructor.name === 'PlagueFlask')) {
           pMesh = window.MedievalSurvivors.models3d.createPlagueFlaskMesh(p.isEvolved);
         } else {
@@ -632,11 +650,20 @@ class GameRenderer {
         this.projectileMeshMap.set(p, pMesh);
       }
 
-      const h = p.renderHeight !== undefined ? p.renderHeight : 10;
+      const h = p.renderHeight !== undefined ? p.renderHeight : (p.isVortex ? 0.3 : (p.isThunder ? 0 : 10));
       pMesh.position.set(p.x, h, p.y);
 
       // 3D Realistic Weapon Orientation & Spinning
-      if (p.constructor && p.constructor.name === 'ThrownAxe') {
+      if (p.isFlail) {
+        pMesh.rotation.y += dt * 6;
+        pMesh.rotation.z += dt * 4;
+      } else if (p.isGlaive) {
+        pMesh.rotation.y += dt * 22;
+      } else if (p.isShield) {
+        pMesh.rotation.y = -p.angle + Math.PI / 2;
+      } else if (p.isVortex) {
+        pMesh.rotation.y += dt * 3.5;
+      } else if (p.constructor && p.constructor.name === 'ThrownAxe') {
         pMesh.rotation.y = -p.angle + Math.PI / 2;
         pMesh.rotation.x = p.rotation || 0;
         pMesh.rotation.z = Math.sin(p.rotation || 0) * 0.4;
@@ -669,14 +696,15 @@ class GameRenderer {
       epMesh.position.set(ep.x, 8, ep.y);
     }
 
-    // 4. Slashes (Broadsword, Twin Daggers, Dark Greatsword)
-    const slashWeapons = ['broadsword', 'twin_daggers', 'dark_greatsword'];
+    // 4. Slashes & Lashes (Broadsword, Twin Daggers, Dark Greatsword, Penitent Whip)
+    const slashWeapons = ['broadsword', 'twin_daggers', 'dark_greatsword', 'penitent_whip'];
     for (let wIdx = 0; wIdx < slashWeapons.length; wIdx++) {
       const wepId = slashWeapons[wIdx];
       const wep = game.player.weapons.find(w => w.id === wepId);
-      if (wep && wep.slashEffects) {
-        for (let i = 0; i < wep.slashEffects.length; i++) {
-          const slash = wep.slashEffects[i];
+      const effectsList = wep ? (wep.slashEffects || wep.lashEffects) : null;
+      if (effectsList) {
+        for (let i = 0; i < effectsList.length; i++) {
+          const slash = effectsList[i];
           if (slash.duration > 0) {
             activeProjectiles.add(slash);
             let sMesh = this.projectileMeshMap.get(slash);
@@ -685,6 +713,8 @@ class GameRenderer {
                 sMesh = window.MedievalSurvivors.models3d.createDaggerSlashMesh(slash.isEvolved);
               } else if (wepId === 'dark_greatsword') {
                 sMesh = window.MedievalSurvivors.models3d.createDarkSlashMesh(slash.isEvolved);
+              } else if (wepId === 'penitent_whip') {
+                sMesh = window.MedievalSurvivors.models3d.createWhipLashMesh(slash.isEvolved);
               } else {
                 sMesh = window.MedievalSurvivors.models3d.createSwordSlashMesh(slash.isEvolved);
               }

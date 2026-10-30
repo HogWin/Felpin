@@ -1535,6 +1535,1107 @@ class PlagueFlask {
   }
 }
 
+// ==========================================
+// 11. MANGUAL DE FERRO CRAVADO (Iron Flail)
+// ==========================================
+class IronFlailWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'iron_flail',
+      name: 'Mangual de Ferro Cravado',
+      icon: '⛓️',
+      description: 'Uma pesada esfera de ferro com espinhos ligada por correntes que orbita continuamente o guerreiro, triturando quem se aproximar.',
+      maxLevel: 8,
+      damage: 26,
+      cooldown: 0.1,
+      area: 1.0,
+      count: 1,
+      speed: 3.5,
+      levelsConfig: [
+        { damage: 26, count: 1, description: 'Esfera de ferro cravada que orbita o jogador causando dano de impacto contínuo.' },
+        { damage: 34, speed: 4.2, description: 'Dano: 26 → 34 | +20% Velocidade de Rotação' },
+        { count: 2, description: 'Ganha uma 2ª Esfera de Ferro no lado oposto!' },
+        { damage: 48, area: 1.3, description: 'Dano: 34 → 48 | +30% Raio da Órbita' },
+        { speed: 5.2, description: '+25% Velocidade de Rotação' },
+        { count: 3, description: 'Ganha uma 3ª Esfera de Ferro formando barreira defensiva!' },
+        { damage: 68, area: 1.5, description: 'Dano: 48 → 68 | +50% Raio da Órbita' },
+        { damage: 105, count: 4, speed: 6.5, description: 'EVOLUÇÃO: Mangual do Juízo Divino! 4 Esferas com espinhos sagrados incandescentes.' }
+      ]
+    });
+    this.orbiters = [];
+  }
+
+  update(dt, player, enemies, projectiles, particles) {
+    if (this.level <= 0 || !player) return;
+    const isEvo = this.level >= this.maxLevel;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const effectiveArea = this.area * player.areaMultiplier;
+    const effectiveSpeed = this.baseSpeed * (isEvo ? 1.3 : 1.0);
+    const targetCount = this.count + (player.bonusProjectiles || 0);
+
+    while (this.orbiters.length < targetCount) {
+      const idx = this.orbiters.length;
+      const angle = (idx / targetCount) * Math.PI * 2;
+      const orb = new FlailOrbiter({
+        weapon: this,
+        angle: angle,
+        orbitRadius: 70 * effectiveArea,
+        damage: effectiveDamage,
+        rotSpeed: effectiveSpeed,
+        isEvolved: isEvo
+      });
+      this.orbiters.push(orb);
+      projectiles.push(orb);
+    }
+
+    for (let i = 0; i < this.orbiters.length; i++) {
+      const orb = this.orbiters[i];
+      orb.damage = effectiveDamage;
+      orb.orbitRadius = 70 * effectiveArea;
+      orb.rotSpeed = effectiveSpeed;
+      orb.isEvolved = isEvo;
+    }
+  }
+}
+
+class FlailOrbiter {
+  constructor(cfg) {
+    this.weapon = cfg.weapon;
+    this.angle = cfg.angle || 0;
+    this.orbitRadius = cfg.orbitRadius || 70;
+    this.damage = cfg.damage || 26;
+    this.rotSpeed = cfg.rotSpeed || 3.5;
+    this.isEvolved = cfg.isEvolved || false;
+    this.x = 0;
+    this.y = 0;
+    this.radius = 16;
+    this.hitCooldowns = new Map();
+    this.alive = true;
+    this.isFlail = true;
+  }
+
+  update(dt, enemies, particles) {
+    if (!this.weapon || this.weapon.level <= 0) return false;
+    const game = window.MedievalSurvivors.gameInstance;
+    const player = game ? game.player : null;
+    if (!player || !player.alive) return false;
+
+    this.angle += this.rotSpeed * dt;
+    this.x = player.x + Math.cos(this.angle) * this.orbitRadius;
+    this.y = player.y + Math.sin(this.angle) * this.orbitRadius;
+
+    for (const [e, timer] of this.hitCooldowns.entries()) {
+      if (timer <= dt) this.hitCooldowns.delete(e);
+      else this.hitCooldowns.set(e, timer - dt);
+    }
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const e = enemies[i];
+      if (!e.alive || this.hitCooldowns.has(e)) continue;
+
+      const dx = e.x - this.x;
+      const dy = e.y - this.y;
+      const hitDist = this.radius + e.radius;
+      if (dx * dx + dy * dy <= hitDist * hitDist) {
+        const kbX = Math.cos(this.angle) * 16;
+        const kbY = Math.sin(this.angle) * 16;
+        const dealt = e.takeDamage(this.damage, kbX, kbY, 0.12);
+        this.weapon.totalDamageDealt += dealt;
+        this.hitCooldowns.set(e, 0.28);
+
+        if (particles && particles.createBloodSparks) {
+          particles.createBloodSparks(this.x, this.y, 6, this.isEvolved ? '#f1c40f' : '#bdc3c7');
+        }
+      }
+    }
+    return true;
+  }
+}
+
+// ==========================================
+// 12. BACAMARTE DE PÓLVORA NEGRA (Blunderbuss)
+// ==========================================
+class BlunderbussWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'blunderbuss',
+      name: 'Bacamarte de Pólvora Negra',
+      icon: '💥',
+      description: 'Dispara uma violenta descarga de balotes e estilhaços incandescentes que varre grupos com enorme poder de recuo.',
+      maxLevel: 8,
+      damage: 18,
+      cooldown: 1.6,
+      area: 1.0,
+      count: 6,
+      speed: 680,
+      levelsConfig: [
+        { damage: 18, count: 6, cooldown: 1.6, description: 'Dispara 6 balotes de chumbo grosso em cone frontal com alto recuo.' },
+        { damage: 24, count: 8, description: 'Dano: 18 → 24 | Balotes: 6 → 8' },
+        { cooldown: 1.35, description: 'Recarga: 1.6s → 1.35s' },
+        { damage: 32, count: 10, description: 'Dano: 24 → 32 | Balotes: 8 → 10' },
+        { area: 1.3, cooldown: 1.15, description: '+30% Ângulo do Cone | Recarga: 1.15s' },
+        { damage: 45, count: 13, description: 'Dano: 32 → 45 | Balotes: 10 → 13' },
+        { damage: 60, count: 16, cooldown: 0.95, description: 'Dano: 45 → 60 | Balotes: 13 → 16 | Recarga: 0.95s' },
+        { damage: 95, count: 22, cooldown: 0.75, description: 'EVOLUÇÃO: Dragão de Fogo! 22 projéteis de estilhaços perfurantes incendiários!' }
+      ]
+    });
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    const isEvo = this.level >= this.maxLevel;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const totalPellets = this.count + (player.bonusProjectiles || 0) * 2;
+    const baseAngle = player.facingAngle !== undefined ? player.facingAngle : 0;
+    const spreadAngle = 0.65 * this.area * player.areaMultiplier;
+
+    if (particles && particles.createExplosionWave) {
+      particles.createExplosionWave(player.x + Math.cos(baseAngle) * 20, player.y + Math.sin(baseAngle) * 20, 25, '#ff793f');
+    }
+
+    for (let i = 0; i < totalPellets; i++) {
+      const offset = (Math.random() - 0.5) * spreadAngle;
+      const pelletAngle = baseAngle + offset;
+      const speedVar = this.baseSpeed * (0.85 + Math.random() * 0.3);
+
+      projectiles.push(new BlunderbussPellet({
+        x: player.x + Math.cos(baseAngle) * 14,
+        y: player.y + Math.sin(baseAngle) * 14,
+        angle: pelletAngle,
+        speed: speedVar,
+        damage: effectiveDamage,
+        isEvolved: isEvo,
+        weapon: this
+      }));
+    }
+  }
+}
+
+class BlunderbussPellet {
+  constructor(cfg) {
+    this.x = cfg.x;
+    this.y = cfg.y;
+    this.angle = cfg.angle;
+    this.speed = cfg.speed;
+    this.damage = cfg.damage;
+    this.isEvolved = cfg.isEvolved;
+    this.weapon = cfg.weapon;
+    this.radius = 7;
+    this.life = 0.38;
+    this.maxLife = 0.38;
+    this.alive = true;
+    this.isPellet = true;
+    this.pierce = this.isEvolved ? 2 : 1;
+    this.hitEnemies = new Set();
+  }
+
+  update(dt, enemies, particles) {
+    this.life -= dt;
+    if (this.life <= 0) return false;
+
+    this.x += Math.cos(this.angle) * this.speed * dt;
+    this.y += Math.sin(this.angle) * this.speed * dt;
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const e = enemies[i];
+      if (!e.alive || this.hitEnemies.has(e)) continue;
+
+      const dx = e.x - this.x;
+      const dy = e.y - this.y;
+      const hitDist = this.radius + e.radius;
+      if (dx * dx + dy * dy <= hitDist * hitDist) {
+        this.hitEnemies.add(e);
+        const kbX = Math.cos(this.angle) * 22;
+        const kbY = Math.sin(this.angle) * 22;
+        const dealt = e.takeDamage(this.damage, kbX, kbY, 0.15);
+        this.weapon.totalDamageDealt += dealt;
+
+        if (this.isEvolved) e.isBurning = true;
+
+        this.pierce--;
+        if (this.pierce <= 0) {
+          this.alive = false;
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+}
+
+// ==========================================
+// 13. CHICOTE PENITENTE (Penitent Whip)
+// ==========================================
+class PenitentWhipWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'penitent_whip',
+      name: 'Chicote Penitente',
+      icon: '🩸',
+      description: 'Açoita horizontalmente à esquerda e à direita com tiras farpadas banhadas em cinzas sagradas que causam sangramento.',
+      maxLevel: 8,
+      damage: 28,
+      cooldown: 1.25,
+      area: 1.0,
+      count: 2,
+      speed: 1.0,
+      levelsConfig: [
+        { damage: 28, cooldown: 1.25, description: 'Desfere duas chicotadas horizontais cortantes à esquerda e direita.' },
+        { damage: 38, area: 1.2, description: 'Dano: 28 → 38 | +20% Alcance' },
+        { cooldown: 1.05, description: 'Recarga: 1.25s → 1.05s' },
+        { damage: 52, area: 1.35, description: 'Dano: 38 → 52 | +35% Alcance' },
+        { cooldown: 0.88, description: 'Recarga: 1.05s → 0.88s' },
+        { damage: 70, area: 1.5, description: 'Dano: 52 → 70 | +50% Alcance' },
+        { damage: 95, cooldown: 0.72, description: 'Dano: 70 → 95 | Recarga: 0.72s' },
+        { damage: 140, area: 1.75, cooldown: 0.58, description: 'EVOLUÇÃO: Chicote da Flagelação Carmesim! Açoites quádruplos que rasgam a alma!' }
+      ]
+    });
+    this.lashEffects = [];
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    const isEvo = this.level >= this.maxLevel;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const reach = 85 * this.area * player.areaMultiplier;
+
+    // Left and Right strikes (or 4 directions if evolved)
+    const angles = isEvo ? [0, Math.PI, Math.PI * 0.5, -Math.PI * 0.5] : [0, Math.PI];
+
+    for (let i = 0; i < angles.length; i++) {
+      const angle = angles[i];
+      const lash = {
+        x: player.x,
+        y: player.y,
+        angle: angle,
+        reach: reach,
+        duration: 0.18,
+        maxDuration: 0.18,
+        isEvolved: isEvo,
+        player: player
+      };
+      this.lashEffects.push(lash);
+
+      // Hit detection in straight lash path
+      const endX = player.x + Math.cos(angle) * reach;
+      const endY = player.y + Math.sin(angle) * reach;
+
+      for (let j = 0, len = enemies.length; j < len; j++) {
+        const e = enemies[j];
+        if (!e.alive) continue;
+        const d = distToSegment(e.x, e.y, player.x, player.y, endX, endY);
+        if (d <= 22 + e.radius) {
+          const dealt = e.takeDamage(effectiveDamage, Math.cos(angle) * 12, Math.sin(angle) * 12, 0.1);
+          this.totalDamageDealt += dealt;
+          if (particles && particles.createBloodSparks) {
+            particles.createBloodSparks(e.x, e.y, 7, isEvo ? '#e74c3c' : '#c0392b');
+          }
+        }
+      }
+    }
+  }
+
+  update(dt, player, enemies, projectiles, particles) {
+    super.update(dt, player, enemies, projectiles, particles);
+    for (let i = this.lashEffects.length - 1; i >= 0; i--) {
+      const l = this.lashEffects[i];
+      l.duration -= dt;
+      if (player) {
+        l.x = player.x;
+        l.y = player.y;
+      }
+      if (l.duration <= 0) {
+        this.lashEffects.splice(i, 1);
+      }
+    }
+  }
+}
+
+// ==========================================
+// 14. GLAIVE LUNAR CELESTIAL (Celestial Glaive)
+// ==========================================
+class CelestialGlaiveWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'celestial_glaive',
+      name: 'Glaive Lunar Celestial',
+      icon: '🌙',
+      description: 'Arremessa uma lâmina lunar giratória que salta entre inimigos consecutivos, acelerando e ganhando poder a cada ricochete.',
+      maxLevel: 8,
+      damage: 32,
+      cooldown: 1.4,
+      area: 1.0,
+      count: 1,
+      speed: 460,
+      levelsConfig: [
+        { damage: 32, cooldown: 1.4, count: 1, description: 'Lança glaive lunar giratória que salta entre até 4 inimigos.' },
+        { damage: 42, description: 'Dano: 32 → 42 | +1 Ricochete Adicional' },
+        { count: 2, description: 'Lança 2 Glaives Lunares simultâneas!' },
+        { damage: 56, cooldown: 1.2, description: 'Dano: 42 → 56 | Recarga: 1.2s' },
+        { damage: 72, description: 'Dano: 56 → 72 | +2 Ricochetes' },
+        { count: 3, description: 'Lança 3 Glaives Lunares simultâneas!' },
+        { damage: 95, cooldown: 1.0, description: 'Dano: 72 → 95 | Recarga: 1.0s' },
+        { damage: 145, count: 4, cooldown: 0.85, description: 'EVOLUÇÃO: Eclipse Astral! 4 Glaives cósmicas com até 9 ricochetes ultra velozes!' }
+      ]
+    });
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    if (enemies.length === 0) return;
+    const isEvo = this.level >= this.maxLevel;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const totalGlaives = this.count + (player.bonusProjectiles || 0);
+    const maxBounces = isEvo ? 9 : 4 + Math.floor(this.level / 2);
+
+    for (let i = 0; i < totalGlaives; i++) {
+      const randTarget = enemies[Math.floor(Math.random() * enemies.length)];
+      if (!randTarget) continue;
+
+      const angle = Math.atan2(randTarget.y - player.y, randTarget.x - player.x) + (i - (totalGlaives - 1) / 2) * 0.25;
+
+      projectiles.push(new CelestialGlaive({
+        x: player.x,
+        y: player.y,
+        angle: angle,
+        damage: effectiveDamage,
+        speed: this.baseSpeed,
+        maxBounces: maxBounces,
+        isEvolved: isEvo,
+        weapon: this
+      }));
+    }
+  }
+}
+
+class CelestialGlaive {
+  constructor(cfg) {
+    this.x = cfg.x;
+    this.y = cfg.y;
+    this.angle = cfg.angle;
+    this.damage = cfg.damage;
+    this.speed = cfg.speed;
+    this.maxBounces = cfg.maxBounces || 4;
+    this.bouncesLeft = this.maxBounces;
+    this.isEvolved = cfg.isEvolved;
+    this.weapon = cfg.weapon;
+    this.radius = 14;
+    this.rotation = 0;
+    this.alive = true;
+    this.isGlaive = true;
+    this.hitCooldowns = new Map();
+  }
+
+  update(dt, enemies, particles) {
+    if (this.bouncesLeft <= 0) return false;
+
+    this.rotation += dt * 18;
+    this.x += Math.cos(this.angle) * this.speed * dt;
+    this.y += Math.sin(this.angle) * this.speed * dt;
+
+    for (const [e, timer] of this.hitCooldowns.entries()) {
+      if (timer <= dt) this.hitCooldowns.delete(e);
+      else this.hitCooldowns.set(e, timer - dt);
+    }
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const e = enemies[i];
+      if (!e.alive || this.hitCooldowns.has(e)) continue;
+
+      const dx = e.x - this.x;
+      const dy = e.y - this.y;
+      const hitDist = this.radius + e.radius;
+      if (dx * dx + dy * dy <= hitDist * hitDist) {
+        const dealt = e.takeDamage(this.damage, Math.cos(this.angle) * 12, Math.sin(this.angle) * 12, 0.1);
+        this.weapon.totalDamageDealt += dealt;
+        this.hitCooldowns.set(e, 0.35);
+        this.bouncesLeft--;
+
+        if (particles && particles.createExplosionWave) {
+          particles.createExplosionWave(this.x, this.y, 18, this.isEvolved ? '#70a1ff' : '#00d2d3');
+        }
+
+        // Find next nearest enemy to ricochet toward
+        let nextTarget = null;
+        let minDist = 260;
+        for (let j = 0; j < len; j++) {
+          const cand = enemies[j];
+          if (cand !== e && cand.alive && !this.hitCooldowns.has(cand)) {
+            const d = Math.hypot(cand.x - this.x, cand.y - this.y);
+            if (d < minDist) {
+              minDist = d;
+              nextTarget = cand;
+            }
+          }
+        }
+
+        if (nextTarget) {
+          this.angle = Math.atan2(nextTarget.y - this.y, nextTarget.x - this.x);
+          this.speed *= 1.12; // Accelerate on bounce
+        }
+
+        if (this.bouncesLeft <= 0) {
+          this.alive = false;
+          return false;
+        }
+        break;
+      }
+    }
+    return true;
+  }
+}
+
+// ==========================================
+// 15. MARTELO DO TROVÃO (Thunder Hammer)
+// ==========================================
+class ThunderHammerWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'thunder_hammer',
+      name: 'Martelo do Trovão dos Anões',
+      icon: '⚡',
+      description: 'Invoca raios verticais devastadores dos céus sobre os maiores aglomerados de monstros, eletrocutando em cadeia.',
+      maxLevel: 8,
+      damage: 45,
+      cooldown: 1.5,
+      area: 1.0,
+      count: 1,
+      speed: 1.0,
+      levelsConfig: [
+        { damage: 45, cooldown: 1.5, count: 1, description: 'Faz cair 1 raio colossal dos céus causando impacto elétrico em área.' },
+        { damage: 60, area: 1.25, description: 'Dano: 45 → 60 | +25% Raio do Impacto' },
+        { count: 2, description: 'Invoca 2 Raios simultâneos!' },
+        { damage: 80, cooldown: 1.25, description: 'Dano: 60 → 80 | Recarga: 1.25s' },
+        { count: 3, area: 1.4, description: 'Invoca 3 Raios simultâneos | +40% Área' },
+        { damage: 110, cooldown: 1.05, description: 'Dano: 80 → 110 | Recarga: 1.05s' },
+        { count: 4, description: 'Invoca 4 Raios simultâneos!' },
+        { damage: 175, count: 5, cooldown: 0.85, area: 1.65, description: 'EVOLUÇÃO: Ira de Thor! 5 Raios cósmicos que propagam arcos elétricos em cadeia!' }
+      ]
+    });
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    if (enemies.length === 0) return;
+    const isEvo = this.level >= this.maxLevel;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const strikeRadius = 38 * this.area * player.areaMultiplier;
+    const strikeCount = this.count + (player.bonusProjectiles || 0);
+
+    for (let s = 0; s < strikeCount; s++) {
+      const target = enemies[Math.floor(Math.random() * enemies.length)];
+      if (!target) continue;
+
+      const strikeX = target.x + (Math.random() - 0.5) * 20;
+      const strikeY = target.y + (Math.random() - 0.5) * 20;
+
+      projectiles.push(new ThunderStrike({
+        x: strikeX,
+        y: strikeY,
+        radius: strikeRadius,
+        damage: effectiveDamage,
+        isEvolved: isEvo,
+        weapon: this
+      }));
+    }
+  }
+}
+
+class ThunderStrike {
+  constructor(cfg) {
+    this.x = cfg.x;
+    this.y = cfg.y;
+    this.radius = cfg.radius || 38;
+    this.damage = cfg.damage || 45;
+    this.isEvolved = cfg.isEvolved || false;
+    this.weapon = cfg.weapon;
+    this.duration = 0.25;
+    this.maxDuration = 0.25;
+    this.hasDamaged = false;
+    this.alive = true;
+    this.isThunder = true;
+  }
+
+  update(dt, enemies, particles) {
+    this.duration -= dt;
+    if (!this.hasDamaged) {
+      this.hasDamaged = true;
+
+      if (particles && particles.createExplosionWave) {
+        particles.createExplosionWave(this.x, this.y, this.radius, this.isEvolved ? '#f1c40f' : '#00d2d3');
+      }
+
+      for (let i = 0, len = enemies.length; i < len; i++) {
+        const e = enemies[i];
+        if (!e.alive) continue;
+        const dx = e.x - this.x;
+        const dy = e.y - this.y;
+        const dist = this.radius + e.radius;
+        if (dx * dx + dy * dy <= dist * dist) {
+          const dealt = e.takeDamage(this.damage, dx * 0.2, dy * 0.2, 0.2);
+          this.weapon.totalDamageDealt += dealt;
+
+          if (this.isEvolved) {
+            // Chain lightning to one adjacent enemy
+            for (let j = 0; j < len; j++) {
+              const chainE = enemies[j];
+              if (chainE !== e && chainE.alive && Math.hypot(chainE.x - e.x, chainE.y - e.y) < 110) {
+                const chainDmg = Math.round(this.damage * 0.5);
+                const chainDealt = chainE.takeDamage(chainDmg, 0, 0, 0.1);
+                this.weapon.totalDamageDealt += chainDealt;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    return this.duration > 0;
+  }
+}
+
+// ==========================================
+// 16. ZARABATANA DA VÍBORA (Viper Blowpipe)
+// ==========================================
+class ViperBlowpipeWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'viper_blowpipe',
+      name: 'Zarabatana da Víbora',
+      icon: '🎋',
+      description: 'Dispara rajadas rápidas de dardos envenenados perfurantes que retardam em 35% e corroem os sinais vitais dos monstros.',
+      maxLevel: 8,
+      damage: 15,
+      cooldown: 0.85,
+      area: 1.0,
+      count: 2,
+      speed: 720,
+      levelsConfig: [
+        { damage: 15, cooldown: 0.85, count: 2, description: 'Dispara 2 dardos perfurantes de neurotoxina que reduzem a velocidade do inimigo.' },
+        { damage: 22, count: 3, description: 'Dano: 15 → 22 | Dardos: 2 → 3' },
+        { cooldown: 0.72, description: 'Recarga: 0.85s → 0.72s' },
+        { damage: 30, count: 4, description: 'Dano: 22 → 30 | Dardos: 3 → 4' },
+        { cooldown: 0.6, description: 'Recarga: 0.72s → 0.6s' },
+        { damage: 42, count: 5, description: 'Dano: 30 → 42 | Dardos: 4 → 5' },
+        { damage: 55, cooldown: 0.48, count: 6, description: 'Dano: 42 → 55 | Dardos: 5 → 6 | Recarga: 0.48s' },
+        { damage: 85, count: 8, cooldown: 0.38, description: 'EVOLUÇÃO: Peçonha das Mil Serpentes! Rajada de 8 dardos ultra perfurantes que paralisam inimigos!' }
+      ]
+    });
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    const isEvo = this.level >= this.maxLevel;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const totalDarts = this.count + (player.bonusProjectiles || 0);
+    const baseAngle = player.facingAngle !== undefined ? player.facingAngle : 0;
+
+    for (let i = 0; i < totalDarts; i++) {
+      const spread = (i - (totalDarts - 1) / 2) * 0.12;
+      projectiles.push(new ViperDart({
+        x: player.x,
+        y: player.y,
+        angle: baseAngle + spread,
+        damage: effectiveDamage,
+        speed: this.baseSpeed,
+        isEvolved: isEvo,
+        weapon: this
+      }));
+    }
+  }
+}
+
+class ViperDart {
+  constructor(cfg) {
+    this.x = cfg.x;
+    this.y = cfg.y;
+    this.angle = cfg.angle;
+    this.damage = cfg.damage;
+    this.speed = cfg.speed;
+    this.isEvolved = cfg.isEvolved;
+    this.weapon = cfg.weapon;
+    this.radius = 8;
+    this.life = 1.1;
+    this.alive = true;
+    this.isDart = true;
+    this.pierce = this.isEvolved ? 6 : 3;
+    this.hitEnemies = new Set();
+  }
+
+  update(dt, enemies, particles) {
+    this.life -= dt;
+    if (this.life <= 0) return false;
+
+    this.x += Math.cos(this.angle) * this.speed * dt;
+    this.y += Math.sin(this.angle) * this.speed * dt;
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const e = enemies[i];
+      if (!e.alive || this.hitEnemies.has(e)) continue;
+
+      const dx = e.x - this.x;
+      const dy = e.y - this.y;
+      const hitDist = this.radius + e.radius;
+      if (dx * dx + dy * dy <= hitDist * hitDist) {
+        this.hitEnemies.add(e);
+        e.isPoisoned = true;
+        e.speedModifier = this.isEvolved ? 0.45 : 0.65; // Slow down enemy!
+
+        const dealt = e.takeDamage(this.damage, Math.cos(this.angle) * 8, Math.sin(this.angle) * 8, 0.08);
+        this.weapon.totalDamageDealt += dealt;
+
+        this.pierce--;
+        if (this.pierce <= 0) {
+          this.alive = false;
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+}
+
+// ==========================================
+// 17. TOMO DOS SUSSURROS ARCANOS (Eldritch Tome)
+// ==========================================
+class EldritchTomeWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'eldritch_tome',
+      name: 'Tomo dos Sussurros Arcanos',
+      icon: '📖',
+      description: 'Abre fendas gravitacionais no solo que sugam os monstros para o centro antes de colapsar em uma implosão cósmica.',
+      maxLevel: 8,
+      damage: 14,
+      cooldown: 2.2,
+      area: 1.0,
+      count: 1,
+      speed: 1.0,
+      levelsConfig: [
+        { damage: 14, cooldown: 2.2, count: 1, description: 'Cria 1 vórtex gravitacional por 2.5s que puxa monstros e causa dano de sucção contínuo.' },
+        { damage: 20, area: 1.25, description: 'Dano: 14 → 20 | +25% Raio de Sucção' },
+        { count: 2, description: 'Abre 2 Vórtex Gravitacionais simultâneos!' },
+        { damage: 28, cooldown: 1.9, description: 'Dano: 20 → 28 | Recarga: 1.9s' },
+        { area: 1.45, description: '+45% Força Gravitacional e Raio' },
+        { count: 3, description: 'Abre 3 Vórtex Gravitacionais simultâneos!' },
+        { damage: 42, cooldown: 1.6, description: 'Dano: 28 → 42 | Recarga: 1.6s' },
+        { damage: 75, count: 4, area: 1.75, cooldown: 1.3, description: 'EVOLUÇÃO: Buraco Negro Astral! 4 Vórtex cósmicos com implosão devastadora final!' }
+      ]
+    });
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    if (enemies.length === 0) return;
+    const isEvo = this.level >= this.maxLevel;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const vortexRadius = 65 * this.area * player.areaMultiplier;
+    const vortexCount = this.count + (player.bonusProjectiles || 0);
+
+    for (let v = 0; v < vortexCount; v++) {
+      const randEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+      if (!randEnemy) continue;
+
+      projectiles.push(new VoidVortex({
+        x: randEnemy.x,
+        y: randEnemy.y,
+        radius: vortexRadius,
+        damage: effectiveDamage,
+        duration: isEvo ? 3.2 : 2.4,
+        isEvolved: isEvo,
+        weapon: this
+      }));
+    }
+  }
+}
+
+class VoidVortex {
+  constructor(cfg) {
+    this.x = cfg.x;
+    this.y = cfg.y;
+    this.radius = cfg.radius || 65;
+    this.damage = cfg.damage || 14;
+    this.duration = cfg.duration || 2.4;
+    this.maxDuration = this.duration;
+    this.isEvolved = cfg.isEvolved;
+    this.weapon = cfg.weapon;
+    this.tickTimer = 0;
+    this.alive = true;
+    this.isVortex = true;
+  }
+
+  update(dt, enemies, particles) {
+    this.duration -= dt;
+    if (this.duration <= 0) {
+      // Final Implosion Nova
+      const novaDamage = Math.round(this.damage * 3.5);
+      if (particles && particles.createExplosionWave) {
+        particles.createExplosionWave(this.x, this.y, this.radius * 1.3, this.isEvolved ? '#e056fd' : '#be2edd');
+      }
+      for (let i = 0, len = enemies.length; i < len; i++) {
+        const e = enemies[i];
+        if (!e.alive) continue;
+        const dx = e.x - this.x;
+        const dy = e.y - this.y;
+        if (dx * dx + dy * dy <= this.radius * this.radius) {
+          const dealt = e.takeDamage(novaDamage, dx * 0.3, dy * 0.3, 0.25);
+          this.weapon.totalDamageDealt += dealt;
+        }
+      }
+      return false;
+    }
+
+    // Pull enemies inward continuously
+    const pullSpeed = 95 * dt;
+    this.tickTimer += dt;
+    const doTick = this.tickTimer >= 0.25;
+    if (doTick) this.tickTimer = 0;
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const e = enemies[i];
+      if (!e.alive) continue;
+      const dx = this.x - e.x;
+      const dy = this.y - e.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist <= this.radius + e.radius && dist > 4) {
+        // Suction force
+        e.x += (dx / dist) * pullSpeed;
+        e.y += (dy / dist) * pullSpeed;
+
+        if (doTick) {
+          const dealt = e.takeDamage(this.damage, 0, 0, 0.05);
+          this.weapon.totalDamageDealt += dealt;
+        }
+      }
+    }
+    return true;
+  }
+}
+
+// ==========================================
+// 18. LANÇA DE GELO GLACIAL (Frost Lance)
+// ==========================================
+class FrostLanceWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'frost_lance',
+      name: 'Lança de Gelo Glacial',
+      icon: '❄️',
+      description: 'Dispara estacas de gelo cortante que perfuram e congelam os inimigos, estilhaçando-se ao derrotá-los.',
+      maxLevel: 8,
+      damage: 30,
+      cooldown: 1.3,
+      area: 1.0,
+      count: 1,
+      speed: 620,
+      levelsConfig: [
+        { damage: 30, cooldown: 1.3, count: 1, description: 'Dispara 1 estaca de gelo perfurante que congela inimigos por 1.2s.' },
+        { damage: 40, description: 'Dano: 30 → 40 | +1 Inimigo Perfurado' },
+        { count: 2, description: 'Dispara 2 Lanças de Gelo simultâneas!' },
+        { damage: 54, cooldown: 1.1, description: 'Dano: 40 → 54 | Recarga: 1.1s' },
+        { count: 3, description: 'Dispara 3 Lanças de Gelo em leque!' },
+        { damage: 72, cooldown: 0.95, description: 'Dano: 54 → 72 | Recarga: 0.95s' },
+        { count: 4, description: 'Dispara 4 Lanças de Gelo!' },
+        { damage: 120, count: 5, cooldown: 0.75, description: 'EVOLUÇÃO: Zero Absoluto! 5 Lanças de gelo eterno que congelam e estilhaçam em cadeia!' }
+      ]
+    });
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    const isEvo = this.level >= this.maxLevel;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const totalLances = this.count + (player.bonusProjectiles || 0);
+    const baseAngle = player.facingAngle !== undefined ? player.facingAngle : 0;
+
+    for (let i = 0; i < totalLances; i++) {
+      const spread = (i - (totalLances - 1) / 2) * 0.16;
+      projectiles.push(new FrostLance({
+        x: player.x,
+        y: player.y,
+        angle: baseAngle + spread,
+        damage: effectiveDamage,
+        speed: this.baseSpeed,
+        isEvolved: isEvo,
+        weapon: this
+      }));
+    }
+  }
+}
+
+class FrostLance {
+  constructor(cfg) {
+    this.x = cfg.x;
+    this.y = cfg.y;
+    this.angle = cfg.angle;
+    this.damage = cfg.damage;
+    this.speed = cfg.speed;
+    this.isEvolved = cfg.isEvolved;
+    this.weapon = cfg.weapon;
+    this.radius = 12;
+    this.life = 1.3;
+    this.alive = true;
+    this.isIce = true;
+    this.pierce = this.isEvolved ? 5 : 2;
+    this.hitEnemies = new Set();
+  }
+
+  update(dt, enemies, particles) {
+    this.life -= dt;
+    if (this.life <= 0) return false;
+
+    this.x += Math.cos(this.angle) * this.speed * dt;
+    this.y += Math.sin(this.angle) * this.speed * dt;
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const e = enemies[i];
+      if (!e.alive || this.hitEnemies.has(e)) continue;
+
+      const dx = e.x - this.x;
+      const dy = e.y - this.y;
+      const hitDist = this.radius + e.radius;
+      if (dx * dx + dy * dy <= hitDist * hitDist) {
+        this.hitEnemies.add(e);
+        e.isFrozen = true;
+        e.freezeTimer = this.isEvolved ? 2.0 : 1.2;
+
+        const dealt = e.takeDamage(this.damage, Math.cos(this.angle) * 14, Math.sin(this.angle) * 14, 0.1);
+        this.weapon.totalDamageDealt += dealt;
+
+        if (particles && particles.createBloodSparks) {
+          particles.createBloodSparks(this.x, this.y, 6, '#74b9ff');
+        }
+
+        this.pierce--;
+        if (this.pierce <= 0) {
+          this.alive = false;
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+}
+
+// ==========================================
+// 19. ESCUDO DA RETALIAÇÃO (Retribution Shield)
+// ==========================================
+class RetributionShieldWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'retribution_shield',
+      name: 'Escudo da Retaliação Sagrada',
+      icon: '🛡️',
+      description: 'Invoca escudos de luz que orbitam o paladino, destruindo projéteis inimigos e golpeando monstros com dano sagrado.',
+      maxLevel: 8,
+      damage: 35,
+      cooldown: 0.1,
+      area: 1.0,
+      count: 1,
+      speed: 2.8,
+      levelsConfig: [
+        { damage: 35, count: 1, description: '1 Escudo Sagrado orbitante que anula projéteis inimigos e golpeia atacantes.' },
+        { damage: 45, speed: 3.4, description: 'Dano: 35 → 45 | +20% Velocidade' },
+        { count: 2, description: 'Invoca um 2º Escudo no lado oposto!' },
+        { damage: 60, area: 1.25, description: 'Dano: 45 → 60 | +25% Raio de Proteção' },
+        { count: 3, description: 'Invoca um 3º Escudo Sagrado!' },
+        { damage: 80, speed: 4.2, description: 'Dano: 60 → 80 | +25% Velocidade' },
+        { count: 4, description: 'Invoca um 4º Escudo formando barreira total!' },
+        { damage: 130, count: 5, speed: 5.5, description: 'EVOLUÇÃO: Bastião dos Querubins! 5 Escudos dourados que refletem projéteis e emitem chamas!' }
+      ]
+    });
+    this.shields = [];
+  }
+
+  update(dt, player, enemies, projectiles, particles) {
+    if (this.level <= 0 || !player) return;
+    const isEvo = this.level >= this.maxLevel;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const effectiveArea = this.area * player.areaMultiplier;
+    const effectiveSpeed = this.baseSpeed * (isEvo ? 1.25 : 1.0);
+    const targetCount = this.count + (player.bonusProjectiles || 0);
+
+    while (this.shields.length < targetCount) {
+      const idx = this.shields.length;
+      const angle = (idx / targetCount) * Math.PI * 2;
+      const s = new RetributionShieldOrbiter({
+        weapon: this,
+        angle: angle,
+        orbitRadius: 52 * effectiveArea,
+        damage: effectiveDamage,
+        rotSpeed: effectiveSpeed,
+        isEvolved: isEvo
+      });
+      this.shields.push(s);
+      projectiles.push(s);
+    }
+
+    for (let i = 0; i < this.shields.length; i++) {
+      const s = this.shields[i];
+      s.damage = effectiveDamage;
+      s.orbitRadius = 52 * effectiveArea;
+      s.rotSpeed = effectiveSpeed;
+      s.isEvolved = isEvo;
+    }
+  }
+}
+
+class RetributionShieldOrbiter {
+  constructor(cfg) {
+    this.weapon = cfg.weapon;
+    this.angle = cfg.angle || 0;
+    this.orbitRadius = cfg.orbitRadius || 52;
+    this.damage = cfg.damage || 35;
+    this.rotSpeed = cfg.rotSpeed || 2.8;
+    this.isEvolved = cfg.isEvolved || false;
+    this.x = 0;
+    this.y = 0;
+    this.radius = 16;
+    this.hitCooldowns = new Map();
+    this.alive = true;
+    this.isShield = true;
+  }
+
+  update(dt, enemies, particles) {
+    if (!this.weapon || this.weapon.level <= 0) return false;
+    const game = window.MedievalSurvivors.gameInstance;
+    const player = game ? game.player : null;
+    if (!player || !player.alive) return false;
+
+    this.angle += this.rotSpeed * dt;
+    this.x = player.x + Math.cos(this.angle) * this.orbitRadius;
+    this.y = player.y + Math.sin(this.angle) * this.orbitRadius;
+
+    // Check & Destroy Enemy Projectiles (Parry Barrier)
+    if (game && game.enemyProjectiles) {
+      for (let i = game.enemyProjectiles.length - 1; i >= 0; i--) {
+        const ep = game.enemyProjectiles[i];
+        if (!ep.alive) continue;
+        const dx = ep.x - this.x;
+        const dy = ep.y - this.y;
+        if (dx * dx + dy * dy <= 22 * 22) {
+          ep.alive = false;
+          if (particles && particles.createExplosionWave) {
+            particles.createExplosionWave(this.x, this.y, 20, '#f1c40f');
+          }
+        }
+      }
+    }
+
+    for (const [e, timer] of this.hitCooldowns.entries()) {
+      if (timer <= dt) this.hitCooldowns.delete(e);
+      else this.hitCooldowns.set(e, timer - dt);
+    }
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const e = enemies[i];
+      if (!e.alive || this.hitCooldowns.has(e)) continue;
+
+      const dx = e.x - this.x;
+      const dy = e.y - this.y;
+      const hitDist = this.radius + e.radius;
+      if (dx * dx + dy * dy <= hitDist * hitDist) {
+        const kbX = Math.cos(this.angle) * 18;
+        const kbY = Math.sin(this.angle) * 18;
+        const dealt = e.takeDamage(this.damage, kbX, kbY, 0.15);
+        this.weapon.totalDamageDealt += dealt;
+        this.hitCooldowns.set(e, 0.32);
+
+        if (particles && particles.createBloodSparks) {
+          particles.createBloodSparks(this.x, this.y, 6, '#f39c12');
+        }
+      }
+    }
+    return true;
+  }
+}
+
+// ==========================================
+// 20. CALDEIRÃO DE FOGO GREGO (Hellfire Cauldron)
+// ==========================================
+class HellfireCauldronWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'hellfire_cauldron',
+      name: 'Caldeirão de Fogo Grego',
+      icon: '🏺',
+      description: 'Derruba ânforas de fogo grego instáveis enquanto você se desloca, criando uma muralha de chamas contínua na retaguarda.',
+      maxLevel: 8,
+      damage: 22,
+      cooldown: 0.9,
+      area: 1.0,
+      count: 1,
+      speed: 1.0,
+      levelsConfig: [
+        { damage: 22, cooldown: 0.9, count: 1, description: 'Deixa para trás ânforas que explodem criando poças de chamas vivas por 3.5s.' },
+        { damage: 30, area: 1.25, description: 'Dano: 22 → 30 | +25% Raio das Chamas' },
+        { cooldown: 0.75, description: 'Recarga: 0.9s → 0.75s' },
+        { damage: 42, count: 2, description: 'Dano: 30 → 42 | Derruba 2 Ânforas simultâneas' },
+        { cooldown: 0.62, description: 'Recarga: 0.75s → 0.62s' },
+        { damage: 58, area: 1.45, description: 'Dano: 42 → 58 | +45% Área de Chamas' },
+        { count: 3, cooldown: 0.52, description: 'Derruba 3 Ânforas simultâneas | Recarga: 0.52s' },
+        { damage: 95, count: 4, cooldown: 0.42, area: 1.7, description: 'EVOLUÇÃO: Mar de Fogo Vulcânico! 4 Ânforas de fogo infernal azul com queima perene!' }
+      ]
+    });
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    const isEvo = this.level >= this.maxLevel;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const poolRadius = 36 * this.area * player.areaMultiplier;
+    const totalCauldrons = this.count + (player.bonusProjectiles || 0);
+
+    for (let c = 0; c < totalCauldrons; c++) {
+      const spreadX = (Math.random() - 0.5) * 25;
+      const spreadY = (Math.random() - 0.5) * 25;
+
+      projectiles.push(new HellfireCauldron({
+        x: player.x - Math.cos(player.facingAngle || 0) * 12 + spreadX,
+        y: player.y - Math.sin(player.facingAngle || 0) * 12 + spreadY,
+        damage: effectiveDamage,
+        poolRadius: poolRadius,
+        duration: isEvo ? 5.2 : 3.6,
+        isEvolved: isEvo,
+        weapon: this
+      }));
+    }
+  }
+}
+
+class HellfireCauldron {
+  constructor(cfg) {
+    this.x = cfg.x;
+    this.y = cfg.y;
+    this.damage = cfg.damage;
+    this.poolRadius = cfg.poolRadius;
+    this.duration = cfg.duration;
+    this.isEvolved = cfg.isEvolved;
+    this.weapon = cfg.weapon;
+    this.state = 'burning';
+    this.radius = this.poolRadius;
+    this.tickTimer = 0;
+    this.alive = true;
+    this.isHellfire = true;
+  }
+
+  update(dt, enemies, particles) {
+    this.duration -= dt;
+    if (this.duration <= 0) return false;
+
+    this.tickTimer += dt;
+    if (this.tickTimer >= 0.28) {
+      this.tickTimer = 0;
+      const tickDamage = Math.max(1, Math.round(this.damage * 0.4));
+      for (let i = 0, len = enemies.length; i < len; i++) {
+        const e = enemies[i];
+        if (!e.alive) continue;
+        const dx = e.x - this.x;
+        const dy = e.y - this.y;
+        const r = this.poolRadius + e.radius;
+        if (dx * dx + dy * dy <= r * r) {
+          e.isBurning = true;
+          const dealt = e.takeDamage(tickDamage, 0, 0, 0);
+          this.weapon.totalDamageDealt += dealt;
+        }
+      }
+    }
+    return true;
+  }
+}
+
 // Utility: distance from point (px, py) to line segment (x1, y1) - (x2, y2)
 function distToSegment(px, py, x1, y1, x2, y2) {
   const l2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
@@ -1562,6 +2663,16 @@ class WeaponRegistry {
     this.factories.set('twin_daggers', () => new TwinDaggersWeapon());
     this.factories.set('dark_greatsword', () => new DarkGreatswordWeapon());
     this.factories.set('plague_flask', () => new PlagueFlaskWeapon());
+    this.factories.set('iron_flail', () => new IronFlailWeapon());
+    this.factories.set('blunderbuss', () => new BlunderbussWeapon());
+    this.factories.set('penitent_whip', () => new PenitentWhipWeapon());
+    this.factories.set('celestial_glaive', () => new CelestialGlaiveWeapon());
+    this.factories.set('thunder_hammer', () => new ThunderHammerWeapon());
+    this.factories.set('viper_blowpipe', () => new ViperBlowpipeWeapon());
+    this.factories.set('eldritch_tome', () => new EldritchTomeWeapon());
+    this.factories.set('frost_lance', () => new FrostLanceWeapon());
+    this.factories.set('retribution_shield', () => new RetributionShieldWeapon());
+    this.factories.set('hellfire_cauldron', () => new HellfireCauldronWeapon());
   }
 
   create(id) {

@@ -2436,6 +2436,181 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
+  // 11. Flail Mesh
+  function createFlailMesh(isEvolved) {
+    const root = new THREE.Group();
+    const mat = isEvolved ? materials.gold : materials.darkSteel;
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(5.2, 8, 8), mat);
+    root.add(ball);
+
+    // Iron spikes around ball
+    const spikeGeo = new THREE.ConeGeometry(1.2, 4.5, 4);
+    spikeGeo.translate(0, 5, 0);
+    for (let i = 0; i < 6; i++) {
+      const sp = new THREE.Mesh(spikeGeo, isEvolved ? materials.glowingCyan : materials.steel);
+      sp.rotation.z = (i / 6) * Math.PI * 2;
+      root.add(sp);
+    }
+    return root;
+  }
+
+  // 12. Blunderbuss Pellet Mesh
+  function createPelletMesh(isEvolved) {
+    const root = new THREE.Group();
+    const mat = isEvolved ? materials.glowingRed : materials.flameGlow;
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(2.4, 6, 6), mat);
+    root.add(sphere);
+    return root;
+  }
+
+  // 13. Penitent Whip Lash Mesh
+  function createWhipLashMesh(isEvolved) {
+    const root = new THREE.Group();
+    const geo = new THREE.RingGeometry(6, 75, 16, 1, -0.2, 0.4);
+    geo.rotateX(-Math.PI / 2);
+    const mat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xff3838 : 0xb33939,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    root.add(new THREE.Mesh(geo, mat));
+    return root;
+  }
+
+  // 14. Celestial Glaive Mesh
+  function createCelestialGlaiveMesh(isEvolved) {
+    const root = new THREE.Group();
+    const mat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x00f2fe : 0x4facfe,
+      transparent: true,
+      opacity: 0.88,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    // 3 curved crescent blades at 120 degrees
+    for (let i = 0; i < 3; i++) {
+      const bladeGeo = new THREE.RingGeometry(3, 14, 10, 1, -0.45, 0.9);
+      bladeGeo.rotateX(-Math.PI / 2);
+      const blade = new THREE.Mesh(bladeGeo, mat);
+      blade.rotation.y = (i / 3) * Math.PI * 2;
+      root.add(blade);
+    }
+    return root;
+  }
+
+  // 15. Thunder Strike Mesh
+  function createThunderStrikeMesh(isEvolved) {
+    const root = new THREE.Group();
+    const boltMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xfff200 : 0x00d2d3,
+      transparent: true,
+      opacity: 0.92
+    });
+    // Vertical lightning column
+    const bolt = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 0.6, 75, 5), boltMat);
+    bolt.position.y = 37.5;
+    root.add(bolt);
+
+    // Ground electric ring
+    const ringGeo = new THREE.RingGeometry(2, 38, 20);
+    ringGeo.rotateX(-Math.PI / 2);
+    const ring = new THREE.Mesh(ringGeo, boltMat);
+    ring.position.y = 0.5;
+    root.add(ring);
+    return root;
+  }
+
+  // 16. Viper Dart Mesh
+  function createViperDartMesh(isEvolved) {
+    const root = new THREE.Group();
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.4, 15, 5), materials.wood);
+    shaft.rotation.x = Math.PI / 2;
+    root.add(shaft);
+
+    const tipMat = isEvolved ? materials.glowingGreen : materials.diseasedSkin;
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(1.1, 4.5, 4), tipMat);
+    tip.rotation.x = Math.PI / 2;
+    tip.position.z = 8.5;
+    root.add(tip);
+    return root;
+  }
+
+  // 17. Void Vortex Mesh
+  function createVoidVortexMesh(radius, isEvolved) {
+    const root = new THREE.Group();
+    const r = radius || 65;
+    const sealGeo = new THREE.RingGeometry(3, r, 24);
+    sealGeo.rotateX(-Math.PI / 2);
+    const sealMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x9b59b6 : 0x8e44ad,
+      transparent: true,
+      opacity: 0.6,
+      side: THREE.DoubleSide
+    });
+    const seal = new THREE.Mesh(sealGeo, sealMat);
+    seal.position.y = 0.4;
+    root.add(seal);
+
+    // Occult void core
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0x110022 });
+    const core = new THREE.Mesh(new THREE.SphereGeometry(6, 8, 8), coreMat);
+    core.position.y = 3;
+    root.add(core);
+    return root;
+  }
+
+  // 18. Frost Lance Mesh
+  function createFrostLanceMesh(isEvolved) {
+    const root = new THREE.Group();
+    const iceMat = new THREE.MeshStandardMaterial({
+      color: isEvolved ? 0xa0e7e5 : 0x74b9ff,
+      metalness: 0.2,
+      roughness: 0.1,
+      transparent: true,
+      opacity: 0.85
+    });
+    const lance = new THREE.Mesh(new THREE.ConeGeometry(2.6, 24, 6), iceMat);
+    lance.rotation.x = Math.PI / 2;
+    root.add(lance);
+    return root;
+  }
+
+  // 19. Retribution Shield Mesh
+  function createRetributionShieldMesh(isEvolved) {
+    const root = new THREE.Group();
+    const shieldPlate = new THREE.Mesh(new THREE.BoxGeometry(7.5, 11, 1.2), isEvolved ? materials.paladinGold : materials.gold);
+    root.add(shieldPlate);
+
+    const rim = new THREE.Mesh(new THREE.BoxGeometry(8.2, 11.6, 0.8), materials.steel);
+    root.add(rim);
+
+    // Glowing holy cross
+    const cross = new THREE.Mesh(new THREE.BoxGeometry(2, 7, 1.5), materials.holyGlow);
+    root.add(cross);
+    return root;
+  }
+
+  // 20. Hellfire Cauldron / Wall Mesh
+  function createHellfireCauldronMesh(radius, isEvolved) {
+    const root = new THREE.Group();
+    const r = radius || 36;
+    const fireGeo = new THREE.RingGeometry(2, r, 20);
+    fireGeo.rotateX(-Math.PI / 2);
+    const fireMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x0984e3 : 0xe17055,
+      transparent: true,
+      opacity: 0.68,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    const fire = new THREE.Mesh(fireGeo, fireMat);
+    fire.position.y = 0.4;
+    root.add(fire);
+    return root;
+  }
+
   function createAlliedMinionModel() {
     const root = new THREE.Group();
     const anim = {
@@ -2483,6 +2658,16 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     createSpectralOrbMesh,
     createPlagueFlaskMesh,
     createPlaguePuddleMesh,
+    createFlailMesh,
+    createPelletMesh,
+    createWhipLashMesh,
+    createCelestialGlaiveMesh,
+    createThunderStrikeMesh,
+    createViperDartMesh,
+    createVoidVortexMesh,
+    createFrostLanceMesh,
+    createRetributionShieldMesh,
+    createHellfireCauldronMesh,
     createSpearThrustMesh,
     createSpearShockwaveMesh,
     createEnemyProjectileMesh,
