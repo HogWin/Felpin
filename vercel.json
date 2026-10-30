@@ -1,8 +1,6 @@
 {
-  "version": 2,
+  "outputDirectory": "AntiGravity",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.js" },
-    { "source": "/(.*)", "destination": "/AntiGravity/$1" }
+    { "source": "/api/(.*)", "destination": "/api" }
   ]
 }
-

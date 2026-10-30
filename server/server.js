@@ -15,6 +15,29 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Lazy database schema initialization (vital for Vercel serverless cold starts)
+let initDbPromise = null;
+function ensureDbInit() {
+  if (!initDbPromise) {
+    initDbPromise = db.initDatabase().catch(err => {
+      console.error('[DB] Lazy initialization error:', err.message);
+      initDbPromise = null;
+    });
+  }
+  return initDbPromise;
+}
+
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api') && process.env.DATABASE_URL) {
+    try {
+      await ensureDbInit();
+    } catch (e) {
+      // Ignored, individual route will report specific DB error
+    }
+  }
+  next();
+});
+
 // Serve static frontend files from AntiGravity directory
 const staticPath = path.resolve(__dirname, '../AntiGravity');
 app.use(express.static(staticPath));
