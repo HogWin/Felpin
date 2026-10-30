@@ -162,35 +162,60 @@ class UIController {
   updateHUD(player, gameTime) {
     if (!player) return;
 
-    // XP Bar
+    // XP Bar (update only on change)
     const xpPercent = Math.min(100, Math.floor((player.xp / player.xpToNextLevel) * 100));
-    this.xpFill.style.width = `${xpPercent}%`;
-    this.xpText.textContent = `${player.xp} / ${player.xpToNextLevel} XP`;
-    this.levelBadge.textContent = `NÍVEL ${player.level}`;
-
-    // HP Bar
-    const hpPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
-    this.hpFill.style.width = `${hpPercent}%`;
-    this.hpText.textContent = `${Math.ceil(player.hp)} / ${player.maxHp} HP`;
-
-    // Timer → MM:SS (or HH:MM:SS for long runs) - Endless Survival Pacing
-    const totalSecs = Math.floor(gameTime);
-    const hrs = Math.floor(totalSecs / 3600);
-    const mins = Math.floor((totalSecs % 3600) / 60);
-    const secs = totalSecs % 60;
-    this.timerText.textContent = hrs > 0
-      ? `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-      : `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-
-    // Kills
-    this.killsText.textContent = player.killCount;
-
-    // Gold
-    if (this.goldText) {
-      this.goldText.textContent = player.gold;
+    if (this._lastXpPercent !== xpPercent) {
+      this.xpFill.style.width = `${xpPercent}%`;
+      this._lastXpPercent = xpPercent;
+    }
+    const xpText = `${player.xp} / ${player.xpToNextLevel} XP`;
+    if (this._lastXpText !== xpText) {
+      this.xpText.textContent = xpText;
+      this._lastXpText = xpText;
+    }
+    if (this._lastLevel !== player.level) {
+      this.levelBadge.textContent = `NÍVEL ${player.level}`;
+      this._lastLevel = player.level;
     }
 
-    // Equipment Slots
+    // HP Bar (update only on change)
+    const hpPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
+    if (this._lastHpPercent !== hpPercent) {
+      this.hpFill.style.width = `${hpPercent}%`;
+      this._lastHpPercent = hpPercent;
+    }
+    const ceilHp = Math.ceil(player.hp);
+    if (this._lastCeilHp !== ceilHp || this._lastMaxHp !== player.maxHp) {
+      this.hpText.textContent = `${ceilHp} / ${player.maxHp} HP`;
+      this._lastCeilHp = ceilHp;
+      this._lastMaxHp = player.maxHp;
+    }
+
+    // Timer → MM:SS (throttled to 1Hz update)
+    const totalSecs = Math.floor(gameTime);
+    if (this._lastTotalSecs !== totalSecs) {
+      this._lastTotalSecs = totalSecs;
+      const hrs = Math.floor(totalSecs / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+      this.timerText.textContent = hrs > 0
+        ? `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+        : `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Kills (update only on change)
+    if (this._lastKills !== player.killCount) {
+      this.killsText.textContent = player.killCount;
+      this._lastKills = player.killCount;
+    }
+
+    // Gold (update only on change)
+    if (this.goldText && this._lastGold !== player.gold) {
+      this.goldText.textContent = player.gold;
+      this._lastGold = player.gold;
+    }
+
+    // Equipment Slots (rebuilt only when items or levels mutate)
     this.updateEquipmentSlots(player);
   }
 
@@ -206,6 +231,18 @@ class UIController {
   }
 
   updateEquipmentSlots(player) {
+    let sig = '';
+    for (let i = 0; i < player.weapons.length; i++) {
+      const w = player.weapons[i];
+      sig += `${w.id}:${w.level}:${w.isEvolved ? 1 : 0};`;
+    }
+    sig += '|';
+    for (const [id, lvl] of player.passives.entries()) {
+      sig += `${id}:${lvl};`;
+    }
+    if (this._lastEquipSig === sig) return;
+    this._lastEquipSig = sig;
+
     // Weapons slots (up to 6)
     this.weaponSlotsContainer.innerHTML = '';
     for (let i = 0; i < 6; i++) {
@@ -525,16 +562,25 @@ class UIController {
     const statGold = document.getElementById('stat-gold');
     if (statGold) statGold.textContent = `+${player.gold} 💰`;
 
-    // Weapon DPS breakdown
+    // Weapon DPS breakdown with visual progress bars
     const breakdown = document.getElementById('weapon-breakdown');
     if (breakdown) {
-      const totalDmg = player.weapons.reduce((sum, w) => sum + (w.totalDamageDealt || 0), 0);
-      breakdown.innerHTML = player.weapons.map(w => `
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:0.85rem;">
-          <span>${w.icon} ${w.name} (Nv. ${w.level}):</span>
-          <span style="color:#f0c05a; font-weight:700;">${(w.totalDamageDealt || 0).toLocaleString()} dano</span>
+      const totalDmg = player.weapons.reduce((sum, w) => sum + (w.totalDamageDealt || 0), 0) || 1;
+      breakdown.innerHTML = player.weapons.map(w => {
+        const dmg = w.totalDamageDealt || 0;
+        const pct = Math.min(100, Math.round((dmg / totalDmg) * 100));
+        return `
+        <div style="margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:3px; font-size:0.85rem;">
+            <span>${w.icon} <strong>${w.name}</strong> (Nv. ${w.level}):</span>
+            <span style="color:#f7d774; font-weight:700;">${dmg.toLocaleString()} dano (${pct}%)</span>
+          </div>
+          <div style="width:100%; height:6px; background:#120c18; border-radius:3px; overflow:hidden; border:1px solid rgba(255,255,255,0.06);">
+            <div style="width:${pct}%; height:100%; background:linear-gradient(90deg, #d35400, #f1c40f); border-radius:3px;"></div>
+          </div>
         </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     this.gameOverModal.classList.add('active');

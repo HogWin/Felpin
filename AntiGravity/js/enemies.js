@@ -78,7 +78,7 @@ class BaseEnemy {
     // Separation from nearby enemies using spatial grid / squared distance (O(1) cell lookup)
     if (!this.isBoss) {
       const game = window.MedievalSurvivors.game;
-      const neighbors = (game && game.getNearbyEnemies) ? game.getNearbyEnemies(this.x, this.y) : allEnemies;
+      const neighbors = (game && game.getNearbyEnemies) ? game.getNearbyEnemies(this.x, this.y, 45) : allEnemies;
       for (let i = 0, len = neighbors.length; i < len; i++) {
         const other = neighbors[i];
         if (other === this || !other.alive) continue;

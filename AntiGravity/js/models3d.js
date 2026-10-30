@@ -39,6 +39,69 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     hitFlash: new THREE.MeshBasicMaterial({ color: 0xff3333 })
   };
 
+  for (const k in materials) {
+    if (materials[k]) materials[k]._isShared = true;
+  }
+
+  // Pre-compiled shared unit geometries and materials to avoid GC thrashing and GPU buffer leaks
+  const unitCircleGeo = new THREE.CircleGeometry(1, 14);
+  unitCircleGeo.rotateX(-Math.PI / 2);
+  unitCircleGeo._isShared = true;
+
+  const sharedShadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.4 });
+  sharedShadowMat._isShared = true;
+
+  const unitRingGeo = new THREE.RingGeometry(0.85, 1.0, 22);
+  unitRingGeo.rotateX(-Math.PI / 2);
+  unitRingGeo._isShared = true;
+
+  const unitRingBossGeo = new THREE.RingGeometry(0.85, 1.0, 32);
+  unitRingBossGeo.rotateX(-Math.PI / 2);
+  unitRingBossGeo._isShared = true;
+
+  const unitDiscGeo = new THREE.CircleGeometry(0.85, 16);
+  unitDiscGeo.rotateX(-Math.PI / 2);
+  unitDiscGeo._isShared = true;
+
+  const unitDiscBossGeo = new THREE.CircleGeometry(0.85, 24);
+  unitDiscBossGeo.rotateX(-Math.PI / 2);
+  unitDiscBossGeo._isShared = true;
+
+  const threatRingMatRegular = new THREE.MeshBasicMaterial({ color: 0xe74c3c, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
+  threatRingMatRegular._isShared = true;
+
+  const threatRingMatBoss = new THREE.MeshBasicMaterial({ color: 0xff2222, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+  threatRingMatBoss._isShared = true;
+
+  const threatFillMatRegular = new THREE.MeshBasicMaterial({ color: 0xc0392b, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
+  threatFillMatRegular._isShared = true;
+
+  const threatFillMatBoss = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.22, side: THREE.DoubleSide });
+  threatFillMatBoss._isShared = true;
+
+  // Shared XP Gem geometries and materials
+  const sharedGemGeos = {
+    purple: new THREE.DodecahedronGeometry(5),
+    gold: new THREE.OctahedronGeometry(4.2),
+    silver: new THREE.OctahedronGeometry(3.6),
+    bronze: new THREE.OctahedronGeometry(3.0)
+  };
+  sharedGemGeos.purple._isShared = true;
+  sharedGemGeos.gold._isShared = true;
+  sharedGemGeos.silver._isShared = true;
+  sharedGemGeos.bronze._isShared = true;
+
+  const sharedGemMats = {
+    purple: materials.glowingViolet,
+    gold: new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xb8860b, emissiveIntensity: 0.8, roughness: 0.2 }),
+    silver: new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x007799, emissiveIntensity: 0.8, roughness: 0.2 }),
+    bronze: new THREE.MeshStandardMaterial({ color: 0x38ef7d, emissive: 0x117733, emissiveIntensity: 0.7, roughness: 0.3 })
+  };
+  sharedGemMats.purple._isShared = true;
+  sharedGemMats.gold._isShared = true;
+  sharedGemMats.silver._isShared = true;
+  sharedGemMats.bronze._isShared = true;
+
   // Shared material system prevents memory fragmentation and eliminates GPU shader compilation stalls
   function createFlashable(baseMat) {
     return baseMat;
@@ -1297,12 +1360,10 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       buildSkeletonModel(root, anim);
     }
 
-    // 1. Sombra de contato sob o inimigo
+    // 1. Sombra de contato sob o inimigo (Zero-allocation shared unit geometry)
     const sRadius = (enemy.radius || 12) * 0.75;
-    const shadowGeo = new THREE.CircleGeometry(sRadius, 14);
-    shadowGeo.rotateX(-Math.PI / 2);
-    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.4 });
-    const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+    const shadow = new THREE.Mesh(unitCircleGeo, sharedShadowMat);
+    shadow.scale.set(sRadius, 1, sRadius);
     shadow.position.y = 0.12;
     root.add(shadow);
 
@@ -1312,40 +1373,18 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     const threatGroup = new THREE.Group();
     threatGroup.position.y = 0.18;
 
-    const ringThickness = isBoss ? 3.0 : 2.0;
-    const threatRingGeo = new THREE.RingGeometry(attackR - ringThickness, attackR + 0.5, isBoss ? 32 : 22);
-    threatRingGeo.rotateX(-Math.PI / 2);
-    const threatRingMat = new THREE.MeshBasicMaterial({
-      color: isBoss ? 0xff2222 : 0xe74c3c,
-      transparent: true,
-      opacity: isBoss ? 0.9 : 0.65,
-      side: THREE.DoubleSide
-    });
-    const threatRing = new THREE.Mesh(threatRingGeo, threatRingMat);
+    const threatRing = new THREE.Mesh(isBoss ? unitRingBossGeo : unitRingGeo, isBoss ? threatRingMatBoss : threatRingMatRegular);
+    threatRing.scale.set(attackR, 1, attackR);
     threatGroup.add(threatRing);
 
-    const threatFillGeo = new THREE.CircleGeometry(attackR - ringThickness, isBoss ? 24 : 16);
-    threatFillGeo.rotateX(-Math.PI / 2);
-    const threatFillMat = new THREE.MeshBasicMaterial({
-      color: isBoss ? 0xff0000 : 0xc0392b,
-      transparent: true,
-      opacity: isBoss ? 0.22 : 0.12,
-      side: THREE.DoubleSide
-    });
-    const threatFill = new THREE.Mesh(threatFillGeo, threatFillMat);
+    const threatFill = new THREE.Mesh(isBoss ? unitDiscBossGeo : unitDiscGeo, isBoss ? threatFillMatBoss : threatFillMatRegular);
+    threatFill.scale.set(attackR, 1, attackR);
     threatGroup.add(threatFill);
 
     let bossOuterRing = null;
     if (isBoss) {
-      const bossOuterGeo = new THREE.RingGeometry(attackR * 1.15, attackR * 1.25, 32);
-      bossOuterGeo.rotateX(-Math.PI / 2);
-      const bossOuterMat = new THREE.MeshBasicMaterial({
-        color: 0xff3838,
-        transparent: true,
-        opacity: 0.55,
-        side: THREE.DoubleSide
-      });
-      bossOuterRing = new THREE.Mesh(bossOuterGeo, bossOuterMat);
+      bossOuterRing = new THREE.Mesh(unitRingBossGeo, threatRingMatBoss);
+      bossOuterRing.scale.set(attackR * 1.25, 1, attackR * 1.25);
       threatGroup.add(bossOuterRing);
     }
     root.add(threatGroup);
@@ -2019,21 +2058,17 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     let geo, mat;
 
     if (xpValue >= 100) {
-      // Purple Relic
-      geo = new THREE.DodecahedronGeometry(5);
-      mat = materials.glowingViolet;
+      geo = sharedGemGeos.purple;
+      mat = sharedGemMats.purple;
     } else if (xpValue >= 25) {
-      // Gold Gem
-      geo = new THREE.OctahedronGeometry(4.2);
-      mat = new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xb8860b, emissiveIntensity: 0.8, roughness: 0.2 });
+      geo = sharedGemGeos.gold;
+      mat = sharedGemMats.gold;
     } else if (xpValue >= 5) {
-      // Silver / Cyan Gem
-      geo = new THREE.OctahedronGeometry(3.6);
-      mat = new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x007799, emissiveIntensity: 0.8, roughness: 0.2 });
+      geo = sharedGemGeos.silver;
+      mat = sharedGemMats.silver;
     } else {
-      // Bronze / Green Gem
-      geo = new THREE.OctahedronGeometry(3.0);
-      mat = new THREE.MeshStandardMaterial({ color: 0x38ef7d, emissive: 0x117733, emissiveIntensity: 0.7, roughness: 0.3 });
+      geo = sharedGemGeos.bronze;
+      mat = sharedGemMats.bronze;
     }
 
     const mesh = new THREE.Mesh(geo, mat);

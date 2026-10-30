@@ -18,10 +18,50 @@ class SoundEngine {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) {
         this.ctx = new AudioCtx();
+        this.initCachedNoiseBuffers();
       }
     }
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
+    }
+  }
+
+  // Pre-generate static noise buffers once to eliminate GC pauses & buffer allocations during combat
+  initCachedNoiseBuffers() {
+    if (!this.ctx) return;
+    const sr = this.ctx.sampleRate;
+
+    // 1. Sword slash noise buffer (0.15s)
+    const slashLen = Math.floor(sr * 0.15);
+    this._slashNoiseBuffer = this.ctx.createBuffer(1, slashLen, sr);
+    const slashData = this._slashNoiseBuffer.getChannelData(0);
+    for (let i = 0; i < slashLen; i++) {
+      slashData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (slashLen * 0.3));
+    }
+
+    // 2. Axe swoosh noise buffer (0.22s)
+    const axeLen = Math.floor(sr * 0.22);
+    this._axeNoiseBuffer = this.ctx.createBuffer(1, axeLen, sr);
+    const axeData = this._axeNoiseBuffer.getChannelData(0);
+    for (let i = 0; i < axeLen; i++) {
+      const env = Math.sin((i / axeLen) * Math.PI);
+      axeData[i] = (Math.random() * 2 - 1) * env * 0.7;
+    }
+
+    // 3. Explosion / crackle noise buffer (0.30s)
+    const expLen = Math.floor(sr * 0.30);
+    this._crackleNoiseBuffer = this.ctx.createBuffer(1, expLen, sr);
+    const expData = this._crackleNoiseBuffer.getChannelData(0);
+    for (let i = 0; i < expLen; i++) {
+      expData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (expLen * 0.4));
+    }
+
+    // 4. Plague acid noise buffer (0.35s)
+    const plagueLen = Math.floor(sr * 0.35);
+    this._plagueNoiseBuffer = this.ctx.createBuffer(1, plagueLen, sr);
+    const plagueData = this._plagueNoiseBuffer.getChannelData(0);
+    for (let i = 0; i < plagueLen; i++) {
+      plagueData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (plagueLen * 0.55));
     }
   }
 
@@ -45,16 +85,9 @@ class SoundEngine {
     if (!this.ctx) return;
 
     const t = this.ctx.currentTime;
-    // Noise buffer for swoosh
-    const bufferSize = this.ctx.sampleRate * 0.15;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
-    }
-
+    // Cached noise buffer for swoosh
     const noise = this.ctx.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = this._slashNoiseBuffer;
 
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'bandpass';
@@ -106,17 +139,9 @@ class SoundEngine {
 
     const t = this.ctx.currentTime;
 
-    // 1. Air-cutting rotational swoosh (filtered noise)
-    const bufferSize = Math.floor(this.ctx.sampleRate * 0.22);
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      const env = Math.sin((i / bufferSize) * Math.PI);
-      data[i] = (Math.random() * 2 - 1) * env * 0.7;
-    }
-
+    // 1. Air-cutting rotational swoosh (cached noise buffer)
     const noise = this.ctx.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = this._axeNoiseBuffer;
 
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'bandpass';
@@ -217,15 +242,9 @@ class SoundEngine {
     osc.start(t);
     osc.stop(t + 0.35);
 
-    // Crackle noise
-    const bufferSize = this.ctx.sampleRate * 0.3;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
-    }
+    // Crackle noise (cached buffer)
     const noise = this.ctx.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = this._crackleNoiseBuffer;
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(900, t);
@@ -260,15 +279,9 @@ class SoundEngine {
     glassOsc.start(t);
     glassOsc.stop(t + 0.12);
 
-    // 2. Ruído de ácido borbulhante e corrosão ácida
-    const bufferSize = Math.floor(this.ctx.sampleRate * 0.35);
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.55));
-    }
+    // 2. Ruído de ácido borbulhante e corrosão ácida (cached buffer)
     const noise = this.ctx.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = this._plagueNoiseBuffer;
 
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'bandpass';

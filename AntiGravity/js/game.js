@@ -1,6 +1,64 @@
 /**
  * Medieval Survivors - Core Game Engine
  */
+class SpatialGrid {
+  constructor(cellSize = 90) {
+    this.cellSize = cellSize;
+    this.invCellSize = 1 / cellSize;
+    this.cells = new Map();
+  }
+
+  _getKey(cellX, cellY) {
+    return (cellX << 16) ^ (cellY & 0xffff);
+  }
+
+  clear() {
+    this.cells.clear();
+  }
+
+  insert(entity) {
+    const cx = Math.floor(entity.x * this.invCellSize);
+    const cy = Math.floor(entity.y * this.invCellSize);
+    const key = this._getKey(cx, cy);
+    let cell = this.cells.get(key);
+    if (!cell) {
+      cell = [];
+      this.cells.set(key, cell);
+    }
+    cell.push(entity);
+  }
+
+  insertAll(entities) {
+    for (let i = 0, len = entities.length; i < len; i++) {
+      const e = entities[i];
+      if (e && e.alive) {
+        this.insert(e);
+      }
+    }
+  }
+
+  getNearby(x, y, radius = 90, outArr = []) {
+    outArr.length = 0;
+    const minCX = Math.floor((x - radius) * this.invCellSize);
+    const maxCX = Math.floor((x + radius) * this.invCellSize);
+    const minCY = Math.floor((y - radius) * this.invCellSize);
+    const maxCY = Math.floor((y + radius) * this.invCellSize);
+
+    for (let cx = minCX; cx <= maxCX; cx++) {
+      for (let cy = minCY; cy <= maxCY; cy++) {
+        const key = this._getKey(cx, cy);
+        const cell = this.cells.get(key);
+        if (cell) {
+          for (let i = 0, len = cell.length; i < len; i++) {
+            outArr.push(cell[i]);
+          }
+        }
+      }
+    }
+    return outArr;
+  }
+}
+
 class Game {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
@@ -20,6 +78,10 @@ class Game {
     this.gems = [];
     this.chests = [];
     this.floatingTexts = [];
+
+    // High-performance 2D spatial grid for O(1) collision & proximity queries
+    this.spatialGrid = new SpatialGrid(90);
+    this._nearbyBuffer = [];
 
     this.gameTime = 0;
     this.lastTimestamp = 0;
@@ -115,6 +177,10 @@ class Game {
     this.chests = [];
     this.floatingTexts = [];
 
+    // High-performance 2D spatial grid for O(1) collision & proximity queries
+    this.spatialGrid = new SpatialGrid(90);
+    this._nearbyBuffer = [];
+
     this.gameTime = 0;
     this.waveDirector.reset();
     this.state = 'PLAYING';
@@ -155,6 +221,66 @@ class Game {
 
   addFloatingText(x, y, text, color, isCritical) {
     this.floatingTexts.push(new MedievalSurvivors.FloatingText(x, y, text, color, isCritical));
+  }
+
+  // Returns array of enemies within radius (O(1) spatial grid lookup)
+  getNearbyEnemies(x, y, radius = 70, outArr = null) {
+    return this.spatialGrid.getNearby(x, y, radius, outArr || this._nearbyBuffer);
+  }
+
+  // Merges distant, non-attracted XP gems into concentrated clusters when gem count is high
+  consolidateGems() {
+    if (this.gems.length <= 130 || !this.player) return;
+    const playerX = this.player.x;
+    const playerY = this.player.y;
+    const minConsolidateDistSq = 320 * 320;
+
+    const distantGems = [];
+    const keptGems = [];
+
+    for (let i = 0, len = this.gems.length; i < len; i++) {
+      const g = this.gems[i];
+      if (!g || !g.alive) continue;
+      const dx = g.x - playerX;
+      const dy = g.y - playerY;
+      const distSq = dx * dx + dy * dy;
+
+      if (!g.attracted && distSq >= minConsolidateDistSq && !g.isConcentrated) {
+        distantGems.push(g);
+      } else {
+        keptGems.push(g);
+      }
+    }
+
+    if (distantGems.length < 8) return;
+
+    // Cluster distant gems by ~160px grid cells
+    const clusterGrid = new Map();
+    const cellSize = 160;
+    for (let i = 0, len = distantGems.length; i < len; i++) {
+      const g = distantGems[i];
+      const cx = Math.floor(g.x / cellSize);
+      const cy = Math.floor(g.y / cellSize);
+      const key = `${cx},${cy}`;
+      let cluster = clusterGrid.get(key);
+      if (!cluster) {
+        cluster = { xSum: 0, ySum: 0, totalVal: 0, count: 0 };
+        clusterGrid.set(key, cluster);
+      }
+      cluster.xSum += g.x;
+      cluster.ySum += g.y;
+      cluster.totalVal += (g.value || 1);
+      cluster.count++;
+      g.alive = false;
+    }
+
+    for (const [, c] of clusterGrid) {
+      const avgX = c.xSum / c.count;
+      const avgY = c.ySum / c.count;
+      keptGems.push(new MedievalSurvivors.XpGem(avgX, avgY, c.totalVal, true));
+    }
+
+    this.gems = keptGems;
   }
 
   getInputDirection() {
@@ -221,6 +347,10 @@ class Game {
 
   update(dt) {
     this.gameTime += dt;
+
+    // Fast O(N) Spatial Partitioning for this frame
+    this.spatialGrid.clear();
+    this.spatialGrid.insertAll(this.enemies);
 
     // 1. Update Aim Direction (locks aim to mouse position continuously)
     this.updateAimDirection();
@@ -300,7 +430,10 @@ class Game {
       }
     }
 
-    // 6. Update XP Gems
+    // 6. Update XP Gems (with intelligent background clustering to avoid performance degradation)
+    if (this.gems.length > 130) {
+      this.consolidateGems();
+    }
     let triggeredLevelUp = false;
     for (let i = this.gems.length - 1; i >= 0; i--) {
       const status = this.gems[i].update(dt, this.player);

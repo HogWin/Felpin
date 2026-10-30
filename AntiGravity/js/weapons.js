@@ -1,3 +1,11 @@
+function getNearbyEnemiesForCollision(x, y, radius, fallbackEnemies) {
+  const game = window.MedievalSurvivors && window.MedievalSurvivors.game;
+  if (game && game.getNearbyEnemies) {
+    return game.getNearbyEnemies(x, y, radius);
+  }
+  return fallbackEnemies;
+}
+
 /**
  * Medieval Survivors - Weapons System
  * Manages all offensive weapons, projectiles, attack loops, and attribute progression.

@@ -667,32 +667,15 @@ class FloatingText {
   }
 }
 
-// Particle System (Optimized with pool cap & O(1) swap-and-pop)
+// Particle System (Directly hooked to WebGL 3D Point Particle engine for 60 FPS zero-allocation combat)
 class ParticleSystem {
   constructor() {
     this.particles = [];
-    this.maxParticles = 180;
   }
 
   createBloodSparks(x, y, count = 3, color = '#e63946') {
     if (window.MedievalSurvivors.game && window.MedievalSurvivors.game.renderer && window.MedievalSurvivors.game.renderer.spawn3DParticle) {
       window.MedievalSurvivors.game.renderer.spawn3DParticle(x, 10, y, 0xe63946, count, 35);
-    }
-    if (this.particles.length >= this.maxParticles) return;
-    const limit = Math.min(count, this.maxParticles - this.particles.length);
-    for (let i = 0; i < limit; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 40 + Math.random() * 120;
-      this.particles.push({
-        x: x,
-        y: y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        size: 2 + Math.random() * 2.5,
-        color: color,
-        life: 0.3 + Math.random() * 0.15,
-        maxLife: 0.45
-      });
     }
   }
 
@@ -700,67 +683,20 @@ class ParticleSystem {
     if (window.MedievalSurvivors.game && window.MedievalSurvivors.game.renderer && window.MedievalSurvivors.game.renderer.spawn3DParticle) {
       window.MedievalSurvivors.game.renderer.spawn3DParticle(x, 10, y, 0xf39c12, 1, 20);
     }
-    if (this.particles.length >= this.maxParticles) return;
-    this.particles.push({
-      x: x + (Math.random() - 0.5) * 8,
-      y: y + (Math.random() - 0.5) * 8,
-      vx: (Math.random() - 0.5) * 30,
-      vy: -(30 + Math.random() * 40),
-      size: 2,
-      color: color,
-      life: 0.35,
-      maxLife: 0.35
-    });
   }
 
   createExplosionWave(x, y, radius, color = '#e67e22') {
     if (window.MedievalSurvivors.game && window.MedievalSurvivors.game.renderer && window.MedievalSurvivors.game.renderer.spawn3DParticle) {
       window.MedievalSurvivors.game.renderer.spawn3DParticle(x, 10, y, 0xff6600, 16, radius * 1.5);
     }
-    if (this.particles.length >= this.maxParticles) return;
-    const count = 12;
-    for (let i = 0; i < count; i++) {
-      if (this.particles.length >= this.maxParticles) break;
-      const angle = (i / count) * Math.PI * 2;
-      const speed = radius * 2.0;
-      this.particles.push({
-        x: x,
-        y: y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        size: 3,
-        color: color,
-        life: 0.38,
-        maxLife: 0.38
-      });
-    }
   }
 
   update(dt) {
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i];
-      p.life -= dt;
-      if (p.life <= 0) {
-        this.particles[i] = this.particles[this.particles.length - 1];
-        this.particles.pop();
-      } else {
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-      }
-    }
+    // 3D WebGL particle simulation is handled inside GameRenderer.update3DParticles
   }
 
-  render(ctx, camX = -Infinity, camY = -Infinity, camW = Infinity, camH = Infinity) {
-    ctx.save();
-    for (let i = 0, len = this.particles.length; i < len; i++) {
-      const p = this.particles[i];
-      if (p.x < camX || p.x > camX + camW || p.y < camY || p.y > camY + camH) continue;
-      const alpha = Math.max(0, p.life / p.maxLife);
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = p.color;
-      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
-    }
-    ctx.restore();
+  render(ctx) {
+    // Rendered via WebGL Three.js Points
   }
 }
 

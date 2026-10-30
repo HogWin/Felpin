@@ -81,11 +81,34 @@ class GameRenderer {
     this.planeIntersection = new THREE.Vector3();
 
     // 8. 3D Particles
+    this.particleCursor = 0;
+    this._tempColor = new THREE.Color();
+    this._projectVec = new THREE.Vector3();
+    this._screenPos = { x: 0, y: 0, onScreen: false };
     this.init3DParticles();
 
     // Bind resize
     this.resize();
     window.addEventListener('resize', () => this.resize());
+  }
+
+  // Cleanly disposes mesh geometries & non-shared materials to prevent WebGL memory leaks
+  disposeMesh(root) {
+    if (!root) return;
+    root.traverse(child => {
+      if (child.isMesh) {
+        if (child.geometry && !child.geometry._isShared) {
+          child.geometry.dispose();
+        }
+        if (child.material && !child.material._isShared) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(m => m && !m._isShared && m.dispose && m.dispose());
+          } else if (child.material.dispose) {
+            child.material.dispose();
+          }
+        }
+      }
+    });
   }
 
   resize() {
@@ -185,31 +208,51 @@ class GameRenderer {
   }
 
   clearMeshPools() {
-    for (let [, mesh] of this.enemyMeshMap) this.scene.remove(mesh);
+    for (let [, mesh] of this.enemyMeshMap) {
+      this.scene.remove(mesh);
+      this.disposeMesh(mesh);
+    }
     this.enemyMeshMap.clear();
 
-    for (let [, mesh] of this.allyMeshMap) this.scene.remove(mesh);
+    for (let [, mesh] of this.allyMeshMap) {
+      this.scene.remove(mesh);
+      this.disposeMesh(mesh);
+    }
     this.allyMeshMap.clear();
 
-    for (let [, mesh] of this.gemMeshMap) this.scene.remove(mesh);
+    for (let [, mesh] of this.gemMeshMap) {
+      this.scene.remove(mesh);
+      this.disposeMesh(mesh);
+    }
     this.gemMeshMap.clear();
 
-    for (let [, mesh] of this.chestMeshMap) this.scene.remove(mesh);
+    for (let [, mesh] of this.chestMeshMap) {
+      this.scene.remove(mesh);
+      this.disposeMesh(mesh);
+    }
     this.chestMeshMap.clear();
 
-    for (let [, mesh] of this.projectileMeshMap) this.scene.remove(mesh);
+    for (let [, mesh] of this.projectileMeshMap) {
+      this.scene.remove(mesh);
+      this.disposeMesh(mesh);
+    }
     this.projectileMeshMap.clear();
 
-    for (let [, mesh] of this.holyFirePoolsMap) this.scene.remove(mesh);
+    for (let [, mesh] of this.holyFirePoolsMap) {
+      this.scene.remove(mesh);
+      this.disposeMesh(mesh);
+    }
     this.holyFirePoolsMap.clear();
 
     if (this.holyAuraMesh) {
       this.scene.remove(this.holyAuraMesh);
+      this.disposeMesh(this.holyAuraMesh);
       this.holyAuraMesh = null;
     }
 
     if (this.playerMesh) {
       this.scene.remove(this.playerMesh);
+      this.disposeMesh(this.playerMesh);
       this.playerMesh = null;
     }
   }
@@ -281,19 +324,25 @@ class GameRenderer {
   }
 
   spawn3DParticle(x, y, z, colorHex, count = 1, speed = 25) {
-    const THREE = this.THREE;
-    const color = new THREE.Color(colorHex);
+    this._tempColor.set(colorHex);
+    const cr = this._tempColor.r;
+    const cg = this._tempColor.g;
+    const cb = this._tempColor.b;
 
     for (let c = 0; c < count; c++) {
-      // Find inactive particle slot
+      // Find inactive particle slot with bounded cursor search (O(1))
       let slot = -1;
-      for (let i = 0; i < this.maxParticles; i++) {
-        if (!this.particlesData[i].alive) {
-          slot = i;
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const idx = (this.particleCursor + attempt) % this.maxParticles;
+        if (!this.particlesData[idx].alive) {
+          slot = idx;
           break;
         }
       }
-      if (slot === -1) slot = Math.floor(Math.random() * this.maxParticles);
+      if (slot === -1) {
+        slot = this.particleCursor;
+      }
+      this.particleCursor = (slot + 1) % this.maxParticles;
 
       const p = this.particlesData[slot];
       p.alive = true;
@@ -311,9 +360,9 @@ class GameRenderer {
       this.particlePositions[i3 + 1] = y;
       this.particlePositions[i3 + 2] = z;
 
-      this.particleColors[i3] = color.r;
-      this.particleColors[i3 + 1] = color.g;
-      this.particleColors[i3 + 2] = color.b;
+      this.particleColors[i3] = cr;
+      this.particleColors[i3 + 1] = cg;
+      this.particleColors[i3 + 2] = cb;
     }
   }
 
@@ -476,6 +525,7 @@ class GameRenderer {
         // Spawn death blood/soul particles at enemy position
         this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0xa81923, 6, 30);
         this.scene.remove(mesh);
+        this.disposeMesh(mesh);
         this.enemyMeshMap.delete(id);
       }
     }
@@ -509,6 +559,7 @@ class GameRenderer {
       if (!activeAllies.has(a)) {
         this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0x9b59b6, 6, 25);
         this.scene.remove(mesh);
+        this.disposeMesh(mesh);
         this.allyMeshMap.delete(a);
       }
     }
@@ -539,6 +590,7 @@ class GameRenderer {
         // Golden sparkling collection particle
         this.spawn3DParticle(mesh.position.x, 12, mesh.position.z, 0xf0c05a, 5, 20);
         this.scene.remove(mesh);
+        this.disposeMesh(mesh);
         this.gemMeshMap.delete(gem);
       }
     }
@@ -566,6 +618,7 @@ class GameRenderer {
     for (const [chest, mesh] of this.chestMeshMap.entries()) {
       if (!activeChests.has(chest)) {
         this.scene.remove(mesh);
+        this.disposeMesh(mesh);
         this.chestMeshMap.delete(chest);
       }
     }
@@ -783,6 +836,7 @@ class GameRenderer {
     for (const [p, mesh] of this.projectileMeshMap.entries()) {
       if (!activeProjectiles.has(p)) {
         this.scene.remove(mesh);
+        this.disposeMesh(mesh);
         this.projectileMeshMap.delete(p);
       }
     }
@@ -790,6 +844,7 @@ class GameRenderer {
     for (const [p, poolMesh] of this.holyFirePoolsMap.entries()) {
       if (!activeProjectiles.has(p)) {
         this.scene.remove(poolMesh);
+        this.disposeMesh(poolMesh);
         this.holyFirePoolsMap.delete(p);
       }
     }
@@ -803,31 +858,35 @@ class GameRenderer {
     const w = this.overlayCanvas.width;
     const h = this.overlayCanvas.height;
 
-    // Helper: Project 3D world coord to 2D screen space
+    // Helper: Project 3D world coord to 2D screen space (zero-allocation cached vector)
     const project3D = (worldX, worldZ, offsetY = 14) => {
-      const vec = new this.THREE.Vector3(worldX, offsetY, worldZ);
+      const vec = this._projectVec.set(worldX, offsetY, worldZ);
       vec.project(this.camera);
-      const sx = (vec.x * 0.5 + 0.5) * w;
-      const sy = (-(vec.y * 0.5) + 0.5) * h;
-      return { x: sx, y: sy, onScreen: vec.z < 1.0 };
+      this._screenPos.x = (vec.x * 0.5 + 0.5) * w;
+      this._screenPos.y = (-(vec.y * 0.5) + 0.5) * h;
+      this._screenPos.onScreen = vec.z < 1.0;
+      return this._screenPos;
     };
 
-    // 1. Floating Damage Numbers
-    for (let i = 0, len = game.floatingTexts.length; i < len; i++) {
-      const ft = game.floatingTexts[i];
-      const screenPos = project3D(ft.x, ft.y);
-      if (screenPos.onScreen) {
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, Math.min(1, ft.life));
-        ctx.fillStyle = ft.color || '#ffffff';
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 3;
-        ctx.font = ft.isCritical ? 'bold 18px Cinzel, Georgia' : 'bold 14px Cinzel, Georgia';
-        ctx.textAlign = 'center';
-        ctx.strokeText(ft.text, screenPos.x, screenPos.y - (1 - ft.life) * 20);
-        ctx.fillText(ft.text, screenPos.x, screenPos.y - (1 - ft.life) * 20);
-        ctx.restore();
+    // 1. Floating Damage Numbers (shared stroke/font setup outside loop)
+    if (game.floatingTexts.length > 0) {
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3;
+      ctx.textAlign = 'center';
+
+      for (let i = 0, len = game.floatingTexts.length; i < len; i++) {
+        const ft = game.floatingTexts[i];
+        const screenPos = project3D(ft.x, ft.y);
+        if (screenPos.onScreen) {
+          ctx.globalAlpha = Math.max(0, Math.min(1, ft.life));
+          ctx.fillStyle = ft.color || '#ffffff';
+          ctx.font = ft.isCritical ? 'bold 18px Cinzel, Georgia' : 'bold 14px Cinzel, Georgia';
+          const drawY = screenPos.y - (1 - ft.life) * 20;
+          ctx.strokeText(ft.text, screenPos.x, drawY);
+          ctx.fillText(ft.text, screenPos.x, drawY);
+        }
       }
+      ctx.globalAlpha = 1.0;
     }
 
     // 2. Offscreen Boss Indicators (Red Skulls pointing towards boss danger)
