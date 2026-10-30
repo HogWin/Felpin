@@ -3245,3 +3245,255 @@ body, html {
   background: #2ed573;
   box-shadow: 0 0 6px #2ed573;
 }
+
+/* ==================== SELETOR DE MODO COMPETITIVO / RANQUEADO ==================== */
+.game-mode-selector-panel {
+  background: rgba(10, 7, 18, 0.75);
+  border: 1px solid rgba(241, 196, 15, 0.35);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 14px;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
+}
+
+.mode-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffd700;
+  letter-spacing: 1px;
+}
+
+.mode-info-tag {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.mode-info-tag.ranked-tag {
+  background: rgba(241, 196, 15, 0.2);
+  border: 1px solid #f1c40f;
+  color: #f1c40f;
+  box-shadow: 0 0 8px rgba(241, 196, 15, 0.3);
+}
+
+.mode-info-tag.casual-tag {
+  background: rgba(46, 213, 115, 0.15);
+  border: 1px solid #2ed573;
+  color: #2ed573;
+}
+
+.mode-cards-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .mode-cards-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mode-choice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(20, 14, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  text-align: left;
+}
+
+.mode-choice-card:hover {
+  background: rgba(30, 22, 44, 0.9);
+  border-color: rgba(241, 196, 15, 0.5);
+  transform: translateY(-2px);
+}
+
+.mode-choice-card.active {
+  background: linear-gradient(135deg, rgba(38, 28, 56, 0.95), rgba(18, 12, 28, 0.95));
+  border-color: #ffd700;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 15px rgba(241, 196, 15, 0.25);
+}
+
+.mode-choice-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #777;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.mode-choice-card.active .mode-choice-radio {
+  border-color: #f1c40f;
+  box-shadow: 0 0 8px rgba(241, 196, 15, 0.5);
+}
+
+.radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  transition: all 0.2s;
+}
+
+.mode-choice-card.active .radio-dot {
+  background: #f1c40f;
+}
+
+.mode-choice-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.mode-choice-card.active .mode-choice-title {
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(241, 196, 15, 0.4);
+}
+
+.mode-choice-desc {
+  font-size: 0.76rem;
+  color: #a4b0be;
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+.mode-status-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-family: 'Cinzel', serif;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.mode-status-tag.ranked {
+  color: #f1c40f;
+  background: rgba(241, 196, 15, 0.15);
+  border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.mode-status-tag.casual {
+  color: #2ed573;
+  background: rgba(46, 213, 115, 0.15);
+  border: 1px solid rgba(46, 213, 115, 0.3);
+}
+
+/* ==================== COMBATENTES: CARDS BLOQUEADOS & DESBLOQUEIO ==================== */
+.hero-select-card.locked {
+  opacity: 0.82;
+  filter: grayscale(0.25);
+  border-color: rgba(180, 50, 50, 0.4);
+  background: radial-gradient(ellipse at 50% 0%, rgba(26, 16, 26, 0.95), rgba(10, 8, 14, 0.98));
+}
+
+.hero-select-card.locked:hover {
+  opacity: 1;
+  filter: grayscale(0);
+  border-color: rgba(231, 76, 60, 0.7);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8), 0 0 15px rgba(231, 76, 60, 0.25);
+}
+
+.locked-ribbon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(231, 76, 60, 0.25);
+  border: 1px solid #e74c3c;
+  color: #ff7675;
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+.hero-unlock-requirement-box {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px dashed rgba(241, 196, 15, 0.4);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 10px 0;
+  text-align: left;
+}
+
+.unlock-box-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: #f1c40f;
+  font-weight: 700;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.unlock-box-desc {
+  font-size: 0.74rem;
+  color: #ced6e0;
+  line-height: 1.35;
+  margin: 0 0 6px;
+}
+
+.btn-hero-locked {
+  background: rgba(30, 25, 35, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #888 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+/* ==================== CÓDICE: ITENS BLOQUEADOS ==================== */
+.codex-card.locked {
+  opacity: 0.75;
+  border-color: rgba(180, 50, 50, 0.35);
+  background: rgba(15, 10, 20, 0.8);
+}
+
+.codex-lock-tag {
+  display: inline-block;
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid #e74c3c;
+  color: #ff7675;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-top: 6px;
+}
+
+/* ==================== HUD: BADGE RANQUEADO ==================== */
+.hud-ranked-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(38, 28, 56, 0.95), rgba(18, 12, 28, 0.95));
+  border: 1px solid #ffd700;
+  padding: 3px 10px;
+  border-radius: 14px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffd700;
+  box-shadow: 0 0 12px rgba(241, 196, 15, 0.35);
+  letter-spacing: 1px;
+}

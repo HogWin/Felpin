@@ -430,11 +430,16 @@ class UIController {
     if (!game) return;
     const container = document.getElementById('top-modifiers-container');
     if (!container) return;
-    const sig = `${game.hyperMode ? 1 : 0}-${game.curseRank}`;
+    const sig = `${game.hyperMode ? 1 : 0}-${game.curseRank}-${game.isRankedMode ? 1 : 0}`;
     if (this._lastModifiersSig === sig) return;
     this._lastModifiersSig = sig;
 
     let html = '';
+    if (game.isRankedMode) {
+      html += `<span class="modifier-hud-pill hud-ranked-pill" title="Partida Ranqueada Oficial: Pontuação computada no Placar Neon">👑 COMPETITIVO (RANQUEADO)</span>`;
+    } else {
+      html += `<span class="modifier-hud-pill casual-pill" style="background: rgba(149, 165, 166, 0.2); border: 1px solid #7f8c8d; color: #bdc3c7;" title="Expedição Livre: Estatísticas não enviadas ao ranking oficial">🗡️ EXPEDIÇÃO LIVRE</span>`;
+    }
     if (game.hyperMode) {
       html += `<span class="modifier-hud-pill hyper-pill">⚡ HIPER (+50% 💰 / +30% 💎)</span>`;
     }
@@ -780,6 +785,9 @@ class UIController {
 
       allWeaponIds.forEach(wid => {
         if (!currentIds.has(wid)) {
+          if (window.MedievalSurvivors.saveManager && !window.MedievalSurvivors.saveManager.isWeaponUnlocked(wid)) {
+            return; // Locked behind achievement!
+          }
           const sample = window.MedievalSurvivors.weapons.create(wid);
           if (sample) {
             options.push({
@@ -830,6 +838,9 @@ class UIController {
       const allPassives = window.MedievalSurvivors.passives.getAll();
       allPassives.forEach(def => {
         if (!player.passives.has(def.id)) {
+          if (window.MedievalSurvivors.saveManager && !window.MedievalSurvivors.saveManager.isPassiveUnlocked(def.id)) {
+            return; // Locked behind achievement!
+          }
           options.push({
             type: 'passive_new',
             id: def.id,
@@ -1099,6 +1110,41 @@ class UIController {
               ` : ''}
             </div>
 
+            <!-- Seletor de Regime da Expedição (Competitivo vs Livre) -->
+            <div class="game-mode-selector-panel">
+              <div class="mode-panel-header">
+                <div>
+                  <span class="mod-icon">🏆</span>
+                  <span>REGIME DA EXPEDIÇÃO</span>
+                </div>
+                <span class="mode-info-tag ${this.game.isRankedMode ? 'ranked-tag' : 'casual-tag'}">
+                  ${this.game.isRankedMode ? '👑 RANQUEADO OFICIAL' : '🌱 EXPEDIÇÃO LIVRE'}
+                </span>
+              </div>
+              <div class="mode-cards-row">
+                <div class="mode-choice-card ${this.game.isRankedMode ? 'active' : ''}" id="mode-opt-ranked">
+                  <div class="mode-choice-radio">
+                    <span class="radio-dot"></span>
+                  </div>
+                  <div class="mode-choice-content">
+                    <div class="mode-choice-title">👑 Modo Competitivo (Ranqueado)</div>
+                    <div class="mode-choice-desc">Somente partidas neste modo computam e gravam sua pontuação, tempo e abates no Placar Mundial Neon!</div>
+                    <span class="mode-status-tag ranked">🏆 Valida Ranking Oficial</span>
+                  </div>
+                </div>
+                <div class="mode-choice-card ${!this.game.isRankedMode ? 'active' : ''}" id="mode-opt-casual">
+                  <div class="mode-choice-radio">
+                    <span class="radio-dot"></span>
+                  </div>
+                  <div class="mode-choice-content">
+                    <div class="mode-choice-title">🗡️ Expedição Livre (Casual)</div>
+                    <div class="mode-choice-desc">Modo descompromissado para testes e diversão. Ouro e Conquistas salvam, mas o Placar Mundial não é computado.</div>
+                    <span class="mode-status-tag casual">🌱 Modo Treino & Lazer</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Battle Modifiers Panel (Modo Hiper & Pacto de Maldição) -->
             <div class="modifiers-selection-panel">
               <div class="modifiers-panel-header">
@@ -1165,6 +1211,38 @@ class UIController {
       </div>
     `;
 
+    // Mode Selector Handlers
+    const optRanked = document.getElementById('mode-opt-ranked');
+    const optCasual = document.getElementById('mode-opt-casual');
+
+    if (optRanked) {
+      optRanked.addEventListener('click', () => {
+        this.game.isRankedMode = true;
+        if (this.game.saveManager) {
+          this.game.saveManager.data.settings.isRankedMode = true;
+          this.game.saveManager.save();
+        }
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playSanctuaryActive) {
+          window.MedievalSurvivors.sound.playSanctuaryActive();
+        }
+        this.renderPlayTab();
+      });
+    }
+
+    if (optCasual) {
+      optCasual.addEventListener('click', () => {
+        this.game.isRankedMode = false;
+        if (this.game.saveManager) {
+          this.game.saveManager.data.settings.isRankedMode = false;
+          this.game.saveManager.save();
+        }
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playWoodHit) {
+          window.MedievalSurvivors.sound.playWoodHit();
+        }
+        this.renderPlayTab();
+      });
+    }
+
     // Battle Modifiers Event Handlers
     document.getElementById('mod-toggle-hyper').addEventListener('click', () => {
       this.game.hyperMode = !this.game.hyperMode;
@@ -1225,36 +1303,67 @@ class UIController {
 
   // ── TAB: Combatentes ────────────────────────────────────────
   renderHeroesTab() {
+    const sm = window.MedievalSurvivors.saveManager;
     const classes = window.MedievalSurvivors.classRegistry.getAllClasses();
 
     this.menuTabContent.innerHTML = `
       <div class="heroes-header-banner">
         <h3>🛡️ GUILDA DOS CAMPEÕES DE VALORIA</h3>
-        <p>Escolha o combatente para liderar sua investida contra o cataclisma das catacumbas.</p>
+        <p>Desbloqueie combatentes lendários através de Conquistas e escolha seu campeão para descer às Catacumbas.</p>
       </div>
 
-      <div class="codex-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:18px;">
+      <div class="codex-grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:18px;">
         ${classes.map(c => {
+          const isUnlocked = sm ? sm.isClassUnlocked(c.id) : true;
           const isSelected = c.id === this._menuSelectedClass;
           const w = window.MedievalSurvivors.weapons.create(c.startingWeapon);
+
+          let progressHtml = '';
+          if (!isUnlocked && c.unlockAchievementId && sm) {
+            const achDef = sm.achievementDefinitions.find(a => a.id === c.unlockAchievementId);
+            if (achDef && achDef.getProgress) {
+              const prog = achDef.getProgress(this.game);
+              if (prog && prog.max) {
+                const current = Math.min(prog.max, prog.current || 0);
+                const barPct = Math.round((current / prog.max) * 100);
+                progressHtml = `
+                  <div class="achievement-progress-wrap" style="margin-top:6px;">
+                    <div class="progress-bar-mini">
+                      <div class="progress-fill-mini" style="width: ${barPct}%;"></div>
+                    </div>
+                    <span class="progress-txt-mini" style="font-size:0.7rem; color:#aaa;">${current} / ${prog.max} (${barPct}%)</span>
+                  </div>
+                `;
+              }
+            }
+          }
+
           return `
-          <div class="hero-select-card ${isSelected ? 'selected' : ''} ${!c.unlocked ? 'locked' : ''}"
-               data-classid="${c.id}">
-            ${isSelected ? `<div class="selected-ribbon">👑 ATIVO</div>` : ''}
-            <div class="hero-card-avatar">${c.icon}</div>
+          <div class="hero-select-card ${isSelected ? 'selected' : ''} ${!isUnlocked ? 'locked' : ''}"
+               data-classid="${c.id}" data-unlocked="${isUnlocked}">
+            ${isSelected ? `<div class="selected-ribbon">👑 ATIVO</div>` : (!isUnlocked ? `<div class="locked-ribbon">🔒 BLOQUEADO</div>` : '')}
+            <div class="hero-card-avatar" style="${!isUnlocked ? 'filter: grayscale(0.6) brightness(0.7);' : ''}">${c.icon}</div>
             <h3 class="hero-card-title">${c.name}</h3>
             <div class="hero-card-sub">${c.subtitle}</div>
 
-            <div class="hero-card-stats-box">
-              <div class="stat-line"><span>❤️ Vida Máxima:</span> <strong>${c.stats.maxHp}</strong></div>
-              <div class="stat-line"><span>🛡️ Armadura:</span> <strong>${c.stats.armor}</strong></div>
-              <div class="stat-line"><span>⚡ Velocidade:</span> <strong>${(c.stats.moveSpeed * 100).toFixed(0)}</strong></div>
-              <div class="stat-line"><span>⚔️ Dano Base:</span> <strong>+${((c.stats.damageMultiplier - 1) * 100).toFixed(0)}%</strong></div>
-            </div>
+            ${!isUnlocked ? `
+              <div class="hero-unlock-requirement-box">
+                <div class="unlock-box-title">📜 REQUISITO DE CONQUISTA</div>
+                <div class="unlock-box-desc">${c.unlockHint}</div>
+                ${progressHtml}
+              </div>
+            ` : `
+              <div class="hero-card-stats-box">
+                <div class="stat-line"><span>❤️ Vida Máxima:</span> <strong>${c.stats.maxHp}</strong></div>
+                <div class="stat-line"><span>🛡️ Armadura:</span> <strong>${c.stats.armor}</strong></div>
+                <div class="stat-line"><span>⚡ Velocidade:</span> <strong>${(c.stats.moveSpeed * 100).toFixed(0)}</strong></div>
+                <div class="stat-line"><span>⚔️ Dano Base:</span> <strong>+${((c.stats.damageMultiplier - 1) * 100).toFixed(0)}%</strong></div>
+              </div>
 
-            <div class="hero-card-perk">
-              <strong>Bênção:</strong> ${c.perkDesc}
-            </div>
+              <div class="hero-card-perk">
+                <strong>Bênção:</strong> ${c.perkDesc}
+              </div>
+            `}
 
             ${w ? `
             <div class="hero-card-wep">
@@ -1262,8 +1371,8 @@ class UIController {
             </div>
             ` : ''}
 
-            <button class="btn-primary btn-hero-select ${isSelected ? 'active-hero-btn' : ''}">
-              ${isSelected ? '✅ Combatente Selecionado' : '⚔️ Escolher Combatente'}
+            <button class="btn-primary btn-hero-select ${isSelected ? 'active-hero-btn' : (!isUnlocked ? 'btn-hero-locked' : '')}" ${!isUnlocked ? 'disabled' : ''}>
+              ${!isUnlocked ? '🔒 Bloqueado por Conquista' : (isSelected ? '✅ Combatente Selecionado' : '⚔️ Escolher Combatente')}
             </button>
           </div>
           `;
@@ -1273,8 +1382,8 @@ class UIController {
 
     this.menuTabContent.querySelectorAll('.hero-select-card').forEach(card => {
       const cid = card.getAttribute('data-classid');
-      const cls = window.MedievalSurvivors.classRegistry.getClass(cid);
-      if (cls && cls.unlocked) {
+      const isUnlocked = card.getAttribute('data-unlocked') === 'true';
+      if (isUnlocked) {
         card.addEventListener('click', () => {
           this._menuSelectedClass = cid;
           this.game.selectedClassId = cid;
@@ -1618,20 +1727,31 @@ class UIController {
   }
 
   _codexWeaponsHTML() {
+    const sm = window.MedievalSurvivors.saveManager;
     const weaponIds = window.MedievalSurvivors.weapons.getAllWeaponIds();
     const cards = weaponIds.map(wid => {
       const w = window.MedievalSurvivors.weapons.create(wid);
       if (!w) return '';
+      const isUnlocked = sm ? sm.isWeaponUnlocked(wid) : true;
+      const unlockHint = sm ? sm.getWeaponUnlockHint(wid) : '';
+
       return `
-        <div class="codex-card" style="text-align:left;">
+        <div class="codex-card ${!isUnlocked ? 'locked' : ''}" style="text-align:left;">
           <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-            <span style="font-size:2.2rem;">${w.icon}</span>
+            <span style="font-size:2.2rem; ${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${w.icon}</span>
             <div>
-              <div style="font-weight:700; color:#f0c05a;">${w.name}</div>
+              <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'};">
+                ${w.name} ${!isUnlocked ? '🔒' : '✅'}
+              </div>
               <div style="font-size:0.75rem; color:#aaa;">Dano: ${w.damage} &nbsp;|&nbsp; Máx Nível: ${w.maxLevel}</div>
             </div>
           </div>
           <p style="font-size:0.82rem; color:#ccc; margin:0; line-height:1.5;">${w.description}</p>
+          ${!isUnlocked ? `
+            <div class="codex-lock-tag">
+              🔒 Requer Conquista: ${unlockHint}
+            </div>
+          ` : ''}
         </div>
       `;
     });
@@ -1640,42 +1760,66 @@ class UIController {
   }
 
   _codexPassivesHTML() {
+    const sm = window.MedievalSurvivors.saveManager;
     const passives = window.MedievalSurvivors.passives.getAll();
     return `
       <div class="codex-grid">
-        ${passives.map(p => `
-          <div class="codex-card" style="text-align:left;">
+        ${passives.map(p => {
+          const isUnlocked = sm ? sm.isPassiveUnlocked(p.id) : true;
+          const unlockHint = sm ? sm.getPassiveUnlockHint(p.id) : '';
+
+          return `
+          <div class="codex-card ${!isUnlocked ? 'locked' : ''}" style="text-align:left;">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-              <span style="font-size:2.2rem;">${p.icon}</span>
+              <span style="font-size:2.2rem; ${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${p.icon}</span>
               <div>
-                <div style="font-weight:700; color:#f0c05a;">${p.name}</div>
+                <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'};">
+                  ${p.name} ${!isUnlocked ? '🔒' : '✅'}
+                </div>
                 <div style="font-size:0.75rem; color:#aaa;">Máx Nível: ${p.maxLevel}</div>
               </div>
             </div>
             <p style="font-size:0.82rem; color:#ccc; margin:0; line-height:1.5;">${p.description}</p>
+            ${!isUnlocked ? `
+              <div class="codex-lock-tag">
+                🔒 Requer Conquista: ${unlockHint}
+              </div>
+            ` : ''}
           </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     `;
   }
 
   _codexClassesHTML() {
+    const sm = window.MedievalSurvivors.saveManager;
     const classes = window.MedievalSurvivors.classRegistry.getAllClasses();
     return `
       <div class="codex-grid">
-        ${classes.map(c => `
-          <div class="codex-card" style="text-align:left; ${!c.unlocked ? 'opacity:0.55;' : ''}">
+        ${classes.map(c => {
+          const isUnlocked = sm ? sm.isClassUnlocked(c.id) : true;
+          return `
+          <div class="codex-card ${!isUnlocked ? 'locked' : ''}" style="text-align:left;">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-              <span style="font-size:2.4rem;">${c.icon}</span>
+              <span style="font-size:2.4rem; ${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${c.icon}</span>
               <div>
-                <div style="font-weight:700; color:#f0c05a;">${c.name}</div>
-                <div style="font-size:0.75rem; color:#aaa;">${c.subtitle} ${!c.unlocked ? '🔒' : ''}</div>
+                <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'};">
+                  ${c.name} ${!isUnlocked ? '🔒' : '✅'}
+                </div>
+                <div style="font-size:0.75rem; color:#aaa;">${c.subtitle}</div>
               </div>
             </div>
             <p style="font-size:0.82rem; color:#ccc; margin:0 0 8px; line-height:1.5;">${c.description}</p>
-            <div style="font-size:0.8rem; color:#f0c05a; background:rgba(0,0,0,0.3); border-radius:6px; padding:8px;">
-              <strong>Perk:</strong> ${c.perkDesc}
-            </div>
+            ${!isUnlocked ? `
+              <div class="codex-lock-tag">
+                🔒 Requisito: ${c.unlockHint}
+              </div>
+            ` : `
+              <div style="font-size:0.8rem; color:#f0c05a; background:rgba(0,0,0,0.3); border-radius:6px; padding:8px;">
+                <strong>Perk:</strong> ${c.perkDesc}
+              </div>
+            `}
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; font-size:0.78rem; color:#ccc;">
               <div>❤️ ${c.stats.maxHp} Max HP</div>
               <div>🛡️ ${c.stats.armor} Armadura</div>
@@ -1683,7 +1827,8 @@ class UIController {
               <div>⚔️ +${((c.stats.damageMultiplier - 1) * 100).toFixed(0)}% Dano</div>
             </div>
           </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     `;
   }
@@ -1884,8 +2029,8 @@ class UIController {
       <div class="leaderboard-tab-view" style="max-width: 820px; margin: 0 auto; padding: 8px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(241,196,15,0.3); padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
           <div>
-            <h2 style="font-family: Cinzel, Georgia, serif; color: #f1c40f; margin: 0; font-size: 1.3rem;">👑 Salão dos Heróis de Valoria</h2>
-            <p style="margin: 4px 0 0; color: #a4b0be; font-size: 0.85rem;">Placar Global sincronizado em tempo real via Neon Lakebase Postgres</p>
+            <h2 style="font-family: Cinzel, Georgia, serif; color: #f1c40f; margin: 0; font-size: 1.3rem;">👑 Salão dos Heróis • Modo Competitivo Oficial</h2>
+            <p style="margin: 4px 0 0; color: #a4b0be; font-size: 0.85rem;">Apenas partidas disputadas no <strong>Modo Competitivo</strong> são imortalizadas no Neon Lakebase Postgres</p>
           </div>
           <div id="neon-live-badge" style="background: rgba(46, 213, 115, 0.15); border: 1px solid #2ed573; color: #2ed573; padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 6px;">
             <span style="width: 8px; height: 8px; border-radius: 50%; background: #2ed573; box-shadow: 0 0 8px #2ed573;"></span>

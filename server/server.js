@@ -108,9 +108,15 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
-// API 4: Submit Score to Leaderboard
+// API 4: Submit Score to Leaderboard (Only Competitive Ranked Runs are recorded)
 app.post('/api/leaderboard', async (req, res) => {
   try {
+    if (req.body.isRanked === false || req.body.isRanked === 'false') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Apenas partidas disputadas no Modo Competitivo são computadas no Placar Oficial.' 
+      });
+    }
     const saved = await db.submitScore(req.body);
     res.json({ success: true, id: saved.id, createdAt: saved.created_at });
   } catch (err) {

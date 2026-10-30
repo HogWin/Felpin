@@ -156,6 +156,10 @@ class Player {
       earned = Math.round(earned * 1.30); // +30% Ganho de XP em Modo Hiper!
     }
     this.xp += earned;
+    this.totalGemsCollected = (this.totalGemsCollected || 0) + 1;
+    if (game && game.saveManager) {
+      game.saveManager.checkAchievements('gem_collected', null, game);
+    }
     let leveledUp = false;
 
     while (this.xp >= this.xpToNextLevel) {

@@ -52,8 +52,14 @@ async function initDatabase() {
         gold INT NOT NULL,
         hyper_mode BOOLEAN DEFAULT FALSE,
         curse_rank INT DEFAULT 0,
+        is_ranked BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
+    `);
+
+    // Ensure is_ranked column exists on older tables
+    await sql.query(`
+      ALTER TABLE leaderboard ADD COLUMN IF NOT EXISTS is_ranked BOOLEAN DEFAULT TRUE;
     `);
 
     await sql.query(`
@@ -178,8 +184,9 @@ async function loginUser(username, password) {
 async function getLeaderboard(limit = 10) {
   const clampedLimit = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
   return await sql.query(`
-    SELECT id, player_name, class_id, time_survived_seconds, level, kills, gold, hyper_mode, curse_rank, created_at
+    SELECT id, player_name, class_id, time_survived_seconds, level, kills, gold, hyper_mode, curse_rank, is_ranked, created_at
     FROM leaderboard
+    WHERE is_ranked IS NOT FALSE
     ORDER BY time_survived_seconds DESC, kills DESC
     LIMIT ${clampedLimit};
   `);
@@ -194,7 +201,8 @@ async function submitScore(data) {
     kills = 0,
     gold = 0,
     hyperMode = false,
-    curseRank = 0
+    curseRank = 0,
+    isRanked = true
   } = data;
 
   const safeName = String(playerName).slice(0, 50).trim() || 'Cavaleiro Anônimo';
@@ -205,12 +213,13 @@ async function submitScore(data) {
   const safeGold = Math.max(0, parseInt(gold, 10) || 0);
   const safeHyper = Boolean(hyperMode);
   const safeCurse = Math.max(0, parseInt(curseRank, 10) || 0);
+  const safeRanked = Boolean(isRanked);
 
   const res = await sql.query(`
-    INSERT INTO leaderboard (player_name, class_id, time_survived_seconds, level, kills, gold, hyper_mode, curse_rank)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    INSERT INTO leaderboard (player_name, class_id, time_survived_seconds, level, kills, gold, hyper_mode, curse_rank, is_ranked)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING id, created_at;
-  `, [safeName, safeClass, safeTime, safeLevel, safeKills, safeGold, safeHyper, safeCurse]);
+  `, [safeName, safeClass, safeTime, safeLevel, safeKills, safeGold, safeHyper, safeCurse, safeRanked]);
 
   return res[0];
 }

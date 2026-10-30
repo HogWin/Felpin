@@ -22,7 +22,8 @@ class SaveManager {
         soundMuted: false,
         autoGoldOnMax: false,
         hyperMode: false,
-        curseRank: 0
+        curseRank: 0,
+        isRankedMode: true
       },
       metaUpgrades: {
         health: 0,      // Max HP
@@ -352,6 +353,55 @@ class SaveManager {
         category: 'combat',
         reward: { gold: 400 },
         check: (game, trigger) => trigger === 'curse_survived_5min'
+      },
+      {
+        id: 'unlock_ranger',
+        name: 'Olhos de Falcão',
+        icon: '🏹',
+        description: 'Elimine 250 monstros com armas à distância em uma expedição (Desbloqueia a Arqueira das Sombras).',
+        category: 'heroes',
+        reward: { gold: 200 },
+        target: 250,
+        getProgress: (game) => ({ current: (game && game.player && game.player.killCount) || 0, max: 250 }),
+        check: (game, trigger) => trigger === 'enemy_killed' && game && game.player && game.player.killCount >= 250
+      },
+      {
+        id: 'unlock_pyromancer',
+        name: 'Chama Arcana',
+        icon: '🔥',
+        description: 'Colete 350 gemas de experiência arcana em uma partida (Desbloqueia o Feiticeiro das Cinzas).',
+        category: 'heroes',
+        reward: { gold: 200 },
+        target: 350,
+        getProgress: (game) => ({ current: (game && game.player && game.player.totalGemsCollected) || 0, max: 350 }),
+        check: (game, trigger) => trigger === 'gem_collected' && game && game.player && (game.player.totalGemsCollected || 0) >= 350
+      },
+      {
+        id: 'unlock_necromancer',
+        name: 'Pacto com as Sombras',
+        icon: '💀',
+        description: 'Sobreviva por pelo menos 3 minutos sob o efeito de Maldição (Desbloqueia o Necromante).',
+        category: 'heroes',
+        reward: { gold: 300 },
+        check: (game, trigger) => trigger === 'curse_survived_3min'
+      },
+      {
+        id: 'unlock_wep_daggers',
+        name: 'Passos Ligeiros',
+        icon: '🗡️',
+        description: 'Adquira qualquer aprimoramento de velocidade permanente na Forja Real (Desbloqueia as Adagas Gêmeas).',
+        category: 'progression',
+        reward: { gold: 120 },
+        check: () => this.getUpgradeLevel('speed') >= 1
+      },
+      {
+        id: 'unlock_wep_spear',
+        name: 'Muralha de Aço',
+        icon: '🛡️',
+        description: 'Adquira qualquer aprimoramento de armadura permanente na Forja Real (Desbloqueia a Lança Protetora).',
+        category: 'progression',
+        reward: { gold: 120 },
+        check: () => this.getUpgradeLevel('armor') >= 1
       }
     ];
   }
@@ -431,6 +481,76 @@ class SaveManager {
   getUnlockedAchievementsCount() {
     if (!this.data.unlockedAchievements) return 0;
     return Object.keys(this.data.unlockedAchievements).length;
+  }
+
+  hasAchievement(id) {
+    return Boolean(this.data.unlockedAchievements && this.data.unlockedAchievements[id]);
+  }
+
+  isClassUnlocked(classId) {
+    if (!classId || classId === 'knight') return true;
+    if (this.data.unlockedClasses && this.data.unlockedClasses.includes(classId)) return true;
+    if (!window.MedievalSurvivors.classRegistry) return true;
+    const cls = window.MedievalSurvivors.classRegistry.getClass(classId);
+    if (!cls || !cls.unlockAchievementId) return true;
+    return this.hasAchievement(cls.unlockAchievementId);
+  }
+
+  getWeaponUnlockMap() {
+    return {
+      'whirling_axes': { achievementId: 'level_10', hint: 'Alcance Nível 10 em uma partida' },
+      'guardian_spear': { achievementId: 'unlock_wep_spear', hint: 'Adquira upgrade de Armadura na Forja' },
+      'spectral_orb': { achievementId: 'horde_100', hint: 'Elimine 100 monstros em uma expedição' },
+      'twin_daggers': { achievementId: 'unlock_wep_daggers', hint: 'Adquira upgrade de Velocidade na Forja' },
+      'dark_greatsword': { achievementId: 'executioner_slayer', hint: 'Derrote o Carrasco Carmesim' },
+      'plague_flask': { achievementId: 'swarm_survivor', hint: 'Sobreviva a um Enxame Relâmpago' },
+      'blunderbuss': { achievementId: 'destructor_25', hint: 'Destrua 25 caixas ou sarcófagos' },
+      'penitent_whip': { achievementId: 'first_blood', hint: 'Elimine seu primeiro monstro' },
+      'celestial_glaive': { achievementId: 'sanctuary_consecration', hint: 'Consagre 1 Santuário Divino' },
+      'thunder_hammer': { achievementId: 'golem_crusher', hint: 'Destrua o Golem de Pedra' },
+      'viper_blowpipe': { achievementId: 'meteor_walker', hint: 'Sobreviva a uma tempestade celestial' },
+      'eldritch_tome': { achievementId: 'level_25', hint: 'Alcance Nível 25 em uma partida' },
+      'frost_lance': { achievementId: 'hyper_survivor', hint: 'Sobreviva 5 min no Modo Hiper' },
+      'retribution_shield': { achievementId: 'curse_pact_5', hint: 'Sobreviva 5 min em Maldição Grau 5' },
+      'hellfire_cauldron': { achievementId: 'horde_500', hint: 'Elimine 500 monstros em uma partida' }
+    };
+  }
+
+  getPassiveUnlockMap() {
+    return {
+      'passive_regen': { achievementId: 'first_blood', hint: 'Elimine seu primeiro monstro' },
+      'passive_cooldown': { achievementId: 'level_10', hint: 'Alcance o Nível 10 em uma partida' },
+      'passive_area': { achievementId: 'sanctuary_consecration', hint: 'Consagre 1 Santuário Divino' },
+      'passive_projectiles': { achievementId: 'synergy_born', hint: 'Forje sua primeira Sinergia Suprema' }
+    };
+  }
+
+  isWeaponUnlocked(weaponId) {
+    const baseWeapons = ['broadsword', 'crossbow', 'holy_fire', 'holy_aura', 'iron_flail'];
+    if (baseWeapons.includes(weaponId)) return true;
+    const map = this.getWeaponUnlockMap();
+    const entry = map[weaponId];
+    if (!entry) return true;
+    return this.hasAchievement(entry.achievementId);
+  }
+
+  isPassiveUnlocked(passiveId) {
+    const basePassives = ['passive_armor', 'passive_speed', 'passive_maxhp', 'passive_magnet', 'passive_damage'];
+    if (basePassives.includes(passiveId)) return true;
+    const map = this.getPassiveUnlockMap();
+    const entry = map[passiveId];
+    if (!entry) return true;
+    return this.hasAchievement(entry.achievementId);
+  }
+
+  getWeaponUnlockHint(weaponId) {
+    const map = this.getWeaponUnlockMap();
+    return map[weaponId] ? map[weaponId].hint : 'Desbloqueado';
+  }
+
+  getPassiveUnlockHint(passiveId) {
+    const map = this.getPassiveUnlockMap();
+    return map[passiveId] ? map[passiveId].hint : 'Desbloqueado';
   }
 
   save() {

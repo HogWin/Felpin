@@ -71,6 +71,9 @@ class Game {
     this.saveManager = window.MedievalSurvivors.saveManager;
     this.hyperMode = (this.saveManager && this.saveManager.data.settings.hyperMode) || false;
     this.curseRank = (this.saveManager && this.saveManager.data.settings.curseRank) || 0;
+    this.isRankedMode = (this.saveManager && this.saveManager.data.settings.isRankedMode !== undefined)
+      ? this.saveManager.data.settings.isRankedMode
+      : true;
 
     this.state = 'MENU'; // 'MENU', 'PLAYING', 'PAUSED', 'LEVEL_UP', 'CHEST', 'GAME_OVER', 'VICTORY'
     this.selectedClassId = 'knight'; // Default class
@@ -559,7 +562,10 @@ class Game {
     this.frameCount++;
     this.gameTime += dt;
 
-    // Check timed survival achievements (5 minutes = 300s)
+    // Check timed survival achievements (3 minutes = 180s, 5 minutes = 300s)
+    if (this.gameTime >= 180 && this.saveManager) {
+      if (this.curseRank >= 1) this.saveManager.checkAchievements('curse_survived_3min', null, this);
+    }
     if (this.gameTime >= 300 && this.saveManager) {
       if (this.hyperMode) this.saveManager.checkAchievements('hyper_survived_5min', null, this);
       if (this.curseRank >= 5) this.saveManager.checkAchievements('curse_survived_5min', null, this);
@@ -763,6 +769,10 @@ class Game {
 
   submitRunToNeon() {
     if (!this.player) return;
+    if (!this.isRankedMode) {
+      console.log('[Leaderboard] Partida casual: pontuação não computada no ranking competitivo.');
+      return;
+    }
     try {
       const payload = {
         playerName: (this.saveManager && this.saveManager.data.settings && this.saveManager.data.settings.playerName) || 'Guerreiro de Valoria',
@@ -772,7 +782,8 @@ class Game {
         kills: this.player.killCount,
         gold: this.player.gold,
         hyperMode: !!this.hyperMode,
-        curseRank: this.curseRank || 0
+        curseRank: this.curseRank || 0,
+        isRanked: true
       };
 
       fetch('/api/leaderboard', {
