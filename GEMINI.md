@@ -22,6 +22,7 @@ Este arquivo serve como contexto mestre persistente para o **Antigravity IDE** e
    - Todo modal deve ser exibido com `modal.classList.add('active')` e ocultado com `modal.classList.remove('active')`.
    - A classe `.modal-overlay` possui `z-index: 2000`, `opacity: 0` e `pointer-events: none` por padrão. A classe `.modal-overlay.active` aplica `display: flex !important; opacity: 1 !important; pointer-events: auto !important;`.
 4. 🔄 **Invalidação de Cache nos Deploys:** Sempre que alterar qualquer arquivo CSS ou JS dentro de `AntiGravity/`, incremente a versão dos links e scripts em `AntiGravity/index.html` (`?v=21`, `?v=22`, etc.) para evitar que navegadores ou o edge da Vercel sirvam versões antigas em cache.
+5. 🛑 **DEPLOY / PUSH RESTRITO AO COMANDO EXPLÍCITO DO USUÁRIO:** NUNCA faça `git push origin main`, deploy no Vercel ou `neon deploy` automaticamente. Todas as alterações devem ser desenvolvidas, verificadas e comitadas localmente. O envio para o GitHub/Vercel/Neon deve ocorrer **EXCLUSIVAMENTE quando o usuário der a ordem explícita** (ex: *"pode subir"*, *"faça o push"*, *"publique"*), para permitir o acúmulo de melhorias em lote.
 
 ---
 
@@ -99,11 +100,8 @@ Sempre que fizer alterações no projeto, siga obrigatoriamente estes passos ant
 3. **Invalidação de Cache de Client (se alterou CSS ou JS em `AntiGravity/`):**
    - Atualize os parâmetros `?v=XX` de links CSS e `<script>` no arquivo [AntiGravity/index.html](file:///d:/Felipe/Felpin/AntiGravity/index.html).
 
-4. **Publicação / Deploy Contínuo:**
-   - Faça o commit das alterações com mensagens convencionais (`fix:`, `feat:`, `balance:`).
-   - Envie para o GitHub:
-     ```powershell
-     git push origin main
-     ```
-   - O Vercel detectará o push na branch `main` e fará o build e deploy instantaneamente para `felpin.vercel.app`.
+4. **Commit Local & Aguardar Ordem de Deploy:**
+   - Faça o commit das alterações localmente com mensagens convencionais (`fix:`, `feat:`, `balance:`).
+   - **NÃO envie para o GitHub / Vercel automaticamente.**
+   - Envie para o GitHub (`git push origin main`) **APENAS** quando o usuário pedir explicitamente para publicar as melhorias acumuladas.
 
