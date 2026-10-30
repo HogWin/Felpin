@@ -197,6 +197,33 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         bodyRoot.position.y = Math.sin(Date.now() / 400) * 0.6;
       }
 
+      // Dynamic Overhand Throw Animation (Alchemist flask toss & projectile attacks)
+      if (player.tossAnimTimer > 0) {
+        player.tossAnimTimer -= dt;
+        const maxT = player.tossAnimMax || 0.38;
+        const progress = 1 - Math.max(0, player.tossAnimTimer / maxT);
+        if (anim.rightArm) {
+          if (progress < 0.35) {
+            // Windup: arm cocks back high with flask
+            const p = progress / 0.35;
+            anim.rightArm.rotation.x = -p * 1.5;
+            anim.rightArm.rotation.z = 0.35 * p;
+          } else {
+            // Throw release: arm whips forward hurling the flask
+            const p = (progress - 0.35) / 0.65;
+            anim.rightArm.rotation.x = -1.5 + Math.sin(p * Math.PI) * 2.8;
+            anim.rightArm.rotation.z = -0.25 * (1 - p);
+          }
+        }
+        if (anim.weapon) {
+          // Flask re-materializes as throw concludes
+          const scale = progress < 0.35 ? 1.0 : (progress < 0.7 ? 0.2 : (progress - 0.7) / 0.3);
+          anim.weapon.scale.set(scale, scale, scale);
+        }
+      } else if (anim.weapon && anim.weapon.scale.x !== 1) {
+        anim.weapon.scale.set(1, 1, 1);
+      }
+
       // Cape flutter
       if (anim.cape) {
         anim.cape.rotation.x = isMoving ? 0.35 + Math.sin(walk * 2) * 0.15 : 0.08 + Math.sin(Date.now() / 300) * 0.04;
@@ -2076,36 +2103,36 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   function createCrossbowBoltMesh(isEvolved) {
     const root = new THREE.Group();
 
-    // Wooden / Iron Shaft
+    // Reinforced Heavy Iron / Molten Shaft (ampliado para alta visibilidade)
     const shaftMat = isEvolved ? materials.darkSteel : materials.wood;
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 14, 5), shaftMat);
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 22, 6), shaftMat);
     shaft.rotation.x = Math.PI / 2;
     root.add(shaft);
 
     // Sharp Steel / Molten Arrowhead
     const tipMat = isEvolved ? materials.glowingRed : materials.steel;
-    const tip = new THREE.Mesh(new THREE.ConeGeometry(1.6, 5, 5), tipMat);
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(2.6, 7.5, 6), tipMat);
     tip.rotation.x = Math.PI / 2;
-    tip.position.z = 8.5;
+    tip.position.z = 12.5;
     root.add(tip);
 
     // 4 Aerodynamic Fletching Fins
     const fletchMat = isEvolved ? materials.royalRed : materials.crimsonCloth;
-    const fletch1 = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.2, 3.5), fletchMat);
-    fletch1.position.z = -6;
+    const fletch1 = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.4, 5.5), fletchMat);
+    fletch1.position.z = -9;
     root.add(fletch1);
-    const fletch2 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 3.5, 3.5), fletchMat);
-    fletch2.position.z = -6;
+    const fletch2 = new THREE.Mesh(new THREE.BoxGeometry(0.4, 5.5, 5.5), fletchMat);
+    fletch2.position.z = -9;
     root.add(fletch2);
 
-    // 3D Luminous Speed Tracer Streak
-    const tracerGeo = new THREE.ConeGeometry(1.2, 18, 5);
+    // 3D Luminous Speed Tracer Streak & Energy Wake
+    const tracerGeo = new THREE.ConeGeometry(2.6, 32, 6);
     tracerGeo.rotateX(-Math.PI / 2);
-    tracerGeo.translate(0, 0, -14);
+    tracerGeo.translate(0, 0, -22);
     const tracerMat = new THREE.MeshBasicMaterial({
       color: isEvolved ? 0xff4500 : 0x00e5ff,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.85,
       blending: THREE.AdditiveBlending
     });
     const tracer = new THREE.Mesh(tracerGeo, tracerMat);
@@ -2117,36 +2144,49 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   function createThrownAxeMesh(isEvolved) {
     const root = new THREE.Group();
 
-    // Curved wooden haft with leather grip wraps
+    // Curved wooden haft (ampliado e nítido)
     const handleMat = isEvolved ? materials.blackObsidian : materials.wood;
-    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.8, 16, 6), handleMat);
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.3, 22, 6), handleMat);
     root.add(handle);
 
     // Dual bearded battleaxe blades
     const bladeMat = isEvolved ? materials.royalRed : materials.steel;
-    const bladeGeo = new THREE.BoxGeometry(8, 7, 0.8);
+    const bladeGeo = new THREE.BoxGeometry(12, 10, 1.4);
     const bladeL = new THREE.Mesh(bladeGeo, bladeMat);
-    bladeL.position.set(-4.5, 3.5, 0);
+    bladeL.position.set(-6.5, 5.0, 0);
     root.add(bladeL);
 
     const bladeR = new THREE.Mesh(bladeGeo, bladeMat);
-    bladeR.position.set(4.5, 3.5, 0);
+    bladeR.position.set(6.5, 5.0, 0);
     root.add(bladeR);
 
     // Beveled sharp cutting edges
     const edgeMat = isEvolved ? materials.glowingRed : materials.steel;
-    const edgeL = new THREE.Mesh(new THREE.BoxGeometry(1.5, 7.8, 0.4), edgeMat);
-    edgeL.position.set(-8.6, 3.5, 0);
+    const edgeL = new THREE.Mesh(new THREE.BoxGeometry(2.2, 11, 0.6), edgeMat);
+    edgeL.position.set(-12.8, 5.0, 0);
     root.add(edgeL);
 
-    const edgeR = new THREE.Mesh(new THREE.BoxGeometry(1.5, 7.8, 0.4), edgeMat);
-    edgeR.position.set(8.6, 3.5, 0);
+    const edgeR = new THREE.Mesh(new THREE.BoxGeometry(2.2, 11, 0.6), edgeMat);
+    edgeR.position.set(12.8, 5.0, 0);
     root.add(edgeR);
 
     // Center ornate brass collar
-    const collar = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 3.5, 6), materials.gold);
-    collar.position.set(0, 3.5, 0);
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.0, 5.0, 6), materials.gold);
+    collar.position.set(0, 5.0, 0);
     root.add(collar);
+
+    // Luminous Whirling Wind Trail Disc
+    const trailGeo = new THREE.RingGeometry(9, 15, 20);
+    const trailMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xff3838 : 0xbdc581,
+      transparent: true,
+      opacity: 0.45,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    const trailMesh = new THREE.Mesh(trailGeo, trailMat);
+    trailMesh.position.y = 5.0;
+    root.add(trailMesh);
 
     return root;
   }
@@ -2154,21 +2194,42 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   function createHolyFireFlaskMesh(isEvolved) {
     const root = new THREE.Group();
 
-    // Rounded alembic glass vial
-    const vialMat = isEvolved ? materials.glowingCyan : materials.flameGlow;
-    const vial = new THREE.Mesh(new THREE.SphereGeometry(2.4, 8, 8), vialMat);
-    vial.position.y = 1.5;
+    // Large alembic glass vial with liquid core (ampliado para alta legibilidade)
+    const glassMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x00f2fe : 0xffa502,
+      transparent: true,
+      opacity: 0.8
+    });
+    const vial = new THREE.Mesh(new THREE.SphereGeometry(6.0, 12, 12), glassMat);
+    vial.position.y = 4.0;
     root.add(vial);
 
+    // Incandescent inner holy fire core
+    const coreMat = isEvolved ? materials.glowingCyan : materials.flameGlow;
+    const core = new THREE.Mesh(new THREE.SphereGeometry(4.5, 10, 10), coreMat);
+    core.position.y = 4.0;
+    root.add(core);
+
     // Flask neck
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.2, 3, 6), vialMat);
-    neck.position.y = 4.2;
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 2.2, 4.8, 8), glassMat);
+    neck.position.y = 8.5;
     root.add(neck);
 
     // Cork stopper
-    const cork = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.8, 1.5, 5), materials.wood);
-    cork.position.y = 5.8;
+    const cork = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.4, 2.2, 6), materials.wood);
+    cork.position.y = 11.0;
     root.add(cork);
+
+    // Radiant outer flame halo
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x00d2d3 : 0xff4757,
+      transparent: true,
+      opacity: 0.35,
+      wireframe: true
+    });
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(7.6, 8, 8), haloMat);
+    halo.position.y = 4.0;
+    root.add(halo);
 
     return root;
   }
@@ -2443,18 +2504,18 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   function createSpectralOrbMesh(isEvolved) {
     const root = new THREE.Group();
     const coreMat = isEvolved ? materials.glowingCyan : materials.glowingViolet;
-    const core = new THREE.Mesh(new THREE.SphereGeometry(3.6, 10, 10), coreMat);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(6.2, 12, 12), coreMat);
     core.position.y = 8;
     root.add(core);
 
-    // Ethereal outer halo
+    // Ethereal outer pulsating halo (ampliado para alta visibilidade)
     const haloMat = new THREE.MeshBasicMaterial({
       color: isEvolved ? 0x00e5ff : 0xbb86fc,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.55,
       wireframe: true
     });
-    const halo = new THREE.Mesh(new THREE.SphereGeometry(5.2, 8, 8), haloMat);
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(8.8, 10, 10), haloMat);
     halo.position.y = 8;
     root.add(halo);
 
@@ -2463,18 +2524,48 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
   function createPlagueFlaskMesh(isEvolved) {
     const root = new THREE.Group();
-    const glassMat = new THREE.MeshBasicMaterial({ color: isEvolved ? 0x2ed573 : 0x00e676, transparent: true, opacity: 0.75 });
-    const globe = new THREE.Mesh(new THREE.SphereGeometry(3.2, 8, 8), glassMat);
-    globe.position.y = 4;
+
+    // Large glass alembic globe (ampliado para alta visibilidade)
+    const glassMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x00f2fe : 0x2ed573,
+      transparent: true,
+      opacity: 0.78
+    });
+    const globe = new THREE.Mesh(new THREE.SphereGeometry(6.8, 14, 14), glassMat);
+    globe.position.y = 5.0;
     root.add(globe);
 
-    const fluid = new THREE.Mesh(new THREE.SphereGeometry(2.4, 6, 6), materials.glowingGreen);
-    fluid.position.y = 3.6;
+    // Highly luminous caustic acid interior fluid
+    const fluidMat = isEvolved ? materials.glowingCyan : materials.glowingGreen;
+    const fluid = new THREE.Mesh(new THREE.SphereGeometry(5.2, 12, 12), fluidMat);
+    fluid.position.y = 4.6;
     root.add(fluid);
 
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 2.5, 6), glassMat);
-    neck.position.y = 6.5;
+    // Reinforced chemist vial neck
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.4, 5.2, 8), glassMat);
+    neck.position.y = 9.8;
     root.add(neck);
+
+    // Heavy brass band collar
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.5, 1.2, 8), materials.gold);
+    collar.position.y = 8.5;
+    root.add(collar);
+
+    // Cork stopper on top
+    const cork = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.5, 2.5, 6), materials.wood);
+    cork.position.y = 12.5;
+    root.add(cork);
+
+    // Toxic mist vapor halo surrounding the flying flask
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x00d2d3 : 0x10ac84,
+      transparent: true,
+      opacity: 0.35,
+      wireframe: true
+    });
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(8.5, 8, 8), haloMat);
+    halo.position.y = 5.0;
+    root.add(halo);
 
     return root;
   }
@@ -2482,22 +2573,54 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   function createPlaguePuddleMesh(radius, isEvolved) {
     const root = new THREE.Group();
     const r = radius || 40;
-    const poolGeo = new THREE.RingGeometry(1, r, 24);
+    const poolGeo = new THREE.RingGeometry(1, r, 28);
     poolGeo.rotateX(-Math.PI / 2);
-    const poolColor = isEvolved ? 0x00b894 : 0x2ecc71;
-    const poolMat = new THREE.MeshBasicMaterial({ color: poolColor, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
+    const poolColor = isEvolved ? 0x00b894 : 0x27ae60;
+    const poolMat = new THREE.MeshBasicMaterial({ color: poolColor, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
     const pool = new THREE.Mesh(poolGeo, poolMat);
-    pool.position.y = 0.4;
+    pool.position.y = 0.35;
     root.add(pool);
 
-    // Bubbling toxic surface nodes
-    for (let i = 0; i < 4; i++) {
-      const angle = (i / 4) * Math.PI * 2 + 0.3;
-      const dist = r * 0.45;
-      const bubble = new THREE.Mesh(new THREE.SphereGeometry(2, 6, 6), materials.glowingGreen);
-      bubble.position.set(Math.cos(angle) * dist, 0.8, Math.sin(angle) * dist);
-      root.add(bubble);
+    // Luminous corrosive perimeter ring
+    const borderGeo = new THREE.RingGeometry(r - 3.0, r + 1.0, 28);
+    borderGeo.rotateX(-Math.PI / 2);
+    const borderMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x00f2fe : 0x2ed573,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide
+    });
+    const border = new THREE.Mesh(borderGeo, borderMat);
+    border.position.y = 0.38;
+    root.add(border);
+
+    // Dynamic animated toxic bubbles that actively rise, pulse and pop in 3D
+    const bubbles = [];
+    const bubbleMat = isEvolved ? materials.glowingCyan : materials.glowingGreen;
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2 + (i * 0.4);
+      const dist = r * (0.28 + (i % 3) * 0.22);
+      const bMesh = new THREE.Mesh(new THREE.SphereGeometry(3.2, 8, 8), bubbleMat);
+      bMesh.position.set(Math.cos(angle) * dist, 0.8, Math.sin(angle) * dist);
+      bMesh._baseY = 0.8;
+      bMesh._phase = i * 1.15;
+      root.add(bMesh);
+      bubbles.push(bMesh);
     }
+
+    // Active animation hook called each frame by renderer
+    root.updateVisuals = function(dt) {
+      const now = Date.now() / 220;
+      for (let i = 0; i < bubbles.length; i++) {
+        const b = bubbles[i];
+        const cycle = Math.sin(now + b._phase);
+        const scale = 0.5 + Math.max(0, cycle) * 0.9;
+        b.scale.set(scale, scale, scale);
+        b.position.y = b._baseY + Math.max(0, cycle) * 3.0;
+      }
+      border.rotation.z += dt * 0.6;
+    };
+
     return root;
   }
 
@@ -2553,12 +2676,24 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
-  // 12. Blunderbuss Pellet Mesh
+  // 12. Blunderbuss Pellet Mesh (ampliado e incandescente)
   function createPelletMesh(isEvolved) {
     const root = new THREE.Group();
     const mat = isEvolved ? materials.glowingRed : materials.flameGlow;
-    const sphere = new THREE.Mesh(new THREE.SphereGeometry(2.4, 6, 6), mat);
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(4.6, 8, 8), mat);
     root.add(sphere);
+
+    // Trailing fiery propellant wake
+    const trailGeo = new THREE.ConeGeometry(2.4, 14, 5);
+    trailGeo.rotateX(-Math.PI / 2);
+    trailGeo.translate(0, 0, -8);
+    const trailMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xff4757 : 0xffa502,
+      transparent: true,
+      opacity: 0.7,
+      blending: THREE.AdditiveBlending
+    });
+    root.add(new THREE.Mesh(trailGeo, trailMat));
     return root;
   }
 
@@ -2578,7 +2713,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
-  // 14. Celestial Glaive Mesh
+  // 14. Celestial Glaive Mesh (ampliado e luminoso)
   function createCelestialGlaiveMesh(isEvolved) {
     const root = new THREE.Group();
     const mat = new THREE.MeshBasicMaterial({
@@ -2588,9 +2723,9 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending
     });
-    // 3 curved crescent blades at 120 degrees
+    // 3 curved crescent blades at 120 degrees (ampliadas para 22 de raio)
     for (let i = 0; i < 3; i++) {
-      const bladeGeo = new THREE.RingGeometry(3, 14, 10, 1, -0.45, 0.9);
+      const bladeGeo = new THREE.RingGeometry(4, 22, 12, 1, -0.45, 0.9);
       bladeGeo.rotateX(-Math.PI / 2);
       const blade = new THREE.Mesh(bladeGeo, mat);
       blade.rotation.y = (i / 3) * Math.PI * 2;
@@ -2621,18 +2756,30 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
-  // 16. Viper Dart Mesh
+  // 16. Viper Dart Mesh (ampliado com rastro de peçonha)
   function createViperDartMesh(isEvolved) {
     const root = new THREE.Group();
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.4, 15, 5), materials.wood);
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 0.9, 22, 5), materials.wood);
     shaft.rotation.x = Math.PI / 2;
     root.add(shaft);
 
     const tipMat = isEvolved ? materials.glowingGreen : materials.diseasedSkin;
-    const tip = new THREE.Mesh(new THREE.ConeGeometry(1.1, 4.5, 4), tipMat);
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(2.4, 7.5, 5), tipMat);
     tip.rotation.x = Math.PI / 2;
-    tip.position.z = 8.5;
+    tip.position.z = 13.0;
     root.add(tip);
+
+    // Luminous venom trail
+    const trailGeo = new THREE.ConeGeometry(2.0, 24, 5);
+    trailGeo.rotateX(-Math.PI / 2);
+    trailGeo.translate(0, 0, -16);
+    const trailMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x00f2fe : 0x2ed573,
+      transparent: true,
+      opacity: 0.75,
+      blending: THREE.AdditiveBlending
+    });
+    root.add(new THREE.Mesh(trailGeo, trailMat));
     return root;
   }
 
@@ -2660,19 +2807,32 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
-  // 18. Frost Lance Mesh
+  // 18. Frost Lance Mesh (estaca maciça de gelo translúcido brilhante)
   function createFrostLanceMesh(isEvolved) {
     const root = new THREE.Group();
     const iceMat = new THREE.MeshStandardMaterial({
       color: isEvolved ? 0xa0e7e5 : 0x74b9ff,
-      metalness: 0.2,
+      metalness: 0.3,
       roughness: 0.1,
       transparent: true,
-      opacity: 0.85
+      opacity: 0.9
     });
-    const lance = new THREE.Mesh(new THREE.ConeGeometry(2.6, 24, 6), iceMat);
+    const lance = new THREE.Mesh(new THREE.ConeGeometry(5.2, 38, 6), iceMat);
     lance.rotation.x = Math.PI / 2;
     root.add(lance);
+
+    // Frost aura glow
+    const tipGlowMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xdff9fb : 0x81ecec,
+      transparent: true,
+      opacity: 0.75,
+      blending: THREE.AdditiveBlending
+    });
+    const tipGlow = new THREE.Mesh(new THREE.ConeGeometry(3.0, 16, 6), tipGlowMat);
+    tipGlow.rotation.x = Math.PI / 2;
+    tipGlow.position.z = 12;
+    root.add(tipGlow);
+
     return root;
   }
 

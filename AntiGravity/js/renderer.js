@@ -673,9 +673,14 @@ class GameRenderer {
         pMesh.rotation.y = -p.angle + Math.PI / 2;
         pMesh.rotation.x = p.rotation || 0;
         pMesh.rotation.z = Math.sin(p.rotation || 0) * 0.4;
-      } else if ((p.constructor && p.constructor.name === 'HolyFireFlask') || p.isPlague) {
-        pMesh.rotation.x = (p.flightProgress || 0) * Math.PI * 4;
-        pMesh.rotation.z = (p.flightProgress || 0) * Math.PI * 2;
+      } else if (p.isPlague || (p.constructor && p.constructor.name === 'PlagueFlask')) {
+        pMesh.rotation.x = (p.flightProgress || 0) * Math.PI * 6;
+        pMesh.rotation.y += dt * 8;
+        pMesh.rotation.z = Math.sin((p.flightProgress || 0) * Math.PI * 3) * 0.75;
+      } else if (p.constructor && p.constructor.name === 'HolyFireFlask') {
+        pMesh.rotation.x = (p.flightProgress || 0) * Math.PI * 5;
+        pMesh.rotation.y += dt * 6;
+        pMesh.rotation.z = (p.flightProgress || 0) * Math.PI * 3;
       } else if (p.constructor && p.constructor.name === 'SpectralOrb') {
         pMesh.rotation.y += dt * 3;
         pMesh.rotation.z += dt * 2;

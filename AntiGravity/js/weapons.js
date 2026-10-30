@@ -235,13 +235,13 @@ class CrossbowWeapon extends BaseWeapon {
       damage: 28,
       cooldown: 0.9,
       count: 1,
-      speed: 680,
+      speed: 380,
       levelsConfig: [
         { damage: 28, cooldown: 0.9, count: 1, description: 'Dispara 1 virote com penetração.' },
         { count: 2, damage: 34, description: 'Disparo Duplo (2 virotes) | Dano: 34' },
         { cooldown: 0.75, description: 'Recarga Rápida: 0.9s ➔ 0.75s' },
         { count: 3, damage: 45, description: 'Disparo Triplo (3 virotes) | Dano: 45' },
-        { damage: 60, speed: 850, description: 'Virotes Reforçados | Dano: 60 | +25% Vel. Projétil' },
+        { damage: 60, speed: 480, description: 'Virotes Reforçados | Dano: 60 | +25% Vel. Projétil' },
         { count: 4, cooldown: 0.6, description: 'Saraivada Quádrupla (4 virotes) | Recarga: 0.6s' },
         { damage: 85, count: 5, description: 'Chuva de Virotes (5 disparos) | Dano: 85' },
         { damage: 130, count: 7, cooldown: 0.45, description: 'EVOLUÇÃO: Balista Flamejante (7 virotes perfurantes incendiários)' }
@@ -268,7 +268,7 @@ class CrossbowWeapon extends BaseWeapon {
         x: player.x,
         y: player.y,
         angle: angle,
-        speed: this.baseSpeed,
+        speed: this.speed || this.baseSpeed,
         damage: effectiveDamage,
         pierce: this.level >= 8 ? 6 : (this.level >= 4 ? 3 : 2),
         isEvolved: this.level >= 8,
@@ -431,7 +431,7 @@ class HolyFireFlask {
 
     this.state = 'flying'; // 'flying' or 'burning'
     this.flightProgress = 0;
-    this.flightSpeed = 2.4;
+    this.flightSpeed = 1.25;
     this.renderHeight = 10;
     this.burnTimer = this.duration;
     this.tickTimer = 0;
@@ -560,7 +560,7 @@ class WhirlingAxesWeapon extends BaseWeapon {
         ang = baseAngle - spreadAngle / 2 + (spreadAngle * (i / (totalCount - 1)));
       }
       ang += (Math.random() - 0.5) * 0.12;
-      const speed = 250 + Math.random() * 80;
+      const speed = 190 + Math.random() * 45;
 
       projectiles.push(new ThrownAxe({
         x: player.x,
@@ -901,7 +901,7 @@ class GuardianSpearWeapon extends BaseWeapon {
         x: player.x + cosA * (reach * 0.45),
         y: player.y + sinA * (reach * 0.45),
         angle: ang,
-        speed: isEvolved ? 640 : 500,
+        speed: isEvolved ? 420 : 340,
         damage: Math.round(effectiveDamage * 0.65),
         radius: thickness * 0.65,
         pierce: isEvolved ? 8 : 4,
@@ -1084,7 +1084,7 @@ class SpectralOrbWeapon extends BaseWeapon {
       cooldown: 1.15,
       area: 1.0,
       count: 1,
-      speed: 260,
+      speed: 190,
       levelsConfig: [
         { damage: 28, cooldown: 1.15, count: 1, description: 'Orbe místico que persegue alvos automaticamente.' },
         { damage: 38, count: 2, description: 'Dispara 2 Orbes Espectrais simultâneos.' },
@@ -1450,6 +1450,10 @@ class PlagueFlaskWeapon extends BaseWeapon {
       window.MedievalSurvivors.sound.playPlagueSplash();
     }
 
+    // Trigger arm throw animation on player
+    player.tossAnimTimer = 0.38;
+    player.tossAnimMax = 0.38;
+
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
     const poolRadius = 36 * effectiveArea;
@@ -1507,7 +1511,7 @@ class PlagueFlask {
     this.duration = cfg.duration;
     this.isEvolved = cfg.isEvolved;
     this.weapon = cfg.weapon;
-    this.flightTime = 0.55;
+    this.flightTime = 0.85; // Slowed down from 0.55s for graceful visible lob
     this.flightProgress = 0;
     this.state = 'flying';
     this.renderHeight = 10;
@@ -1535,7 +1539,19 @@ class PlagueFlask {
         const t = this.flightProgress;
         this.x = this.startX + (this.targetX - this.startX) * t;
         this.y = this.startY + (this.targetY - this.startY) * t;
-        this.renderHeight = 10 + Math.sin(t * Math.PI) * 45;
+        this.renderHeight = 10 + Math.sin(t * Math.PI) * 58;
+
+        // Trailing toxic chemical vapor particles in 3D flight
+        if (particles && Math.random() < 0.45 && window.MedievalSurvivors.game && window.MedievalSurvivors.game.renderer) {
+          window.MedievalSurvivors.game.renderer.spawn3DParticle(
+            this.x + (Math.random() - 0.5) * 6,
+            this.renderHeight + (Math.random() - 0.5) * 4,
+            this.y + (Math.random() - 0.5) * 6,
+            this.isEvolved ? 0x00f2fe : 0x2ed573,
+            9,
+            5
+          );
+        }
       }
       return true;
     } else if (this.state === 'burning') {
@@ -1697,7 +1713,7 @@ class BlunderbussWeapon extends BaseWeapon {
       cooldown: 1.6,
       area: 1.0,
       count: 6,
-      speed: 680,
+      speed: 420,
       levelsConfig: [
         { damage: 18, count: 6, cooldown: 1.6, description: 'Dispara 6 balotes de chumbo grosso em cone frontal com alto recuo.' },
         { damage: 24, count: 8, description: 'Dano: 18 → 24 | Balotes: 6 → 8' },
@@ -1894,7 +1910,7 @@ class CelestialGlaiveWeapon extends BaseWeapon {
       cooldown: 1.4,
       area: 1.0,
       count: 1,
-      speed: 460,
+      speed: 310,
       levelsConfig: [
         { damage: 32, cooldown: 1.4, count: 1, description: 'Lança glaive lunar giratória que salta entre até 4 inimigos.' },
         { damage: 42, description: 'Dano: 32 → 42 | +1 Ricochete Adicional' },
@@ -2135,7 +2151,7 @@ class ViperBlowpipeWeapon extends BaseWeapon {
       cooldown: 0.85,
       area: 1.0,
       count: 2,
-      speed: 720,
+      speed: 420,
       levelsConfig: [
         { damage: 15, cooldown: 0.85, count: 2, description: 'Dispara 2 dardos perfurantes de neurotoxina que reduzem a velocidade do inimigo.' },
         { damage: 22, count: 3, description: 'Dano: 15 → 22 | Dardos: 2 → 3' },
@@ -2359,7 +2375,7 @@ class FrostLanceWeapon extends BaseWeapon {
       cooldown: 1.3,
       area: 1.0,
       count: 1,
-      speed: 620,
+      speed: 380,
       levelsConfig: [
         { damage: 30, cooldown: 1.3, count: 1, description: 'Dispara 1 estaca de gelo perfurante que congela inimigos por 1.2s.' },
         { damage: 40, description: 'Dano: 30 → 40 | +1 Inimigo Perfurado' },
