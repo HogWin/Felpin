@@ -14,6 +14,7 @@ class Game {
 
     this.player = null;
     this.enemies = [];
+    this.allies = [];
     this.projectiles = [];
     this.enemyProjectiles = [];
     this.gems = [];
@@ -107,6 +108,7 @@ class Game {
     this.saveManager.applyToPlayer(this.player);
 
     this.enemies = [];
+    this.allies = [];
     this.projectiles = [];
     this.enemyProjectiles = [];
     this.gems = [];
@@ -244,6 +246,14 @@ class Game {
       }
     }
 
+    // 3.5. Update Allies (Necromancer minions)
+    for (let i = this.allies.length - 1; i >= 0; i--) {
+      const keep = this.allies[i].update(dt, this.player, this.enemies, this.particles);
+      if (!keep) {
+        this.allies.splice(i, 1);
+      }
+    }
+
     // 4. Update Enemy Projectiles (with weapon parry/cancellation check!)
     for (let i = this.enemyProjectiles.length - 1; i >= 0; i--) {
       const keep = this.enemyProjectiles[i].update(dt, this.player, this.particles, this.projectiles);
@@ -259,6 +269,9 @@ class Game {
 
       if (!enemy.alive) {
         this.player.killCount++;
+        if (this.player.onEnemyKilled) {
+          this.player.onEnemyKilled(enemy, this);
+        }
         this.particles.createBloodSparks(enemy.x, enemy.y, 8, enemy.color);
 
         // Spawn XP Gem

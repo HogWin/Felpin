@@ -1055,6 +1055,486 @@ class SpearShockwave {
   }
 }
 
+// 7. ORBE ESPECTRAL (Spectral Orb - Necromancer)
+class SpectralOrbWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'spectral_orb',
+      name: 'Orbe Espectral',
+      icon: '🔮',
+      description: 'Esferas de almas aprisionadas que perseguem implacavelmente os inimigos mais próximos.',
+      maxLevel: 8,
+      damage: 28,
+      cooldown: 1.15,
+      area: 1.0,
+      count: 1,
+      speed: 260,
+      levelsConfig: [
+        { damage: 28, cooldown: 1.15, count: 1, description: 'Orbe místico que persegue alvos automaticamente.' },
+        { damage: 38, count: 2, description: 'Dispara 2 Orbes Espectrais simultâneos.' },
+        { damage: 48, cooldown: 1.0, description: 'Dano: 38 ➔ 48 | Recarga: 1.0s' },
+        { count: 3, area: 1.25, description: 'Dispara 3 Orbes | +25% Raio de Impacto' },
+        { damage: 65, cooldown: 0.85, description: 'Dano: 48 ➔ 65 | Recarga: 0.85s' },
+        { count: 4, area: 1.45, description: 'Dispara 4 Orbes Espectrais' },
+        { damage: 85, cooldown: 0.75, description: 'Dano: 65 ➔ 85 | Velocidade de Perseguição Aumentada' },
+        { damage: 130, count: 5, cooldown: 0.6, description: 'EVOLUÇÃO: Lamento das Almas Eternas (5 Orbes Vorazes com perfuração e explosão espectral)' }
+      ]
+    });
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    if (!enemies || enemies.length === 0) return;
+    if (window.MedievalSurvivors.sound.playLaserShoot) {
+      window.MedievalSurvivors.sound.playLaserShoot();
+    }
+
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const totalCount = this.count + (player.bonusProjectiles || 0);
+    const isEvo = this.level >= 8;
+
+    for (let i = 0; i < totalCount; i++) {
+      const startAngle = player.facingAngle + ((i - (totalCount - 1) / 2) * 0.4);
+      projectiles.push(new SpectralOrb({
+        x: player.x,
+        y: player.y,
+        angle: startAngle,
+        speed: this.speed,
+        damage: effectiveDamage,
+        radius: 14 * (this.area * player.areaMultiplier),
+        pierce: isEvo ? 3 : 1,
+        isEvolved: isEvo,
+        weapon: this
+      }));
+    }
+  }
+}
+
+class SpectralOrb {
+  constructor(cfg) {
+    this.x = cfg.x;
+    this.y = cfg.y;
+    this.angle = cfg.angle;
+    this.speed = cfg.speed || 260;
+    this.damage = cfg.damage;
+    this.radius = cfg.radius || 14;
+    this.pierce = cfg.pierce || 1;
+    this.isEvolved = cfg.isEvolved;
+    this.weapon = cfg.weapon;
+    this.life = 3.0;
+    this.maxLife = 3.0;
+    this.renderHeight = 12;
+    this.target = null;
+    this.hitEnemies = new Set();
+    this.isSpectralOrb = true;
+  }
+
+  update(dt, enemies, particles) {
+    this.life -= dt;
+    if (this.life <= 0 || this.pierce <= 0) return false;
+
+    // Homing steering logic
+    if (!this.target || !this.target.alive) {
+      let nearest = null;
+      let nearDistSq = 450 * 450;
+      for (let i = 0, len = enemies.length; i < len; i++) {
+        const e = enemies[i];
+        if (!e.alive || this.hitEnemies.has(e.id)) continue;
+        const dSq = (e.x - this.x) * (e.x - this.x) + (e.y - this.y) * (e.y - this.y);
+        if (dSq < nearDistSq) {
+          nearDistSq = dSq;
+          nearest = e;
+        }
+      }
+      this.target = nearest;
+    }
+
+    if (this.target && this.target.alive) {
+      const targetAngle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+      let diff = targetAngle - this.angle;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      this.angle += diff * Math.min(1.0, 7.5 * dt);
+    }
+
+    this.x += Math.cos(this.angle) * this.speed * dt;
+    this.y += Math.sin(this.angle) * this.speed * dt;
+
+    // Hit detection
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const enemy = enemies[i];
+      if (!enemy.alive || this.hitEnemies.has(enemy.id)) continue;
+      const dx = enemy.x - this.x;
+      const dy = enemy.y - this.y;
+      const r = this.radius + enemy.radius;
+      if (dx * dx + dy * dy <= r * r) {
+        this.hitEnemies.add(enemy.id);
+        const dealt = enemy.takeDamage(this.damage, Math.cos(this.angle), Math.sin(this.angle), 6);
+        this.weapon.totalDamageDealt += dealt;
+        this.pierce--;
+        if (particles && particles.createBloodSparks) {
+          particles.createBloodSparks(this.x, this.y, 6, this.isEvolved ? '#00e5ff' : '#a55eea');
+        }
+        if (this.pierce <= 0) return false;
+      }
+    }
+
+    return true;
+  }
+}
+
+// 8. ADAGAS GÊMEAS SOMBRIAS (Twin Daggers - Assassin)
+class TwinDaggersWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'twin_daggers',
+      name: 'Adagas Gêmeas Sombrias',
+      icon: '🗡️',
+      description: 'Lâminas relâmpago de alta velocidade e precisão cirúrgica. Alta cadência e multiplicador de acerto crítico.',
+      maxLevel: 8,
+      damage: 18,
+      cooldown: 0.55,
+      area: 1.0,
+      count: 2,
+      levelsConfig: [
+        { damage: 18, cooldown: 0.55, count: 2, description: 'Golpes duplos rápidos com alta chance de crítico.' },
+        { damage: 25, cooldown: 0.48, description: 'Dano: 18 ➔ 25 | Recarga: 0.48s' },
+        { count: 3, area: 1.15, description: 'Ataque Triplo em corte veloz.' },
+        { damage: 36, cooldown: 0.40, description: 'Dano: 25 ➔ 36 | Recarga: 0.40s' },
+        { count: 4, cooldown: 0.35, description: 'Golpe Quádruplo em leque veloz.' },
+        { damage: 52, area: 1.30, description: 'Dano: 36 ➔ 52 | +30% Área' },
+        { count: 5, cooldown: 0.28, description: 'Golpe Quíntuplo | Recarga: 0.28s' },
+        { damage: 85, count: 6, cooldown: 0.22, description: 'EVOLUÇÃO: Lâminas da Noite Eterna (Cortes fantasmas contínuos com 100% Crítico)' }
+      ]
+    });
+    this.slashEffects = [];
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    window.MedievalSurvivors.sound.playSwordSlash();
+
+    const isEvo = this.level >= 8;
+    const baseCrit = isEvo ? 1.0 : (0.35 + (player.baseCritChance || 0));
+    const isCrit = Math.random() < baseCrit;
+    const critMult = isCrit ? (player.critMultiplier || 2.2) : 1.0;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier * critMult);
+    const effectiveArea = this.area * player.areaMultiplier;
+    const baseReach = 38 * effectiveArea;
+    const facingAngle = player.facingAngle || 0;
+    const totalCount = this.count + (player.bonusProjectiles || 0);
+
+    if (isCrit && player.onCriticalHit) {
+      player.onCriticalHit();
+    }
+
+    const arcs = [];
+    for (let i = 0; i < totalCount; i++) {
+      const offset = (i - (totalCount - 1) / 2) * 0.24;
+      arcs.push(facingAngle + offset);
+    }
+
+    const arcSpreadHalf = Math.PI * 0.28;
+    arcs.forEach(angle => {
+      this.slashEffects.push({
+        x: player.x,
+        y: player.y,
+        player: player,
+        angle: angle,
+        radius: baseReach,
+        duration: 0.12,
+        maxDuration: 0.12,
+        isCritical: isCrit,
+        isEvolved: isEvo,
+        isDagger: true,
+        color: isCrit ? '#ff4757' : '#ced6e0'
+      });
+
+      for (let i = 0, len = enemies.length; i < len; i++) {
+        const enemy = enemies[i];
+        if (!enemy.alive) continue;
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+        const maxDist = baseReach + enemy.radius;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq <= maxDist * maxDist) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - angle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+
+          if (diff <= arcSpreadHalf) {
+            const dist = Math.sqrt(distSq) || 1;
+            const dealt = enemy.takeDamage(effectiveDamage, dx / dist, dy / dist, 8, isCrit);
+            this.totalDamageDealt += dealt;
+            if (particles && particles.createBloodSparks) {
+              particles.createBloodSparks(enemy.x, enemy.y, isCrit ? 6 : 2, isCrit ? '#ff4757' : '#ffffff');
+            }
+          }
+        }
+      }
+    });
+  }
+
+  update(dt, player, enemies, projectiles, particles) {
+    super.update(dt, player, enemies, projectiles, particles);
+    for (let i = this.slashEffects.length - 1; i >= 0; i--) {
+      const s = this.slashEffects[i];
+      s.duration -= dt;
+      if (player) {
+        s.x = player.x;
+        s.y = player.y;
+      }
+      if (s.duration <= 0) {
+        this.slashEffects.splice(i, 1);
+      }
+    }
+  }
+}
+
+// 9. MONTANTE DAS TREVAS (Dark Greatsword - Dark Knight)
+class DarkGreatswordWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'dark_greatsword',
+      name: 'Montante das Trevas',
+      icon: '⚔️',
+      description: 'Lâmina colossal forjada em obsidiana negra. Desfere ondas pesadas de impacto que esmagam os monstros ao redor.',
+      maxLevel: 8,
+      damage: 54,
+      cooldown: 1.45,
+      area: 1.25,
+      count: 1,
+      levelsConfig: [
+        { damage: 54, cooldown: 1.45, count: 1, description: 'Impacto brutal e alcance estendido.' },
+        { damage: 75, area: 1.4, description: 'Dano: 54 ➔ 75 | +15% Alcance' },
+        { count: 2, cooldown: 1.3, description: 'Golpe Duplo em arco esmagador.' },
+        { damage: 105, area: 1.6, description: 'Dano: 75 ➔ 105 | +20% Área' },
+        { count: 3, cooldown: 1.15, description: 'Golpe Triplo devastador.' },
+        { damage: 150, area: 1.85, description: 'Dano: 105 ➔ 150 | Grande Onda de Choque' },
+        { count: 4, cooldown: 0.95, description: 'Tempestade Quádrupla de Ferro Negro' },
+        { damage: 240, area: 2.1, cooldown: 0.75, description: 'EVOLUÇÃO: Devoradora de Reis (240 Dano, ondas carmesins 360° com atordoamento)' }
+      ]
+    });
+    this.slashEffects = [];
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    window.MedievalSurvivors.sound.playSwordSlash();
+
+    const isEvo = this.level >= 8;
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const effectiveArea = this.area * player.areaMultiplier;
+    const baseReach = 52 * effectiveArea;
+    const facingAngle = player.facingAngle || 0;
+    const totalCount = this.count + (player.bonusProjectiles || 0);
+
+    const arcs = [];
+    if (isEvo) {
+      arcs.push(facingAngle);
+    } else if (totalCount === 1) {
+      arcs.push(facingAngle);
+    } else if (totalCount === 2) {
+      arcs.push(facingAngle - 0.32);
+      arcs.push(facingAngle + 0.32);
+    } else if (totalCount === 3) {
+      arcs.push(facingAngle - 0.42);
+      arcs.push(facingAngle);
+      arcs.push(facingAngle + 0.42);
+    } else {
+      for (let i = 0; i < totalCount; i++) {
+        arcs.push(facingAngle + (i * Math.PI * 2 / totalCount));
+      }
+    }
+
+    const arcSpreadHalf = isEvo ? Math.PI : (Math.PI * 0.42);
+    arcs.forEach(angle => {
+      this.slashEffects.push({
+        x: player.x,
+        y: player.y,
+        player: player,
+        angle: angle,
+        radius: baseReach,
+        duration: 0.20,
+        maxDuration: 0.20,
+        isEvolved: isEvo,
+        isDark: true,
+        color: isEvo ? '#e74c3c' : '#2f3542'
+      });
+
+      for (let i = 0, len = enemies.length; i < len; i++) {
+        const enemy = enemies[i];
+        if (!enemy.alive) continue;
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+        const maxDist = baseReach + enemy.radius;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq <= maxDist * maxDist) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - angle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+
+          if (diff <= arcSpreadHalf) {
+            const dist = Math.sqrt(distSq) || 1;
+            const dealt = enemy.takeDamage(effectiveDamage, dx / dist, dy / dist, 24);
+            this.totalDamageDealt += dealt;
+            if (particles && particles.createBloodSparks) {
+              particles.createBloodSparks(enemy.x, enemy.y, 5, '#e74c3c');
+            }
+          }
+        }
+      }
+    });
+  }
+
+  update(dt, player, enemies, projectiles, particles) {
+    super.update(dt, player, enemies, projectiles, particles);
+    for (let i = this.slashEffects.length - 1; i >= 0; i--) {
+      const s = this.slashEffects[i];
+      s.duration -= dt;
+      if (player) {
+        s.x = player.x;
+        s.y = player.y;
+      }
+      if (s.duration <= 0) {
+        this.slashEffects.splice(i, 1);
+      }
+    }
+  }
+}
+
+// 10. FRASCO DE ÁCIDO PÚTRIDO (Plague Flask - Alchemist)
+class PlagueFlaskWeapon extends BaseWeapon {
+  constructor() {
+    super({
+      id: 'plague_flask',
+      name: 'Frascos de Ácido Pútrido',
+      icon: '🧪',
+      description: 'Arremessa frascos alquímicos cheios de veneno cáustico que criam poças corrosivas no solo.',
+      maxLevel: 8,
+      damage: 16,
+      cooldown: 1.35,
+      area: 1.0,
+      count: 1,
+      speed: 340,
+      levelsConfig: [
+        { damage: 16, cooldown: 1.35, count: 1, description: 'Lança frasco de ácido que cria poça venenosa por 3s.' },
+        { damage: 24, count: 2, description: 'Lança 2 Frascos de Ácido simultâneos.' },
+        { damage: 32, area: 1.25, description: 'Dano: 24 ➔ 32 | +25% Área da Poça' },
+        { count: 3, cooldown: 1.15, description: 'Lança 3 Frascos | Recarga: 1.15s' },
+        { damage: 45, area: 1.45, description: 'Dano: 32 ➔ 45 | Poça Dura +1s' },
+        { count: 4, cooldown: 0.95, description: 'Lança 4 Frascos em leque' },
+        { damage: 62, area: 1.65, description: 'Dano: 45 ➔ 62 | Área Massiva de Corrosão' },
+        { damage: 95, count: 5, cooldown: 0.75, description: 'EVOLUÇÃO: Elixir do Apocalipse (5 Frascos gigantes de veneno cáustico com lentidão severa)' }
+      ]
+    });
+  }
+
+  attack(player, enemies, projectiles, particles) {
+    if (window.MedievalSurvivors.sound.playChestOpen) {
+      window.MedievalSurvivors.sound.playChestOpen();
+    }
+
+    const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
+    const effectiveArea = this.area * player.areaMultiplier;
+    const poolRadius = 36 * effectiveArea;
+    const totalCount = this.count + (player.bonusProjectiles || 0);
+    const isEvo = this.level >= 8;
+
+    for (let i = 0; i < totalCount; i++) {
+      let targetX = player.x + Math.cos(player.facingAngle) * (140 + Math.random() * 80);
+      let targetY = player.y + Math.sin(player.facingAngle) * (140 + Math.random() * 80);
+
+      if (enemies && enemies.length > 0) {
+        const randEnemy = enemies[Math.floor(Math.random() * Math.min(enemies.length, 12))];
+        if (randEnemy && randEnemy.alive) {
+          targetX = randEnemy.x + (Math.random() - 0.5) * 30;
+          targetY = randEnemy.y + (Math.random() - 0.5) * 30;
+        }
+      }
+
+      projectiles.push(new PlagueFlask({
+        startX: player.x,
+        startY: player.y,
+        targetX: targetX,
+        targetY: targetY,
+        damage: effectiveDamage,
+        poolRadius: poolRadius,
+        duration: isEvo ? 4.8 : 3.4,
+        isEvolved: isEvo,
+        weapon: this
+      }));
+    }
+  }
+}
+
+class PlagueFlask {
+  constructor(cfg) {
+    this.startX = cfg.startX;
+    this.startY = cfg.startY;
+    this.targetX = cfg.targetX;
+    this.targetY = cfg.targetY;
+    this.x = this.startX;
+    this.y = this.startY;
+    this.damage = cfg.damage;
+    this.poolRadius = cfg.poolRadius;
+    this.duration = cfg.duration;
+    this.isEvolved = cfg.isEvolved;
+    this.weapon = cfg.weapon;
+    this.flightTime = 0.55;
+    this.flightProgress = 0;
+    this.state = 'flying';
+    this.renderHeight = 10;
+    this.tickTimer = 0;
+    this.isPlague = true;
+  }
+
+  update(dt, enemies, particles) {
+    if (this.state === 'flying') {
+      this.flightProgress += dt / this.flightTime;
+      if (this.flightProgress >= 1) {
+        this.flightProgress = 1;
+        this.state = 'burning';
+        this.x = this.targetX;
+        this.y = this.targetY;
+        this.radius = this.poolRadius;
+        this.renderHeight = 0;
+        if (particles && particles.createExplosionWave) {
+          particles.createExplosionWave(this.x, this.y, this.poolRadius * 0.7, '#2ed573');
+        }
+      } else {
+        const t = this.flightProgress;
+        this.x = this.startX + (this.targetX - this.startX) * t;
+        this.y = this.startY + (this.targetY - this.startY) * t;
+        this.renderHeight = 10 + Math.sin(t * Math.PI) * 45;
+      }
+      return true;
+    } else if (this.state === 'burning') {
+      this.duration -= dt;
+      if (this.duration <= 0) return false;
+
+      this.tickTimer += dt;
+      if (this.tickTimer >= 0.28) {
+        this.tickTimer = 0;
+        const tickDamage = Math.max(1, Math.round(this.damage * 0.45));
+        for (let i = 0, len = enemies.length; i < len; i++) {
+          const e = enemies[i];
+          if (!e.alive) continue;
+          const dx = e.x - this.x;
+          const dy = e.y - this.y;
+          const r = this.poolRadius + e.radius;
+          if (dx * dx + dy * dy <= r * r) {
+            e.isPoisoned = true;
+            const dealt = e.takeDamage(tickDamage, 0, 0, 0);
+            this.weapon.totalDamageDealt += dealt;
+          }
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+}
+
 // Utility: distance from point (px, py) to line segment (x1, y1) - (x2, y2)
 function distToSegment(px, py, x1, y1, x2, y2) {
   const l2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
@@ -1078,6 +1558,10 @@ class WeaponRegistry {
     this.factories.set('whirling_axes', () => new WhirlingAxesWeapon());
     this.factories.set('holy_aura', () => new HolyAuraWeapon());
     this.factories.set('guardian_spear', () => new GuardianSpearWeapon());
+    this.factories.set('spectral_orb', () => new SpectralOrbWeapon());
+    this.factories.set('twin_daggers', () => new TwinDaggersWeapon());
+    this.factories.set('dark_greatsword', () => new DarkGreatswordWeapon());
+    this.factories.set('plague_flask', () => new PlagueFlaskWeapon());
   }
 
   create(id) {

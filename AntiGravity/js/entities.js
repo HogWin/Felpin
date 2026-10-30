@@ -64,6 +64,12 @@ class Player {
     this.killCount = 0;
     this.gold = 0;
 
+    // Class perk traits
+    this.shadowBurstTimer = 0;
+    this.soulKillCount = 0;
+    this.baseCritChance = classDef.id === 'assassin' ? 0.25 : 0.05;
+    this.critMultiplier = classDef.id === 'assassin' ? 2.5 : 1.5;
+
     // Initialize starting weapon
     const startingWep = window.MedievalSurvivors.weapons.create(classDef.startingWeapon);
     if (startingWep) {
@@ -81,11 +87,27 @@ class Player {
   }
 
   get damageMultiplier() {
-    return (this.baseDamageMultiplier || 1.0) * (1 + (this.bonusDamageMultiplier || 0));
+    let base = (this.baseDamageMultiplier || 1.0) * (1 + (this.bonusDamageMultiplier || 0));
+    // Berserker perk: Fúria Sangrenta (Gains up to +65% damage when low HP)
+    if (this.classDef.id === 'berserker') {
+      const missing = 1 - Math.max(0, this.hp / this.maxHp);
+      base *= (1 + missing * 0.65);
+    }
+    return base;
   }
 
   get effectiveDamageMultiplier() {
     return this.damageMultiplier;
+  }
+
+  get effectiveCooldownReduction() {
+    let red = this.cooldownReduction || 0;
+    // Berserker perk: Fúria Sangrenta (Gains up to +35% attack speed when low HP)
+    if (this.classDef.id === 'berserker') {
+      const missing = 1 - Math.max(0, this.hp / this.maxHp);
+      red = Math.min(0.65, red + missing * 0.35);
+    }
+    return red;
   }
 
   get areaMultiplier() {
@@ -97,7 +119,11 @@ class Player {
   }
 
   get effectiveMoveSpeed() {
-    return this.baseMoveSpeed * this.speedMultiplier;
+    let speed = this.baseMoveSpeed * this.speedMultiplier;
+    if (this.shadowBurstTimer > 0) {
+      speed *= 1.4; // Assassin speed surge on critical strikes
+    }
+    return speed;
   }
 
   get effectivePickupRadius() {
@@ -137,12 +163,82 @@ class Player {
 
     window.MedievalSurvivors.sound.playPlayerHurt();
 
+    // Dark Knight perk: Retaliação de Espinhos
+    if (this.classDef.id === 'dark_knight' && window.MedievalSurvivors.game) {
+      this.triggerThornBurst(reduced, window.MedievalSurvivors.game);
+    }
+
     if (this.hp <= 0) {
       this.hp = 0;
       this.alive = false;
     }
 
     return reduced;
+  }
+
+  triggerThornBurst(damageTaken, game) {
+    if (!game || !game.enemies) return;
+    const thornDamage = Math.round(25 + damageTaken * 1.5);
+    const radius = 95;
+    for (let i = 0, len = game.enemies.length; i < len; i++) {
+      const e = game.enemies[i];
+      if (!e.alive) continue;
+      const dx = e.x - this.x;
+      const dy = e.y - this.y;
+      if (dx * dx + dy * dy <= radius * radius) {
+        const d = Math.hypot(dx, dy) || 1;
+        e.takeDamage(thornDamage, dx / d, dy / d, 18);
+      }
+    }
+    if (game.particles && game.particles.createExplosionWave) {
+      game.particles.createExplosionWave(this.x, this.y, 45, '#e74c3c');
+    }
+    if (game.renderer && game.renderer.triggerShake) {
+      game.renderer.triggerShake(6, 0.25);
+    }
+  }
+
+  onCriticalHit() {
+    this.shadowBurstTimer = 1.2;
+  }
+
+  onEnemyKilled(enemy, game) {
+    if (this.classDef.id === 'necromancer') {
+      this.soulKillCount = (this.soulKillCount || 0) + 1;
+      if (this.soulKillCount >= 12) {
+        this.soulKillCount = 0;
+        this.summonAlliedSkeleton(game);
+      }
+    } else if (this.classDef.id === 'plague_alchemist' || (enemy && enemy.isPoisoned)) {
+      if (game && game.particles && game.particles.createExplosionWave) {
+        game.particles.createExplosionWave(enemy.x, enemy.y, 40, '#2ecc71');
+      }
+      if (game && game.enemies) {
+        const poisonArea = 80;
+        for (let i = 0, len = game.enemies.length; i < len; i++) {
+          const other = game.enemies[i];
+          if (!other.alive || other === enemy) continue;
+          const dx = other.x - enemy.x;
+          const dy = other.y - enemy.y;
+          if (dx * dx + dy * dy <= poisonArea * poisonArea) {
+            other.isPoisoned = true;
+            other.takeDamage(28, dx / (Math.hypot(dx, dy) || 1), dy / (Math.hypot(dx, dy) || 1), 6);
+          }
+        }
+      }
+    }
+  }
+
+  summonAlliedSkeleton(game) {
+    if (!game || !game.allies) return;
+    const offsetAng = Math.random() * Math.PI * 2;
+    const ax = this.x + Math.cos(offsetAng) * 35;
+    const ay = this.y + Math.sin(offsetAng) * 35;
+    const ally = new AlliedSkeleton(ax, ay, Math.round(36 * this.damageMultiplier));
+    game.allies.push(ally);
+    if (game.floatingTexts) {
+      game.addFloatingText(this.x, this.y - 25, "PACTO DAS OSSADAS!", "#9b59b6", true);
+    }
   }
 
   heal(amount) {
@@ -152,6 +248,10 @@ class Player {
 
   update(dt, inputDir, enemies, projectiles, particles) {
     if (!this.alive) return;
+
+    if (this.shadowBurstTimer > 0) {
+      this.shadowBurstTimer -= dt;
+    }
 
     // Movement
     const isMoving = inputDir.x !== 0 || inputDir.y !== 0;
@@ -664,8 +764,88 @@ class ParticleSystem {
   }
 }
 
+// Allied Skeleton Servant (Necromancer's Pact of Bones)
+class AlliedSkeleton {
+  constructor(x, y, damage = 35) {
+    this.x = x;
+    this.y = y;
+    this.radius = 16;
+    this.speed = 145;
+    this.damage = damage;
+    this.alive = true;
+    this.life = 20.0;
+    this.maxLife = 20.0;
+    this.target = null;
+    this.attackCooldown = 0;
+    this.facingAngle = 0;
+    this.walkCycle = 0;
+    this.isAlly = true;
+  }
+
+  update(dt, player, enemies, particles) {
+    this.life -= dt;
+    if (this.life <= 0) {
+      this.alive = false;
+      return false;
+    }
+
+    this.walkCycle += dt * 8;
+    if (this.attackCooldown > 0) this.attackCooldown -= dt;
+
+    // Find nearest alive enemy
+    if (!this.target || !this.target.alive) {
+      let nearest = null;
+      let minDistSq = 450 * 450;
+      for (let i = 0, len = enemies.length; i < len; i++) {
+        const e = enemies[i];
+        if (!e.alive) continue;
+        const dSq = (e.x - this.x) * (e.x - this.x) + (e.y - this.y) * (e.y - this.y);
+        if (dSq < minDistSq) {
+          minDistSq = dSq;
+          nearest = e;
+        }
+      }
+      this.target = nearest;
+    }
+
+    let targetX = player.x + 30;
+    let targetY = player.y + 30;
+
+    if (this.target && this.target.alive) {
+      targetX = this.target.x;
+      targetY = this.target.y;
+    }
+
+    const dx = targetX - this.x;
+    const dy = targetY - this.y;
+    const dist = Math.hypot(dx, dy) || 1;
+
+    if (dist > 16) {
+      const vx = (dx / dist) * this.speed;
+      const vy = (dy / dist) * this.speed;
+      this.x += vx * dt;
+      this.y += vy * dt;
+      this.facingAngle = Math.atan2(vy, vx);
+    }
+
+    // Strike enemy
+    if (this.target && this.target.alive && dist <= this.radius + this.target.radius + 14) {
+      if (this.attackCooldown <= 0) {
+        this.attackCooldown = 0.55;
+        this.target.takeDamage(this.damage, dx / dist, dy / dist, 12);
+        if (particles && particles.createBloodSparks) {
+          particles.createBloodSparks(this.target.x, this.target.y, 4, '#9b59b6');
+        }
+      }
+    }
+
+    return true;
+  }
+}
+
 window.MedievalSurvivors = window.MedievalSurvivors || {};
 window.MedievalSurvivors.Player = Player;
+window.MedievalSurvivors.AlliedSkeleton = AlliedSkeleton;
 window.MedievalSurvivors.XpGem = XpGem;
 window.MedievalSurvivors.TreasureChest = TreasureChest;
 window.MedievalSurvivors.FloatingText = FloatingText;

@@ -116,7 +116,7 @@ class ClassRegistry {
       perkDesc: '+30% Dano Mágico, +35% Área de Efeito, -15% Cooldown.'
     });
 
-    // CLASSE 4 (FUTURA / EXPANSÍVEL): Paladino da Alvorada
+    // CLASSE 4: Paladino da Alvorada
     this.registerClass({
       id: 'paladin',
       name: 'Paladino da Alvorada',
@@ -138,6 +138,126 @@ class ClassRegistry {
         hpRegen: 0.6
       },
       perkDesc: '+35 Max HP, +3 Armadura, +0.6 Regen/s, inicia com Aura Sagrada.'
+    });
+
+    // CLASSE 5: Berserker do Norte (Machados & Fúria)
+    this.registerClass({
+      id: 'berserker',
+      name: 'Berserker do Norte',
+      subtitle: 'Colosso das Montanhas Geladas',
+      icon: '🪓',
+      description: 'Guerreiro bárbaro implacável. Seus machados giratórios retalham à distância e sua fúria sangrenta o torna exponencialmente mais rápido e letal conforme perde vida.',
+      unlocked: true,
+      startingWeapon: 'whirling_axes',
+      color: '#e67e22',
+      accentColor: '#c0392b',
+      stats: {
+        maxHp: 140,
+        armor: 0,
+        moveSpeed: 3.3,
+        damageMultiplier: 1.20,
+        cooldownMultiplier: 0.95,
+        areaMultiplier: 1.20,
+        pickupRadius: 90,
+        hpRegen: 0.1
+      },
+      perkDesc: 'Fúria Sangrenta: Ganha até +60% Dano e +35% Cadência conforme sua vida cai.'
+    });
+
+    // CLASSE 6: Necromante das Catacumbas (Invocador de Almas)
+    this.registerClass({
+      id: 'necromancer',
+      name: 'Necromante das Catacumbas',
+      subtitle: 'Senhor das Almas Perdidas',
+      icon: '💀',
+      description: 'Mestre das artes proibidas. Lança orbes de almas teleguiados e ergue os ossos dos inimigos caídos para lutarem ao seu lado como servos leais.',
+      unlocked: true,
+      startingWeapon: 'spectral_orb',
+      color: '#9b59b6',
+      accentColor: '#4834d4',
+      stats: {
+        maxHp: 85,
+        armor: 0,
+        moveSpeed: 3.1,
+        damageMultiplier: 1.15,
+        cooldownMultiplier: 0.85,
+        areaMultiplier: 1.15,
+        pickupRadius: 115,
+        hpRegen: 0.0
+      },
+      perkDesc: 'Pacto das Ossadas: A cada 12 monstros derrotados, invoca um Esqueleto Guardião aliado para lutar.'
+    });
+
+    // CLASSE 7: Assassino Sombrio (Críticos & Evasão)
+    this.registerClass({
+      id: 'assassin',
+      name: 'Assassino Sombrio',
+      subtitle: 'Lâmina Fantasma das Catacumbas',
+      icon: '🗡️',
+      description: 'Rápido como o vento e cirúrgico em cada golpe. Suas adagas gêmeas desferem acertos críticos devastadores que concedem rajadas de velocidade extrema.',
+      unlocked: true,
+      startingWeapon: 'twin_daggers',
+      color: '#2c3e50',
+      accentColor: '#e74c3c',
+      stats: {
+        maxHp: 90,
+        armor: 1,
+        moveSpeed: 3.85,
+        damageMultiplier: 1.10,
+        cooldownMultiplier: 0.80,
+        areaMultiplier: 0.95,
+        pickupRadius: 95,
+        hpRegen: 0.1
+      },
+      perkDesc: 'Execução Sombria: +25% Chance Crítica inata (2.5x dano) e surto de velocidade ao acertar críticos.'
+    });
+
+    // CLASSE 8: Cavaleiro Negro Caído (Tanque & Espinhos)
+    this.registerClass({
+      id: 'dark_knight',
+      name: 'Cavaleiro Negro Caído',
+      subtitle: 'A Muralha de Espinhos Amaldiçoada',
+      icon: '🖤',
+      description: 'Um campeão lendário corrompido pelas trevas. Sua armadura colossal resiste aos piores castigos e retalia contra qualquer inimigo tolo o suficiente para tocá-lo.',
+      unlocked: true,
+      startingWeapon: 'dark_greatsword',
+      color: '#1a1a24',
+      accentColor: '#e74c3c',
+      stats: {
+        maxHp: 160,
+        armor: 5,
+        moveSpeed: 2.75,
+        damageMultiplier: 1.25,
+        cooldownMultiplier: 1.10,
+        areaMultiplier: 1.30,
+        pickupRadius: 80,
+        hpRegen: 0.4
+      },
+      perkDesc: 'Retaliação de Espinhos: +5 Armadura base. Ao sofrer dano, explode estilhaços de ferro causando 150% de dano refletido em área.'
+    });
+
+    // CLASSE 9: Alquimista da Peste (Ácido & Veneno)
+    this.registerClass({
+      id: 'plague_alchemist',
+      name: 'Alquimista da Peste',
+      subtitle: 'Doutor da Máscara de Corvo',
+      icon: '🧪',
+      description: 'Especialista em alquimia negra e substâncias voláteis. Arremessa frascos de ácido corrosivo que criam poças venenosas e contaminam monstros em cadeia.',
+      unlocked: true,
+      startingWeapon: 'plague_flask',
+      color: '#27ae60',
+      accentColor: '#2c3e50',
+      stats: {
+        maxHp: 105,
+        armor: 1,
+        moveSpeed: 3.25,
+        damageMultiplier: 1.20,
+        cooldownMultiplier: 0.95,
+        areaMultiplier: 1.35,
+        pickupRadius: 100,
+        hpRegen: 0.2
+      },
+      perkDesc: 'Contágio Corrosivo: Poças de ácido contínuo; monstros abatidos explodem espalhando ácido aos arredores.'
     });
   }
 }

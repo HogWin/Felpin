@@ -67,6 +67,7 @@ class GameRenderer {
     this.playerMesh = null;
     this.currentPlayerClass = null;
     this.enemyMeshMap = new Map(); // enemyId -> THREE.Group
+    this.allyMeshMap = new Map();  // ally -> THREE.Group
     this.gemMeshMap = new Map();   // gem -> THREE.Group
     this.chestMeshMap = new Map(); // chest -> THREE.Group
     this.projectileMeshMap = new Map(); // projectile -> THREE.Group
@@ -186,6 +187,9 @@ class GameRenderer {
   clearMeshPools() {
     for (let [, mesh] of this.enemyMeshMap) this.scene.remove(mesh);
     this.enemyMeshMap.clear();
+
+    for (let [, mesh] of this.allyMeshMap) this.scene.remove(mesh);
+    this.allyMeshMap.clear();
 
     for (let [, mesh] of this.gemMeshMap) this.scene.remove(mesh);
     this.gemMeshMap.clear();
@@ -412,6 +416,9 @@ class GameRenderer {
     // 4. Update Enemy 3D Meshes
     this.updateEnemies(game.enemies, dt);
 
+    // 4.5. Update Allied Minion 3D Meshes (Necromancer minions)
+    this.updateAllies(game.allies, dt);
+
     // 5. Update XP Gems 3D Meshes
     this.updateGems(game.gems, dt);
 
@@ -470,6 +477,39 @@ class GameRenderer {
         this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0xa81923, 6, 30);
         this.scene.remove(mesh);
         this.enemyMeshMap.delete(id);
+      }
+    }
+  }
+
+  updateAllies(allies, dt) {
+    if (!allies) return;
+    const activeAllies = new Set();
+
+    for (let i = 0, len = allies.length; i < len; i++) {
+      const a = allies[i];
+      if (!a.alive) continue;
+
+      activeAllies.add(a);
+      let mesh = this.allyMeshMap.get(a);
+
+      if (!mesh) {
+        mesh = window.MedievalSurvivors.models3d.createAlliedMinionModel();
+        this.scene.add(mesh);
+        this.allyMeshMap.set(a, mesh);
+      }
+
+      mesh.position.set(a.x, 0, a.y);
+      if (mesh.anim && mesh.anim.update) {
+        mesh.anim.update(dt, a.speed);
+      }
+    }
+
+    // Clean up expired allies
+    for (const [a, mesh] of this.allyMeshMap.entries()) {
+      if (!activeAllies.has(a)) {
+        this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0x9b59b6, 6, 25);
+        this.scene.remove(mesh);
+        this.allyMeshMap.delete(a);
       }
     }
   }
@@ -558,10 +598,13 @@ class GameRenderer {
       activeProjectiles.add(p);
 
       if (p.state === 'burning') {
-        // Holy Fire burning ground pool with volumetric 3D dancing flames
         let poolMesh = this.holyFirePoolsMap.get(p);
         if (!poolMesh) {
-          poolMesh = window.MedievalSurvivors.models3d.createHolyFirePoolMesh(p.radius || 40, p.isEvolved);
+          if (p.isPlague) {
+            poolMesh = window.MedievalSurvivors.models3d.createPlaguePuddleMesh(p.radius || 40, p.isEvolved);
+          } else {
+            poolMesh = window.MedievalSurvivors.models3d.createHolyFirePoolMesh(p.radius || 40, p.isEvolved);
+          }
           this.scene.add(poolMesh);
           this.holyFirePoolsMap.set(p, poolMesh);
         }
@@ -578,6 +621,10 @@ class GameRenderer {
           pMesh = window.MedievalSurvivors.models3d.createThrownAxeMesh(p.isEvolved);
         } else if (p.constructor && p.constructor.name === 'SpearShockwave') {
           pMesh = window.MedievalSurvivors.models3d.createSpearShockwaveMesh(p.isEvolved);
+        } else if (p.constructor && p.constructor.name === 'SpectralOrb') {
+          pMesh = window.MedievalSurvivors.models3d.createSpectralOrbMesh(p.isEvolved);
+        } else if (p.isPlague || (p.constructor && p.constructor.name === 'PlagueFlask')) {
+          pMesh = window.MedievalSurvivors.models3d.createPlagueFlaskMesh(p.isEvolved);
         } else {
           pMesh = window.MedievalSurvivors.models3d.createHolyFireFlaskMesh(p.isEvolved);
         }
@@ -593,9 +640,12 @@ class GameRenderer {
         pMesh.rotation.y = -p.angle + Math.PI / 2;
         pMesh.rotation.x = p.rotation || 0;
         pMesh.rotation.z = Math.sin(p.rotation || 0) * 0.4;
-      } else if (p.constructor && p.constructor.name === 'HolyFireFlask') {
+      } else if ((p.constructor && p.constructor.name === 'HolyFireFlask') || p.isPlague) {
         pMesh.rotation.x = (p.flightProgress || 0) * Math.PI * 4;
         pMesh.rotation.z = (p.flightProgress || 0) * Math.PI * 2;
+      } else if (p.constructor && p.constructor.name === 'SpectralOrb') {
+        pMesh.rotation.y += dt * 3;
+        pMesh.rotation.z += dt * 2;
       } else if (p.angle !== undefined) {
         pMesh.rotation.y = -p.angle + Math.PI / 2;
       } else if (p.rotation !== undefined) {
@@ -619,36 +669,45 @@ class GameRenderer {
       epMesh.position.set(ep.x, 8, ep.y);
     }
 
-    // 4. Sword Slashes (Broadsword)
-    const swordWep = game.player.weapons.find(w => w.id === 'broadsword');
-    if (swordWep && swordWep.slashEffects) {
-      for (let i = 0; i < swordWep.slashEffects.length; i++) {
-        const slash = swordWep.slashEffects[i];
-        if (slash.duration > 0) {
-          activeProjectiles.add(slash);
-          let sMesh = this.projectileMeshMap.get(slash);
-          if (!sMesh) {
-            sMesh = window.MedievalSurvivors.models3d.createSwordSlashMesh(slash.isEvolved);
-            this.scene.add(sMesh);
-            this.projectileMeshMap.set(slash, sMesh);
-          }
-          // Follow player position so slash stays firmly anchored to the hero!
-          const posX = slash.player ? slash.player.x : slash.x;
-          const posZ = slash.player ? slash.player.y : slash.y;
-          sMesh.position.set(posX, 8, posZ);
-          sMesh.rotation.y = -slash.angle + Math.PI / 2;
-          const prog = 1 - (slash.duration / (slash.maxDuration || 0.16));
-          // Proportional blade scale and dynamic visceral fade out
-          const s = (slash.radius / 38) * (0.8 + prog * 0.25);
-          sMesh.scale.set(s, s, s);
-
-          const fade = Math.max(0, 1 - prog);
-          sMesh.traverse(child => {
-            if (child.isMesh && child.material) {
-              if (child._baseOpacity === undefined) child._baseOpacity = child.material.opacity;
-              child.material.opacity = child._baseOpacity * fade;
+    // 4. Slashes (Broadsword, Twin Daggers, Dark Greatsword)
+    const slashWeapons = ['broadsword', 'twin_daggers', 'dark_greatsword'];
+    for (let wIdx = 0; wIdx < slashWeapons.length; wIdx++) {
+      const wepId = slashWeapons[wIdx];
+      const wep = game.player.weapons.find(w => w.id === wepId);
+      if (wep && wep.slashEffects) {
+        for (let i = 0; i < wep.slashEffects.length; i++) {
+          const slash = wep.slashEffects[i];
+          if (slash.duration > 0) {
+            activeProjectiles.add(slash);
+            let sMesh = this.projectileMeshMap.get(slash);
+            if (!sMesh) {
+              if (wepId === 'twin_daggers') {
+                sMesh = window.MedievalSurvivors.models3d.createDaggerSlashMesh(slash.isEvolved);
+              } else if (wepId === 'dark_greatsword') {
+                sMesh = window.MedievalSurvivors.models3d.createDarkSlashMesh(slash.isEvolved);
+              } else {
+                sMesh = window.MedievalSurvivors.models3d.createSwordSlashMesh(slash.isEvolved);
+              }
+              this.scene.add(sMesh);
+              this.projectileMeshMap.set(slash, sMesh);
             }
-          });
+            // Follow player position so slash stays firmly anchored to the hero!
+            const posX = slash.player ? slash.player.x : slash.x;
+            const posZ = slash.player ? slash.player.y : slash.y;
+            sMesh.position.set(posX, 8, posZ);
+            sMesh.rotation.y = -slash.angle + Math.PI / 2;
+            const prog = 1 - (slash.duration / (slash.maxDuration || 0.16));
+            const s = (slash.radius / 38) * (0.8 + prog * 0.25);
+            sMesh.scale.set(s, s, s);
+
+            const fade = Math.max(0, 1 - prog);
+            sMesh.traverse(child => {
+              if (child.isMesh && child.material) {
+                if (child._baseOpacity === undefined) child._baseOpacity = child.material.opacity;
+                child.material.opacity = child._baseOpacity * fade;
+              }
+            });
+          }
         }
       }
     }
