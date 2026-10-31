@@ -142,6 +142,16 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       };
     }
 
+    // Freezes object matrices to skip matrixWorld re-calculations in Three.js
+    freezeMatrix(obj) {
+      if (!obj) return;
+      obj.matrixAutoUpdate = false;
+      obj.updateMatrix();
+      for (let i = 0, len = obj.children.length; i < len; i++) {
+        this.freezeMatrix(obj.children[i]);
+      }
+    }
+
     buildBoundedArena() {
       this.arenaGroup = new THREE.Group();
       const rng = this.prng;
@@ -152,6 +162,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       groundGeo.rotateX(-Math.PI / 2);
       const groundMesh = new THREE.Mesh(groundGeo, this.groundMaterial);
       groundMesh.position.set(0, 0, 0);
+      this.freezeMatrix(groundMesh);
       this.arenaGroup.add(groundMesh);
 
       // Outer darkened perimeter abyss plane (outside the fortress walls)
@@ -160,9 +171,17 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       const abyssMat = new THREE.MeshBasicMaterial({ color: 0x030205 });
       const abyssMesh = new THREE.Mesh(abyssGeo, abyssMat);
       abyssMesh.position.set(0, -0.6, 0);
+      this.freezeMatrix(abyssMesh);
       this.arenaGroup.add(abyssMesh);
 
-      // 2. High-Performance Perimeter Walls on the 4 Edges of the Square
+      // 2. High-Performance Perimeter Walls grouped into 4 cardinal sides for instant distance culling
+      this.wallNorth = new THREE.Group();
+      this.wallSouth = new THREE.Group();
+      this.wallWest = new THREE.Group();
+      this.wallEast = new THREE.Group();
+      this.towers = [];
+      this.interiorProps = [];
+
       const step = 50;
       const count = Math.floor((this.arenaSize) / step);
 
@@ -174,7 +193,8 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         if (wallN) {
           wallN.position.set(offset, 0, -hs);
           wallN.rotation.y = 0;
-          this.arenaGroup.add(wallN);
+          this.freezeMatrix(wallN);
+          this.wallNorth.add(wallN);
         }
 
         // South Wall (Z = +hs)
@@ -182,7 +202,8 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         if (wallS) {
           wallS.position.set(offset, 0, hs);
           wallS.rotation.y = Math.PI;
-          this.arenaGroup.add(wallS);
+          this.freezeMatrix(wallS);
+          this.wallSouth.add(wallS);
         }
 
         // West Wall (X = -hs)
@@ -190,7 +211,8 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         if (wallW) {
           wallW.position.set(-hs, 0, offset);
           wallW.rotation.y = Math.PI / 2;
-          this.arenaGroup.add(wallW);
+          this.freezeMatrix(wallW);
+          this.wallWest.add(wallW);
         }
 
         // East Wall (X = +hs)
@@ -198,9 +220,26 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         if (wallE) {
           wallE.position.set(hs, 0, offset);
           wallE.rotation.y = -Math.PI / 2;
-          this.arenaGroup.add(wallE);
+          this.freezeMatrix(wallE);
+          this.wallEast.add(wallE);
         }
       }
+
+      this.freezeMatrix(this.wallNorth);
+      this.freezeMatrix(this.wallSouth);
+      this.freezeMatrix(this.wallWest);
+      this.freezeMatrix(this.wallEast);
+
+      // Initialize walls hidden; dynamic update will show only nearby wall sections
+      this.wallNorth.visible = false;
+      this.wallSouth.visible = false;
+      this.wallWest.visible = false;
+      this.wallEast.visible = false;
+
+      this.arenaGroup.add(this.wallNorth);
+      this.arenaGroup.add(this.wallSouth);
+      this.arenaGroup.add(this.wallWest);
+      this.arenaGroup.add(this.wallEast);
 
       // 4 Grand Bastion Corner Towers
       const corners = [
@@ -212,6 +251,9 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       corners.forEach(([cx, cz]) => {
         const tower = this.createCornerTower(rng);
         tower.position.set(cx, 0, cz);
+        this.freezeMatrix(tower);
+        tower.visible = false;
+        this.towers.push(tower);
         this.arenaGroup.add(tower);
       });
 
@@ -222,13 +264,15 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       sanctuaryCorners.forEach(([bx, bz]) => {
         const brazier = this.createBrazier('gold', rng);
         brazier.position.set(bx, 0, bz);
+        this.freezeMatrix(brazier);
+        this.interiorProps.push(brazier);
         this.arenaGroup.add(brazier);
         if (brazier._light && this.activeTorches.length < 2) {
           this.activeTorches.push(brazier._light);
         }
       });
 
-      // 4. Randomized Thematic Interior Props scattered throughout the vast square arena
+      // 4. Randomized Thematic Interior Props scattered throughout the arena
       const propCount = 65 + Math.floor(rng() * 15);
       for (let i = 0; i < propCount; i++) {
         const propType = this.currentBiome.accentProps[Math.floor(rng() * this.currentBiome.accentProps.length)];
@@ -248,6 +292,8 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
           prop.rotation.y = rng() * Math.PI * 2;
           const sc = 0.85 + rng() * 0.4;
           prop.scale.set(sc, sc, sc);
+          this.freezeMatrix(prop);
+          this.interiorProps.push(prop);
           this.arenaGroup.add(prop);
 
           if (prop._light && this.activeTorches.length < 2) {
@@ -257,6 +303,38 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       }
 
       this.scene.add(this.arenaGroup);
+    }
+
+    // Dynamic Frustum & Distance Culling: eliminates up to 3,000 draw calls per frame!
+    update(playerX = 0, playerZ = 0) {
+      if (!this.arenaGroup) return;
+
+      // 1. Boundary walls visibility (only rendered when player approaches arena limits)
+      if (this.wallNorth) this.wallNorth.visible = (playerZ <= -920);
+      if (this.wallSouth) this.wallSouth.visible = (playerZ >= 920);
+      if (this.wallWest) this.wallWest.visible = (playerX <= -920);
+      if (this.wallEast) this.wallEast.visible = (playerX >= 920);
+
+      // 2. Corner towers visibility (within 950 units)
+      if (this.towers) {
+        for (let i = 0, len = this.towers.length; i < len; i++) {
+          const t = this.towers[i];
+          const dx = t.position.x - playerX;
+          const dz = t.position.z - playerZ;
+          t.visible = (dx * dx + dz * dz) <= (950 * 950);
+        }
+      }
+
+      // 3. Interior props distance culling (camera view frustum is ~600)
+      if (this.interiorProps) {
+        const maxDistSq = 720 * 720;
+        for (let i = 0, len = this.interiorProps.length; i < len; i++) {
+          const p = this.interiorProps[i];
+          const dx = p.position.x - playerX;
+          const dz = p.position.z - playerZ;
+          p.visible = (dx * dx + dz * dz) <= maxDistSq;
+        }
+      }
     }
 
     createCornerTower(rng) {
@@ -971,6 +1049,12 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         this.scene.remove(this.arenaGroup);
         this.arenaGroup = null;
       }
+      this.wallNorth = null;
+      this.wallSouth = null;
+      this.wallWest = null;
+      this.wallEast = null;
+      this.towers = [];
+      this.interiorProps = [];
       this.activeTorches = [];
     }
   }

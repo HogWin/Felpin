@@ -23,7 +23,8 @@ class SaveManager {
         autoGoldOnMax: false,
         hyperMode: false,
         curseRank: 0,
-        isRankedMode: true
+        isRankedMode: true,
+        graphicsQuality: 'alta'
       },
       metaUpgrades: {
         health: 0,      // Max HP

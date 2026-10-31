@@ -2678,8 +2678,10 @@ class UIController {
         sm.data.settings.graphicsQuality = nextQuality;
         sm.save();
       }
-      if (this.game.renderer && this.game.renderer.renderer) {
-        this.game.renderer.renderer.setPixelRatio(nextQuality === 'alta' ? Math.min(window.devicePixelRatio || 1, 1.25) : 1.0);
+      if (this.game.renderer && this.game.renderer.setGraphicsQuality) {
+        this.game.renderer.setGraphicsQuality(nextQuality);
+      } else if (this.game.renderer && this.game.renderer.renderer) {
+        this.game.renderer.renderer.setPixelRatio(nextQuality === 'alta' ? Math.min(window.devicePixelRatio || 1, 1.15) : 1.0);
       }
       this.renderSettingsTab();
     });

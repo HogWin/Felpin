@@ -28,7 +28,7 @@ class GameRenderer {
       powerPreference: 'high-performance'
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.15));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.40;
 
@@ -148,6 +148,19 @@ class GameRenderer {
     grad.addColorStop(0.70, 'rgba(6, 4, 10, 0.10)');
     grad.addColorStop(1, 'rgba(6, 4, 10, 0.35)');
     this.vignetteGradient = grad;
+  }
+
+  setGraphicsQuality(quality = 'alta') {
+    this.graphicsQuality = quality;
+    const isHigh = quality === 'alta';
+    const targetPixelRatio = isHigh ? Math.min(window.devicePixelRatio || 1, 1.15) : 1.0;
+    this.renderer.setPixelRatio(targetPixelRatio);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    if (this.overlayCanvas) {
+      this.overlayCanvas.width = window.innerWidth;
+      this.overlayCanvas.height = window.innerHeight;
+    }
+    this.buildVignetteCache();
   }
 
   // Called when starting a new run to generate a fresh random procedural map & biome
@@ -317,11 +330,12 @@ class GameRenderer {
   // 3D Particles system (hit sparks, embers, soul dust)
   init3DParticles() {
     const THREE = this.THREE;
-    this.maxParticles = 600;
+    this.maxParticles = 500;
     this.particlePositions = new Float32Array(this.maxParticles * 3);
     this.particleColors = new Float32Array(this.maxParticles * 3);
     this.particleSizes = new Float32Array(this.maxParticles);
     this.particlesData = [];
+    this.activeParticleIndices = [];
 
     const pGeo = new THREE.BufferGeometry();
     pGeo.setAttribute('position', new THREE.BufferAttribute(this.particlePositions, 3));
@@ -372,7 +386,6 @@ class GameRenderer {
     const cb = this._tempColor.b;
 
     for (let c = 0; c < count; c++) {
-      // Find inactive particle slot with bounded cursor search (O(1))
       let slot = -1;
       for (let attempt = 0; attempt < 8; attempt++) {
         const idx = (this.particleCursor + attempt) % this.maxParticles;
@@ -387,7 +400,10 @@ class GameRenderer {
       this.particleCursor = (slot + 1) % this.maxParticles;
 
       const p = this.particlesData[slot];
-      p.alive = true;
+      if (!p.alive) {
+        p.alive = true;
+        this.activeParticleIndices.push(slot);
+      }
       p.life = 0;
       p.maxLife = 0.35 + Math.random() * 0.45;
 
@@ -410,23 +426,33 @@ class GameRenderer {
 
   update3DParticles(dt) {
     let needsUpdate = false;
-    for (let i = 0; i < this.maxParticles; i++) {
-      const p = this.particlesData[i];
-      if (!p.alive) continue;
+    const indices = this.activeParticleIndices;
+
+    for (let i = indices.length - 1; i >= 0; i--) {
+      const slot = indices[i];
+      const p = this.particlesData[slot];
+      if (!p || !p.alive) {
+        indices[i] = indices[indices.length - 1];
+        indices.pop();
+        continue;
+      }
 
       p.life += dt;
       if (p.life >= p.maxLife) {
         p.alive = false;
-        this.particlePositions[i * 3 + 1] = -1000;
+        this.particlePositions[slot * 3 + 1] = -1000;
+        indices[i] = indices[indices.length - 1];
+        indices.pop();
         needsUpdate = true;
         continue;
       }
 
       // Physics
       p.vy -= 40 * dt; // gravity
-      this.particlePositions[i * 3] += p.vx * dt;
-      this.particlePositions[i * 3 + 1] += p.vy * dt;
-      this.particlePositions[i * 3 + 2] += p.vz * dt;
+      const s3 = slot * 3;
+      this.particlePositions[s3] += p.vx * dt;
+      this.particlePositions[s3 + 1] += p.vy * dt;
+      this.particlePositions[s3 + 2] += p.vz * dt;
       needsUpdate = true;
     }
 
@@ -499,7 +525,7 @@ class GameRenderer {
     this.updateCamera(player, dt);
 
     // 2. Update Generative Map Chunks around Player
-    this.map3D.update(player.x, player.y);
+    if (this.map3D && this.map3D.update) { this.map3D.update(player.x, player.y); }
 
     // 3. Update Player 3D Mesh
     this.updatePlayerMesh(player, dt);
@@ -1121,7 +1147,9 @@ class GameRenderer {
           ctx.fillStyle = ft.color || '#ffffff';
           ctx.font = ft.isCritical ? 'bold 26px Cinzel, Georgia' : 'bold 20px Cinzel, Georgia';
           const drawY = screenPos.y - (1 - ft.life) * 28;
-          ctx.strokeText(ft.text, screenPos.x, drawY);
+          if (ft.isCritical) {
+            ctx.strokeText(ft.text, screenPos.x, drawY);
+          }
           ctx.fillText(ft.text, screenPos.x, drawY);
         }
       }

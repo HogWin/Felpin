@@ -1377,32 +1377,37 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     shadow.position.y = 0.12;
     root.add(shadow);
 
-    // 2. Indicador visual da área de ataque/contato do monstro no chão (Threat Ring)
+    // 2. Indicador visual de perigo no chão (Threat Ring exclusivo para Chefes e Campeões - poupa centenas de draw calls)
     const attackR = Math.max(12, enemy.radius || 14);
     const isBoss = !!enemy.isBoss;
-    const threatGroup = new THREE.Group();
-    threatGroup.position.y = 0.18;
-
-    const threatRing = new THREE.Mesh(isBoss ? unitRingBossGeo : unitRingGeo, isBoss ? threatRingMatBoss : threatRingMatRegular);
-    threatRing.scale.set(attackR, 1, attackR);
-    threatGroup.add(threatRing);
-
-    const threatFill = new THREE.Mesh(isBoss ? unitDiscBossGeo : unitDiscGeo, isBoss ? threatFillMatBoss : threatFillMatRegular);
-    threatFill.scale.set(attackR, 1, attackR);
-    threatGroup.add(threatFill);
-
+    const isChampion = !!enemy.isChampion;
+    let threatGroup = null;
     let bossOuterRing = null;
-    if (isBoss) {
-      bossOuterRing = new THREE.Mesh(unitRingBossGeo, threatRingMatBoss);
-      bossOuterRing.scale.set(attackR * 1.25, 1, attackR * 1.25);
-      threatGroup.add(bossOuterRing);
+
+    if (isBoss || isChampion) {
+      threatGroup = new THREE.Group();
+      threatGroup.position.y = 0.18;
+
+      const threatRing = new THREE.Mesh(isBoss ? unitRingBossGeo : unitRingGeo, isBoss ? threatRingMatBoss : threatRingMatRegular);
+      threatRing.scale.set(attackR, 1, attackR);
+      threatGroup.add(threatRing);
+
+      const threatFill = new THREE.Mesh(isBoss ? unitDiscBossGeo : unitDiscGeo, isBoss ? threatFillMatBoss : threatFillMatRegular);
+      threatFill.scale.set(attackR, 1, attackR);
+      threatGroup.add(threatFill);
+
+      if (isBoss) {
+        bossOuterRing = new THREE.Mesh(unitRingBossGeo, threatRingMatBoss);
+        bossOuterRing.scale.set(attackR * 1.25, 1, attackR * 1.25);
+        threatGroup.add(bossOuterRing);
+      }
+      root.add(threatGroup);
     }
-    root.add(threatGroup);
 
     // Collect all render meshes for zero-allocation hit flashing (ignoring shadows and threat indicators)
     anim.flashMeshes = [];
     root.traverse(child => {
-      if (child.isMesh && child !== shadow && !threatGroup.children.includes(child)) {
+      if (child.isMesh && child !== shadow && (!threatGroup || !threatGroup.children.includes(child))) {
         child._origMat = child.material;
         anim.flashMeshes.push(child);
       }
@@ -2092,10 +2097,12 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     root.add(mesh);
     root.position.y = 8;
 
+    root._animTimer = Math.random() * Math.PI * 2;
     root.updateVisuals = function(dt) {
       mesh.rotation.y += dt * 3.0;
       mesh.rotation.x += dt * 1.5;
-      root.position.y = 7 + Math.sin(Date.now() / 250) * 2;
+      root._animTimer += dt * 3.5;
+      root.position.y = 7.5 + Math.sin(root._animTimer) * 1.8;
     };
 
     return root;

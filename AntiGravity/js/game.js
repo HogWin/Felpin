@@ -74,6 +74,9 @@ class Game {
     this.isRankedMode = (this.saveManager && this.saveManager.data.settings.isRankedMode !== undefined)
       ? this.saveManager.data.settings.isRankedMode
       : true;
+    if (this.saveManager && this.saveManager.data.settings.graphicsQuality && this.renderer && this.renderer.setGraphicsQuality) {
+      this.renderer.setGraphicsQuality(this.saveManager.data.settings.graphicsQuality);
+    }
 
     this.state = 'MENU'; // 'MENU', 'PLAYING', 'PAUSED', 'LEVEL_UP', 'CHEST', 'GAME_OVER', 'VICTORY'
     this.selectedClassId = 'knight'; // Default class
