@@ -1487,8 +1487,15 @@ class UIController {
     const engine = window.MedievalSurvivors.skillTreeEngine;
     if (!engine) return;
 
-    if (!this._skillTreeSelectedNode) {
-      this._skillTreeSelectedNode = 'origin';
+    if (!this._skillTreeActiveClass) {
+      this._skillTreeActiveClass = this.game.selectedClassId || 'knight';
+    }
+    const activeClass = this._skillTreeActiveClass;
+    const tree = engine.getClassTree(activeClass);
+    const originId = engine.getOriginNodeId(activeClass);
+
+    if (!this._skillTreeSelectedNode || !engine.getNode(this._skillTreeSelectedNode, activeClass)) {
+      this._skillTreeSelectedNode = originId;
     }
     if (this._skillTreeZoom === undefined) {
       this._skillTreeZoom = 1.0;
@@ -1497,21 +1504,26 @@ class UIController {
       this._skillTreeCenter = { x: 500, y: 500 };
     }
 
-    const allocatedArray = sm.getSkillTreeAllocated();
-    const allocatedSet = new Set(allocatedArray);
-    const totalSpent = sm.getSkillTreeSpentGold();
-    const allNodes = engine.getAllNodes();
-    const selectedNode = engine.getNode(this._skillTreeSelectedNode) || engine.getNode('origin');
-    const branches = engine.branches;
+    const classRegistry = window.MedievalSurvivors.classRegistry;
+    const allClasses = classRegistry ? classRegistry.getAllClasses() : [
+      { id: 'knight', name: 'Cavaleiro Real', icon: '🛡️' }
+    ];
 
-    const bonuses = engine.calculateCumulativeBonuses(allocatedArray);
+    const allocatedArray = sm.getSkillTreeAllocated(activeClass);
+    const allocatedSet = new Set(allocatedArray);
+    const totalSpent = sm.getSkillTreeSpentGold(activeClass);
+    const allNodes = engine.getAllNodes(activeClass);
+    const selectedNode = engine.getNode(this._skillTreeSelectedNode, activeClass) || engine.getNode(originId, activeClass);
+    const branches = engine.getBranches(activeClass);
+
+    const bonuses = engine.calculateCumulativeBonuses(allocatedArray, activeClass);
 
     this.menuTabContent.innerHTML = `
       <div class="skill-tree-tab-wrap">
         <div class="skill-tree-header-banner">
           <div class="tree-header-titles">
-            <h3>🕸️ CONSTELAÇÃO ANCESTRAL DE VALORIA</h3>
-            <p>Evolua caminhos arcanos no estilo constelação com pequenas passivas (+1%, +2 HP), notáveis e pedras angulares lendárias.</p>
+            <h3>🕸️ ${tree.name.toUpperCase()}</h3>
+            <p>${tree.subtitle}</p>
           </div>
           <div class="tree-header-actions">
             <div class="tree-pill-stat">
@@ -1519,7 +1531,7 @@ class UIController {
               <strong class="text-gold">${sm.getGold().toLocaleString()} 💰</strong>
             </div>
             <div class="tree-pill-stat">
-              <span>Talentos Alocados:</span>
+              <span>Talentos de ${tree.name}:</span>
               <strong class="text-emerald">${allocatedArray.length} / ${allNodes.length}</strong>
             </div>
             <div class="tree-pill-stat">
@@ -1527,12 +1539,28 @@ class UIController {
               <strong>${totalSpent.toLocaleString()} 💰</strong>
             </div>
             <button class="btn-royal btn-refund-gold" id="btn-refund-tree" ${totalSpent <= 0 ? 'disabled' : ''}>
-              🔄 Reembolsar Talentos (${totalSpent.toLocaleString()} 💰)
+              🔄 Reembolsar Classe (${totalSpent.toLocaleString()} 💰)
             </button>
             <button class="btn-royal btn-tree-summary" id="btn-toggle-tree-summary">
-              📜 Resumo das Bênçãos
+              📜 Bênçãos da Classe
             </button>
           </div>
+        </div>
+
+        <!-- Class Selector Ribbon -->
+        <div class="skill-tree-class-selector">
+          ${allClasses.map(c => {
+            const isAct = c.id === activeClass;
+            const allocCount = sm.getSkillTreeAllocated(c.id).length;
+            const totalCount = engine.getAllNodes(c.id).length;
+            return `
+              <button class="tree-class-btn ${isAct ? 'active' : ''}" data-class-id="${c.id}" title="${c.subtitle}">
+                <span>${c.icon || '⚔️'}</span>
+                <span>${c.name}</span>
+                <span class="tree-class-badge">${allocCount}/${totalCount}</span>
+              </button>
+            `;
+          }).join('')}
         </div>
 
         <div class="skill-tree-main-layout">
@@ -1586,7 +1614,7 @@ class UIController {
         <!-- Collapsible Summary Drawer -->
         <div class="tree-summary-drawer" id="tree-summary-drawer" style="display: ${this._skillTreeShowSummary ? 'block' : 'none'};">
           <div class="drawer-header">
-            <h4>📜 BÊNÇÃOS ACUMULADAS DA CONSTELAÇÃO</h4>
+            <h4>📜 BÊNÇÃOS ATIVAS: ${tree.name.toUpperCase()}</h4>
             <button class="drawer-close-btn" id="btn-close-summary">✖</button>
           </div>
           <div class="summary-stats-grid">
@@ -1605,12 +1633,6 @@ class UIController {
             <div class="summary-stat-box"><span class="lbl">Projéteis Extras:</span><strong class="val text-gold">+${bonuses.extraProjectiles}</strong></div>
             <div class="summary-stat-box"><span class="lbl">Cargas Reroll:</span><strong class="val text-gold">+${bonuses.extraRerolls}</strong></div>
           </div>
-          <div class="summary-keystones-row">
-            <span class="keystone-pill ${bonuses.colossusPact ? 'active' : ''}">🛡️ Colosso Indomável: ${bonuses.colossusPact ? 'ATIVO' : 'INATIVO'}</span>
-            <span class="keystone-pill ${bonuses.shockwaveOnCrit ? 'active' : ''}">💥 Avatar da Ruína: ${bonuses.shockwaveOnCrit ? 'ATIVO' : 'INATIVO'}</span>
-            <span class="keystone-pill ${bonuses.extraProjectiles > 0 ? 'active' : ''}">🏹 Chuva de Estilhaços: ${bonuses.extraProjectiles > 0 ? 'ATIVO' : 'INATIVO'}</span>
-            <span class="keystone-pill ${bonuses.cosmicGems ? 'active' : ''}">✨ Singularidade Cósmica: ${bonuses.cosmicGems ? 'ATIVO' : 'INATIVO'}</span>
-          </div>
         </div>
       </div>
     `;
@@ -1618,14 +1640,14 @@ class UIController {
     // ── Helper to render the Inspector Card ───────────────────
     const renderInspector = (nodeId) => {
       this._skillTreeSelectedNode = nodeId;
-      const node = engine.getNode(nodeId) || engine.getNode('origin');
+      const node = engine.getNode(nodeId, activeClass) || engine.getNode(originId, activeClass);
       const card = document.getElementById('talent-inspector-card');
       if (!card) return;
 
       const isAllocated = allocatedSet.has(node.id);
-      const canUnlock = engine.canUnlock(node.id, allocatedSet);
+      const canUnlock = engine.canUnlock(node.id, allocatedSet, activeClass);
       const canAfford = sm.getGold() >= node.cost;
-      const branchInfo = branches[node.branch] || { name: 'Núcleo Central', color: '#f1c40f', icon: 'spark' };
+      const branchInfo = branches[node.branch] || { name: 'Núcleo da Classe', color: tree.color || '#f1c40f', icon: 'spark' };
 
       let tierBadge = '';
       if (node.tier === 'origin') tierBadge = '<span class="badge-origin">CENTRO ANCESTRAL</span>';
@@ -1635,7 +1657,7 @@ class UIController {
 
       let reqBranchText = '';
       if (node.reqBranchCount && node.reqBranchCount > 0) {
-        const curCount = engine.getBranchAllocatedCount(node.branch, allocatedSet);
+        const curCount = engine.getBranchAllocatedCount(node.branch, allocatedSet, activeClass);
         const met = curCount >= node.reqBranchCount;
         reqBranchText = `<div class="inspect-req-line ${met ? 'req-met' : 'req-missing'}">
           ${met ? '✅' : '⚠️'} Requer ${node.reqBranchCount} talentos neste ramo (Atual: ${curCount}/${node.reqBranchCount})
@@ -1689,7 +1711,7 @@ class UIController {
       const buyBtn = document.getElementById('btn-buy-talent');
       if (buyBtn) {
         buyBtn.addEventListener('click', () => {
-          const success = sm.purchaseSkillTreeNode(node.id);
+          const success = sm.purchaseSkillTreeNode(node.id, activeClass);
           if (success) {
             if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playLevelUp) {
               window.MedievalSurvivors.sound.playLevelUp();
@@ -1713,7 +1735,7 @@ class UIController {
 
     allNodes.forEach(node => {
       (node.connects || []).forEach(targetId => {
-        const targetNode = engine.getNode(targetId);
+        const targetNode = engine.getNode(targetId, activeClass);
         if (!targetNode) return;
         const edgeKey = [node.id, targetId].sort().join('--');
         if (drawnEdges.has(edgeKey)) return;
@@ -1722,8 +1744,8 @@ class UIController {
         const nodeAllocated = allocatedSet.has(node.id);
         const targetAllocated = allocatedSet.has(targetId);
         const bothAllocated = nodeAllocated && targetAllocated;
-        const isPathAvailable = (nodeAllocated && engine.canUnlock(targetId, allocatedSet)) ||
-                                (targetAllocated && engine.canUnlock(node.id, allocatedSet));
+        const isPathAvailable = (nodeAllocated && engine.canUnlock(targetId, allocatedSet, activeClass)) ||
+                                (targetAllocated && engine.canUnlock(node.id, allocatedSet, activeClass));
 
         let edgeClass = 'tree-edge-locked';
         let strokeColor = 'rgba(255, 255, 255, 0.08)';
@@ -1732,7 +1754,7 @@ class UIController {
 
         if (bothAllocated) {
           edgeClass = 'tree-edge-allocated';
-          strokeColor = '#f1c40f';
+          strokeColor = tree.color || '#f1c40f';
           strokeWidth = '3.5';
         } else if (isPathAvailable) {
           edgeClass = 'tree-edge-available';
@@ -1757,9 +1779,9 @@ class UIController {
 
     allNodes.forEach(node => {
       const isAllocated = allocatedSet.has(node.id);
-      const canUnlock = engine.canUnlock(node.id, allocatedSet);
+      const canUnlock = engine.canUnlock(node.id, allocatedSet, activeClass);
       const isSelected = node.id === this._skillTreeSelectedNode;
-      const branchInfo = branches[node.branch] || { color: '#f1c40f' };
+      const branchInfo = branches[node.branch] || { color: tree.color || '#f1c40f' };
 
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       let statusClass = isAllocated ? 'node-allocated' : (canUnlock ? 'node-available' : 'node-locked');
@@ -1772,58 +1794,53 @@ class UIController {
         // Origin Node: Grand Sun
         g.innerHTML = `
           <circle r="34" fill="rgba(241,196,15,0.18)" class="pulse-aura" />
-          <circle r="26" fill="#1b1202" stroke="#f1c40f" stroke-width="3" filter="url(#glow-gold)" />
-          <circle r="16" fill="#f39c12" />
+          <circle r="26" fill="#1b1202" stroke="${tree.color || '#f1c40f'}" stroke-width="3" filter="url(#glow-gold)" />
+          <circle r="16" fill="${tree.color || '#f39c12'}" />
           <polygon points="0,-12 3,-3 12,0 3,3 0,12 -3,3 -12,0 -3,-3" fill="#ffffff" />
         `;
       } else if (node.tier === 'minor') {
         // Minor Node: Glowing Gem Jewel
-        const fillColor = isAllocated ? branchInfo.color : (canUnlock ? '#1e2430' : '#121016');
-        const strokeColor = isAllocated ? '#fff1b8' : (canUnlock ? '#3498db' : 'rgba(255,255,255,0.2)');
+        const fillCol = isAllocated ? (branchInfo.color || '#f1c40f') : (canUnlock ? '#1a2a3a' : '#14121b');
+        const strokeCol = isAllocated ? '#ffffff' : (canUnlock ? '#3498db' : '#3d374d');
         g.innerHTML = `
-          ${canUnlock ? '<circle r="18" fill="none" stroke="#3498db" stroke-width="1.5" class="pulse-aura" />' : ''}
-          <circle r="13" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isAllocated ? '2.5' : '1.5'}" ${isAllocated ? 'filter="url(#glow-gold)"' : ''} />
-          <circle r="6" fill="${isAllocated ? '#ffffff' : (canUnlock ? branchInfo.color : '#2d2938')}" opacity="${isAllocated ? '0.85' : '0.6'}" />
+          <circle r="15" fill="${fillCol}" stroke="${strokeCol}" stroke-width="${isAllocated ? '2.5' : '1.5'}" class="node-body" />
+          <circle r="6" fill="${isAllocated ? '#ffffff' : 'rgba(255,255,255,0.2)'}" />
         `;
       } else if (node.tier === 'notable') {
-        // Notable Node: Diamond / Octagon Emblem
-        const strokeColor = isAllocated ? '#f1c40f' : (canUnlock ? '#00d2d3' : 'rgba(255,255,255,0.25)');
-        const fillColor = isAllocated ? branchInfo.color : '#15131f';
+        // Notable Node: Diamond with Outer Ring
+        const fillCol = isAllocated ? (branchInfo.color || '#f1c40f') : (canUnlock ? '#2a1f10' : '#14121b');
+        const strokeCol = isAllocated ? '#ffd700' : (canUnlock ? '#f39c12' : '#4d4233');
         g.innerHTML = `
-          ${canUnlock ? '<polygon points="0,-27 27,0 0,27 -27,0" fill="none" stroke="#00d2d3" stroke-width="1.5" class="pulse-aura" />' : ''}
-          <polygon points="0,-22 22,0 0,22 -22,0" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isAllocated ? '3' : '2'}" ${isAllocated ? 'filter="url(#glow-gold)"' : ''} />
-          <circle r="10" fill="${isAllocated ? '#fff9ea' : '#272033'}" stroke="${strokeColor}" stroke-width="1.2" />
-          <polygon points="0,-6 2,-2 6,0 2,2 0,6 -2,2 -6,0 -2,-2" fill="${isAllocated ? branchInfo.color : '#f1c40f'}" />
+          <circle r="22" fill="none" stroke="${strokeCol}" stroke-width="1.5" stroke-dasharray="4 3" />
+          <polygon points="0,-17 17,0 0,17 -17,0" fill="${fillCol}" stroke="${strokeCol}" stroke-width="2.5" class="node-body" />
+          <polygon points="0,-7 7,0 0,7 -7,0" fill="${isAllocated ? '#ffffff' : '#ffd700'}" />
         `;
       } else if (node.tier === 'keystone') {
-        // Keystone Node: Majestic Crown Star
-        const strokeColor = isAllocated ? '#f1c40f' : (canUnlock ? '#f39c12' : 'rgba(255,255,255,0.3)');
-        const fillColor = isAllocated ? '#2d1804' : '#140c06';
+        // Keystone: Grand Ornate 8-Pointed Star
+        const fillCol = isAllocated ? (branchInfo.color || '#e74c3c') : (canUnlock ? '#2c1010' : '#14121b');
+        const strokeCol = isAllocated ? '#ffd700' : (canUnlock ? '#e74c3c' : '#4d3333');
         g.innerHTML = `
-          <circle r="38" fill="none" stroke="${strokeColor}" stroke-width="1.5" stroke-dasharray="4 4" class="pulse-aura" />
-          <polygon points="0,-30 8,-12 26,-18 16,-2 30,8 12,12 8,30 -2,16 -18,26 -12,8 -30,0 -12,-8 -18,-26 -2,-16" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isAllocated ? '3' : '2'}" ${isAllocated ? 'filter="url(#glow-gold)"' : ''} />
-          <circle r="16" fill="${isAllocated ? branchInfo.color : '#251508'}" stroke="#ffd32a" stroke-width="2" />
-          <polygon points="0,-9 3,-3 9,0 3,3 0,9 -3,3 -9,0 -3,-3" fill="#ffffff" />
+          <circle r="30" fill="none" stroke="${strokeCol}" stroke-width="1.5" stroke-dasharray="6 4" class="keystone-ring" />
+          <circle r="24" fill="${fillCol}" stroke="${strokeCol}" stroke-width="3" filter="url(#glow-gold)" class="node-body" />
+          <polygon points="0,-18 5,-5 18,0 5,5 0,18 -5,5 -18,0 -5,-5" fill="#ffffff" />
+          <polygon points="-12,-12 0,-7 12,-12 7,0 12,12 0,7 -12,12 -7,0" fill="#ffd700" />
         `;
       }
 
       g.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playWoodHit) {
-          window.MedievalSurvivors.sound.playWoodHit();
-        }
         renderInspector(node.id);
       });
 
       nodesGroup.appendChild(g);
     });
 
-    // Initial inspector render
+    // Initial Inspector Card Render
     renderInspector(this._skillTreeSelectedNode);
 
-    // ── Viewport Drag/Pan & Zoom Logic ────────────────────────
-    const viewport = document.getElementById('talent-tree-viewport');
+    // ── Interactive Viewport Pan & Zoom Handling ──────────────
     const svg = document.getElementById('talent-tree-svg');
+    const viewport = document.getElementById('talent-tree-viewport');
     let isDragging = false;
     let startX = 0, startY = 0;
     let viewBox = { x: 0, y: 0, w: 1000, h: 1000 };
@@ -1832,8 +1849,29 @@ class UIController {
       svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
     };
 
+    // Mouse wheel zoom
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 0.88 : 1.14;
+      const rect = viewport.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      const svgX = viewBox.x + (mouseX / rect.width) * viewBox.w;
+      const svgY = viewBox.y + (mouseY / rect.height) * viewBox.h;
+
+      const newW = Math.max(350, Math.min(1800, viewBox.w * zoomFactor));
+      const newH = Math.max(350, Math.min(1800, viewBox.h * zoomFactor));
+
+      viewBox.x = svgX - (mouseX / rect.width) * newW;
+      viewBox.y = svgY - (mouseY / rect.height) * newH;
+      viewBox.w = newW;
+      viewBox.h = newH;
+      updateViewBox();
+    }, { passive: false });
+
+    // Drag to pan
     viewport.addEventListener('mousedown', (e) => {
-      if (e.target.closest('.talent-tree-controls') || e.target.closest('.tree-node')) return;
+      if (e.target.closest('.talent-tree-controls')) return;
       isDragging = true;
       startX = e.clientX;
       startY = e.clientY;
@@ -1858,28 +1896,7 @@ class UIController {
       }
     });
 
-    // Mouse Wheel Scroll Zoom on Constellation
-    viewport.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      const rect = viewport.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      const mouseViewX = viewBox.x + (mouseX / viewport.clientWidth) * viewBox.w;
-      const mouseViewY = viewBox.y + (mouseY / viewport.clientHeight) * viewBox.h;
-
-      const zoomFactor = e.deltaY < 0 ? 0.86 : 1.16;
-      const newW = Math.max(280, Math.min(2200, viewBox.w * zoomFactor));
-      const newH = Math.max(280, Math.min(2200, viewBox.h * zoomFactor));
-
-      viewBox.x = mouseViewX - (mouseX / viewport.clientWidth) * newW;
-      viewBox.y = mouseViewY - (mouseY / viewport.clientHeight) * newH;
-      viewBox.w = newW;
-      viewBox.h = newH;
-      updateViewBox();
-    }, { passive: false });
-
-    // Touch support for mobile/tablets
+    // Touch Support for Mobile
     viewport.addEventListener('touchstart', (e) => {
       if (e.touches.length === 1) {
         isDragging = true;
@@ -1929,12 +1946,25 @@ class UIController {
       updateViewBox();
     });
 
+    // Class selector buttons
+    document.querySelectorAll('.tree-class-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cid = btn.getAttribute('data-class-id');
+        if (cid && cid !== this._skillTreeActiveClass) {
+          this._skillTreeActiveClass = cid;
+          this._skillTreeSelectedNode = engine.getOriginNodeId(cid);
+          this._skillTreeCenter = { x: 500, y: 500 };
+          this.renderSkillTreeTab();
+        }
+      });
+    });
+
     // ── Refund Action ─────────────────────────────────────────
     const refundBtn = document.getElementById('btn-refund-tree');
     if (refundBtn) {
       refundBtn.addEventListener('click', () => {
-        if (confirm(`Deseja reembolsar todos os talentos da árvore e recuperar ${totalSpent.toLocaleString()} 💰 de Ouro?`)) {
-          const refunded = sm.refundSkillTree();
+        if (confirm(`Deseja reembolsar todos os talentos de ${tree.name} e recuperar ${totalSpent.toLocaleString()} 💰 de Ouro?`)) {
+          const refunded = sm.refundSkillTree(activeClass);
           if (refunded > 0) {
             if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playGemPickup) {
               window.MedievalSurvivors.sound.playGemPickup();

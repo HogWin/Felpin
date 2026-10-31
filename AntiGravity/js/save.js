@@ -40,7 +40,17 @@ class SaveManager {
         fire_boost: 0   // Holy Fire Base Damage
       },
       history: [],
-      skillTree: ['origin'],
+      skillTrees: {
+        knight: ['knight_orig'],
+        ranger: ['ranger_orig'],
+        pyromancer: ['pyromancer_orig'],
+        paladin: ['paladin_orig'],
+        berserker: ['berserker_orig'],
+        necromancer: ['necromancer_orig'],
+        assassin: ['assassin_orig'],
+        dark_knight: ['dark_knight_orig'],
+        plague_alchemist: ['plague_alchemist_orig']
+      },
       discoveredSynergies: [],
       unlockedAchievements: {},
       stats: {
@@ -426,9 +436,16 @@ class SaveManager {
         this.data.metaUpgrades = Object.assign(this.getDefaultData().metaUpgrades, parsed.metaUpgrades || {});
         this.data.unlockedAchievements = Object.assign({}, parsed.unlockedAchievements || {});
         this.data.stats = Object.assign(this.getDefaultData().stats, parsed.stats || {});
-        if (!Array.isArray(this.data.skillTree) || this.data.skillTree.length === 0) {
-          this.data.skillTree = ['origin'];
+        if (!this.data.skillTrees || typeof this.data.skillTrees !== 'object' || Array.isArray(this.data.skillTrees)) {
+          this.data.skillTrees = {};
         }
+        const classIds = ['knight', 'ranger', 'pyromancer', 'paladin', 'berserker', 'necromancer', 'assassin', 'dark_knight', 'plague_alchemist'];
+        classIds.forEach(cid => {
+          const origId = ${cid}_orig;
+          if (!Array.isArray(this.data.skillTrees[cid]) || this.data.skillTrees[cid].length === 0) {
+            this.data.skillTrees[cid] = [origId];
+          }
+        });
       }
     } catch (e) {
       console.warn('Erro ao carregar save:', e);
@@ -672,59 +689,68 @@ class SaveManager {
   }
 
 
-  // ── SKILL TREE (PoE2 STYLE) METHODS ─────────────────────────
-  getSkillTreeAllocated() {
-    if (!this.data.skillTree || !Array.isArray(this.data.skillTree)) {
-      this.data.skillTree = ['origin'];
+  // ── SKILL TREE (CLASS-SPECIFIC) METHODS ─────────────────────
+  getSkillTreeAllocated(classId = 'knight') {
+    if (!this.data.skillTrees || typeof this.data.skillTrees !== 'object') {
+      this.data.skillTrees = {};
     }
-    return this.data.skillTree;
+    const origId = ${classId}_orig;
+    if (!Array.isArray(this.data.skillTrees[classId]) || this.data.skillTrees[classId].length === 0) {
+      this.data.skillTrees[classId] = [origId];
+    }
+    return this.data.skillTrees[classId];
   }
 
-  isSkillTreeNodeAllocated(nodeId) {
-    return this.getSkillTreeAllocated().includes(nodeId);
+  isSkillTreeNodeAllocated(nodeId, classId = 'knight') {
+    return this.getSkillTreeAllocated(classId).includes(nodeId);
   }
 
-  getSkillTreeBonuses() {
+  getSkillTreeBonuses(classId = 'knight') {
     if (window.MedievalSurvivors && window.MedievalSurvivors.skillTreeEngine) {
-      return window.MedievalSurvivors.skillTreeEngine.calculateCumulativeBonuses(this.getSkillTreeAllocated());
+      return window.MedievalSurvivors.skillTreeEngine.calculateCumulativeBonuses(this.getSkillTreeAllocated(classId), classId);
     }
     return null;
   }
 
-  getSkillTreeSpentGold() {
+  getSkillTreeSpentGold(classId = 'knight') {
     if (window.MedievalSurvivors && window.MedievalSurvivors.skillTreeEngine) {
-      return window.MedievalSurvivors.skillTreeEngine.calculateTotalSpentGold(this.getSkillTreeAllocated());
+      return window.MedievalSurvivors.skillTreeEngine.calculateTotalSpentGold(this.getSkillTreeAllocated(classId), classId);
     }
     return 0;
   }
 
-  canUnlockSkillTreeNode(nodeId) {
+  canUnlockSkillTreeNode(nodeId, classId = 'knight') {
     if (window.MedievalSurvivors && window.MedievalSurvivors.skillTreeEngine) {
-      return window.MedievalSurvivors.skillTreeEngine.canUnlock(nodeId, new Set(this.getSkillTreeAllocated()));
+      return window.MedievalSurvivors.skillTreeEngine.canUnlock(nodeId, new Set(this.getSkillTreeAllocated(classId)), classId);
     }
     return false;
   }
 
-  purchaseSkillTreeNode(nodeId) {
-    if (!this.canUnlockSkillTreeNode(nodeId)) return false;
+  purchaseSkillTreeNode(nodeId, classId = 'knight') {
+    if (!this.canUnlockSkillTreeNode(nodeId, classId)) return false;
     const engine = window.MedievalSurvivors && window.MedievalSurvivors.skillTreeEngine;
     if (!engine) return false;
-    const node = engine.getNode(nodeId);
+    const node = engine.getNode(nodeId, classId);
     if (!node) return false;
 
     if (this.data.gold < node.cost) return false;
 
     this.data.gold -= node.cost;
-    this.data.skillTree.push(nodeId);
+    const allocated = this.getSkillTreeAllocated(classId);
+    if (!allocated.includes(nodeId)) {
+      allocated.push(nodeId);
+    }
     this.save();
     return true;
   }
 
-  refundSkillTree() {
-    const spent = this.getSkillTreeSpentGold();
-    if (spent <= 0 && (!this.data.skillTree || this.data.skillTree.length <= 1)) return 0;
+  refundSkillTree(classId = 'knight') {
+    const spent = this.getSkillTreeSpentGold(classId);
+    const origId = ${classId}_orig;
+    const allocated = this.getSkillTreeAllocated(classId);
+    if (spent <= 0 && (!allocated || allocated.length <= 1)) return 0;
     this.data.gold += spent;
-    this.data.skillTree = ['origin'];
+    this.data.skillTrees[classId] = [origId];
     this.save();
     return spent;
   }
@@ -781,7 +807,8 @@ class SaveManager {
     // Base Weapon Boosts
 
     // Apply Skill Tree (PoE2 Style) Passives & Keystones
-    const treeBonuses = this.getSkillTreeBonuses();
+    const classId = (player.classDef && player.classDef.id) || 'knight';
+    const treeBonuses = this.getSkillTreeBonuses(classId);
     if (treeBonuses) {
       if (treeBonuses.maxHp > 0) {
         player.baseMaxHp += treeBonuses.maxHp;
