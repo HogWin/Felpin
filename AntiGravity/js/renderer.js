@@ -942,10 +942,10 @@ class GameRenderer {
       this.holyAuraMesh = null;
     }
 
-    // 2. Flying Player Projectiles (Crossbow bolts, Whirling Axes, Flying Holy Flasks)
+    // 2. Flying Player Projectiles (Crossbow bolts, Whirling Axes, Flying Holy Flasks, Orbs, Glaives, etc.)
     for (let i = 0, len = game.projectiles.length; i < len; i++) {
       const p = game.projectiles[i];
-      if (!p.alive && p.state !== 'burning') continue;
+      if (p.alive === false && p.state !== 'burning') continue;
 
       this._activeProjectiles.add(p);
 
@@ -971,33 +971,33 @@ class GameRenderer {
 
       let pMesh = this.projectileMeshMap.get(p);
       if (!pMesh) {
-        if (p.constructor && p.constructor.name === 'CrossbowBolt') {
+        if (p.isBolt || (p.constructor && p.constructor.name === 'CrossbowBolt')) {
           pMesh = window.MedievalSurvivors.models3d.createCrossbowBoltMesh(p.isEvolved);
-        } else if (p.constructor && p.constructor.name === 'ThrownAxe') {
+        } else if (p.isAxe || (p.constructor && p.constructor.name === 'ThrownAxe')) {
           pMesh = window.MedievalSurvivors.models3d.createThrownAxeMesh(p.isEvolved);
-        } else if (p.constructor && p.constructor.name === 'SpearShockwave') {
+        } else if (p.isShockwave || (p.constructor && p.constructor.name === 'SpearShockwave')) {
           pMesh = window.MedievalSurvivors.models3d.createSpearShockwaveMesh(p.isEvolved);
-        } else if (p.constructor && p.constructor.name === 'SpectralOrb') {
+        } else if (p.isSpectralOrb || (p.constructor && p.constructor.name === 'SpectralOrb')) {
           pMesh = window.MedievalSurvivors.models3d.createSpectralOrbMesh(p.isEvolved);
-        } else if (p.isArtillery) {
+        } else if (p.isArtillery || (p.constructor && p.constructor.name === 'SupremeArtilleryShell')) {
           pMesh = window.MedievalSurvivors.models3d.createArtilleryShellMesh();
-        } else if (p.isSupremeSpear) {
+        } else if (p.isSupremeSpear || (p.constructor && p.constructor.name === 'SupremeSpearBolt')) {
           pMesh = window.MedievalSurvivors.models3d.createSupremeSpearMesh();
-        } else if (p.isFlail) {
+        } else if (p.isFlail || (p.constructor && (p.constructor.name === 'FlailOrbiter' || p.constructor.name === 'SupremeTitanOrbiter'))) {
           pMesh = window.MedievalSurvivors.models3d.createFlailMesh(p.isEvolved);
-        } else if (p.isPellet) {
+        } else if (p.isPellet || (p.constructor && p.constructor.name === 'BlunderbussPellet')) {
           pMesh = window.MedievalSurvivors.models3d.createPelletMesh(p.isEvolved);
-        } else if (p.isGlaive) {
+        } else if (p.isGlaive || (p.constructor && p.constructor.name === 'CelestialGlaive')) {
           pMesh = window.MedievalSurvivors.models3d.createCelestialGlaiveMesh(p.isEvolved);
-        } else if (p.isThunder) {
+        } else if (p.isThunder || (p.constructor && p.constructor.name === 'ThunderStrike')) {
           pMesh = window.MedievalSurvivors.models3d.createThunderStrikeMesh(p.isEvolved);
-        } else if (p.isDart) {
+        } else if (p.isDart || (p.constructor && p.constructor.name === 'ViperDart')) {
           pMesh = window.MedievalSurvivors.models3d.createViperDartMesh(p.isEvolved);
-        } else if (p.isVortex) {
+        } else if (p.isVortex || (p.constructor && (p.constructor.name === 'VoidVortex' || p.constructor.name === 'SupremeSoulSingularityVortex'))) {
           pMesh = window.MedievalSurvivors.models3d.createVoidVortexMesh(p.radius, p.isEvolved);
-        } else if (p.isIce) {
+        } else if (p.isIce || (p.constructor && p.constructor.name === 'FrostLance')) {
           pMesh = window.MedievalSurvivors.models3d.createFrostLanceMesh(p.isEvolved);
-        } else if (p.isShield) {
+        } else if (p.isShield || (p.constructor && (p.constructor.name === 'RetributionShieldOrbiter' || p.constructor.name === 'SupremeCelestialShieldOrbiter'))) {
           pMesh = window.MedievalSurvivors.models3d.createRetributionShieldMesh(p.isEvolved);
         } else if (p.isPlague || (p.constructor && p.constructor.name === 'PlagueFlask')) {
           pMesh = window.MedievalSurvivors.models3d.createPlagueFlaskMesh(p.isEvolved);
@@ -1025,7 +1025,7 @@ class GameRenderer {
         pMesh.rotation.y = -p.angle + Math.PI / 2;
       } else if (p.isVortex) {
         pMesh.rotation.y += dt * 3.5;
-      } else if (p.constructor && p.constructor.name === 'ThrownAxe') {
+      } else if (p.isAxe || (p.constructor && p.constructor.name === 'ThrownAxe')) {
         pMesh.rotation.y = -p.angle + Math.PI / 2;
         pMesh.rotation.x = p.rotation || 0;
         pMesh.rotation.z = Math.sin(p.rotation || 0) * 0.4;
@@ -1033,13 +1033,24 @@ class GameRenderer {
         pMesh.rotation.x = (p.flightProgress || 0) * Math.PI * 6;
         pMesh.rotation.y += dt * 8;
         pMesh.rotation.z = Math.sin((p.flightProgress || 0) * Math.PI * 3) * 0.75;
-      } else if (p.constructor && p.constructor.name === 'HolyFireFlask') {
+      } else if (p.isFlask || (p.constructor && p.constructor.name === 'HolyFireFlask')) {
         pMesh.rotation.x = (p.flightProgress || 0) * Math.PI * 5;
         pMesh.rotation.y += dt * 6;
         pMesh.rotation.z = (p.flightProgress || 0) * Math.PI * 3;
-      } else if (p.constructor && p.constructor.name === 'SpectralOrb') {
+      } else if (p.isSpectralOrb || (p.constructor && p.constructor.name === 'SpectralOrb')) {
         pMesh.rotation.y += dt * 3;
         pMesh.rotation.z += dt * 2;
+      } else if (p.isBolt || (p.constructor && p.constructor.name === 'CrossbowBolt')) {
+        pMesh.rotation.y = -p.angle + Math.PI / 2;
+        pMesh.rotation.z += dt * 24; // High-speed aerodynamic spin!
+      } else if (p.isIce || (p.constructor && p.constructor.name === 'FrostLance')) {
+        pMesh.rotation.y = -p.angle + Math.PI / 2;
+        pMesh.rotation.z += dt * 10;
+      } else if (p.isDart || (p.constructor && p.constructor.name === 'ViperDart')) {
+        pMesh.rotation.y = -p.angle + Math.PI / 2;
+        pMesh.rotation.z += dt * 15;
+      } else if (p.isShockwave || (p.constructor && p.constructor.name === 'SpearShockwave')) {
+        pMesh.rotation.y = -p.angle + Math.PI / 2;
       } else if (p.angle !== undefined) {
         pMesh.rotation.y = -p.angle + Math.PI / 2;
       } else if (p.rotation !== undefined) {

@@ -344,6 +344,9 @@ class CrossbowBolt {
     this.vy = Math.sin(this.angle) * this.speed;
     this.radius = 5;
     this.life = 2.0;
+    this.alive = true;
+    this.isBolt = true;
+    this.renderHeight = 9;
     this.hitEnemies = new Set();
   }
 
@@ -352,8 +355,8 @@ class CrossbowBolt {
     this.x += this.vx * dt;
     this.y += this.vy * dt;
 
-    if (this.isEvolved && Math.random() < 0.25) {
-      particles.createSpark(this.x, this.y, '#f39c12');
+    if (particles && Math.random() < 0.35) {
+      particles.createSpark(this.x - (this.vx / this.speed) * 8, this.y - (this.vy / this.speed) * 8, this.isEvolved ? '#ff4500' : '#ffeaa7');
     }
 
     for (let i = 0, len = enemies.length; i < len; i++) {
@@ -372,7 +375,11 @@ class CrossbowBolt {
       }
     }
 
-    return this.life > 0 && this.pierce > 0;
+    if (this.life <= 0 || this.pierce <= 0) {
+      this.alive = false;
+      return false;
+    }
+    return true;
   }
 
   render(ctx) {
@@ -483,6 +490,8 @@ class HolyFireFlask {
     this.burnTimer = this.duration;
     this.tickTimer = 0;
     this.tickRate = 0.28; // Ticks every 0.28 seconds
+    this.alive = true;
+    this.isFlask = true;
   }
 
   update(dt, enemies, particles) {
@@ -531,7 +540,11 @@ class HolyFireFlask {
       }
     }
 
-    return this.burnTimer > 0;
+    if (this.burnTimer <= 0) {
+      this.alive = false;
+      return false;
+    }
+    return true;
   }
 
   render(ctx) {
@@ -640,6 +653,8 @@ class ThrownAxe {
     this.life = 2.2;
     this.maxLife = 2.2;
     this.renderHeight = 10;
+    this.alive = true;
+    this.isAxe = true;
     this.hitCooldowns = new Map();
   }
 
@@ -652,7 +667,7 @@ class ThrownAxe {
     this.y += this.vy * dt;
     this.rotation += this.spinSpeed * dt;
 
-    if (Math.random() < 0.25) {
+    if (particles && Math.random() < 0.35) {
       particles.createSpark(this.x, this.y, this.isEvolved ? '#e63946' : '#d8d8d8');
     }
 
@@ -677,7 +692,11 @@ class ThrownAxe {
       }
     }
 
-    return this.life > 0;
+    if (this.life <= 0) {
+      this.alive = false;
+      return false;
+    }
+    return true;
   }
 
   render(ctx) {
@@ -1072,6 +1091,8 @@ class SpearShockwave {
     this.life = 0.55;
     this.maxLife = 0.55;
     this.renderHeight = 8;
+    this.alive = true;
+    this.isShockwave = true;
     this.hitEnemies = new Set();
   }
 
@@ -1079,6 +1100,10 @@ class SpearShockwave {
     this.life -= dt;
     this.x += this.vx * dt;
     this.y += this.vy * dt;
+
+    if (particles && Math.random() < 0.4) {
+      particles.createSpark(this.x, this.y, this.isEvolved ? '#ffd700' : '#00e5ff');
+    }
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const enemy = enemies[i];
@@ -1095,7 +1120,11 @@ class SpearShockwave {
       }
     }
 
-    return this.life > 0 && this.pierce > 0;
+    if (this.life <= 0 || this.pierce <= 0) {
+      this.alive = false;
+      return false;
+    }
+    return true;
   }
 
   render(ctx) {
@@ -1191,12 +1220,16 @@ class SpectralOrb {
     this.renderHeight = 12;
     this.target = null;
     this.hitEnemies = new Set();
+    this.alive = true;
     this.isSpectralOrb = true;
   }
 
   update(dt, enemies, particles) {
     this.life -= dt;
-    if (this.life <= 0 || this.pierce <= 0) return false;
+    if (this.life <= 0 || this.pierce <= 0) {
+      this.alive = false;
+      return false;
+    }
 
     // Homing steering logic
     if (!this.target || !this.target.alive) {
@@ -1567,7 +1600,9 @@ class PlagueFlask {
     this.state = 'flying';
     this.renderHeight = 10;
     this.tickTimer = 0;
+    this.alive = true;
     this.isPlague = true;
+    this.isFlask = true;
   }
 
   update(dt, enemies, particles) {
@@ -1607,7 +1642,10 @@ class PlagueFlask {
       return true;
     } else if (this.state === 'burning') {
       this.duration -= dt;
-      if (this.duration <= 0) return false;
+      if (this.duration <= 0) {
+        this.alive = false;
+        return false;
+      }
 
       this.tickTimer += dt;
       if (this.tickTimer >= 0.28) {

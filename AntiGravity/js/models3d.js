@@ -2394,6 +2394,12 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     const tracer = new THREE.Mesh(tracerGeo, tracerMat);
     root.add(tracer);
 
+    root.updateVisuals = function(dt, p) {
+      if (tracer) {
+        tracer.scale.z = 1.0 + Math.sin(Date.now() * 0.025) * 0.22;
+      }
+    };
+
     return root;
   }
 
@@ -2444,6 +2450,14 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     trailMesh.position.y = 5.0;
     root.add(trailMesh);
 
+    root.updateVisuals = function(dt, p) {
+      if (trailMesh) {
+        trailMesh.rotation.z += dt * 24;
+        const s = 1.0 + Math.sin(Date.now() * 0.02) * 0.15;
+        trailMesh.scale.set(s, s, 1);
+      }
+    };
+
     return root;
   }
 
@@ -2486,6 +2500,15 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     const halo = new THREE.Mesh(new THREE.SphereGeometry(7.6, 8, 8), haloMat);
     halo.position.y = 4.0;
     root.add(halo);
+
+    root.updateVisuals = function(dt, p) {
+      if (halo) {
+        halo.rotation.x += dt * 4;
+        halo.rotation.y += dt * 5;
+        const s = 1.0 + Math.sin(Date.now() * 0.02) * 0.15;
+        halo.scale.set(s, s, s);
+      }
+    };
 
     return root;
   }
@@ -2739,6 +2762,14 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     crest.position.y = 8.2;
     root.add(crest);
 
+    root.updateVisuals = function(dt, p) {
+      if (p && p.maxLife) {
+        const prog = 1 - (p.life / p.maxLife);
+        const s = 0.85 + prog * 0.6;
+        root.scale.set(s, s, s);
+      }
+    };
+
     return root;
   }
 
@@ -2955,6 +2986,15 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     const halo = new THREE.Mesh(new THREE.SphereGeometry(8.5, 8, 8), haloMat);
     halo.position.y = 5.0;
     root.add(halo);
+
+    root.updateVisuals = function(dt, p) {
+      if (halo) {
+        halo.rotation.x += dt * 4;
+        halo.rotation.y += dt * 6;
+        const s = 1.0 + Math.sin(Date.now() * 0.02) * 0.15;
+        halo.scale.set(s, s, s);
+      }
+    };
 
     return root;
   }
