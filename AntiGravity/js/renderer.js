@@ -1404,16 +1404,6 @@ class GameRenderer {
       this.damageFlashTimer -= 0.016;
     }
 
-    // 4. Critical Low HP Pulsing Danger Vignette (< 28% HP)
-    if (player && player.alive && (player.hp / player.maxHp) < 0.28) {
-      const pulse = 0.35 + Math.sin(Date.now() / 180) * 0.25;
-      const redVignette = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.75);
-      redVignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      redVignette.addColorStop(1, `rgba(180, 20, 20, ${pulse})`);
-      ctx.fillStyle = redVignette;
-      ctx.fillRect(0, 0, w, h);
-    }
-
     // 5. Dark Gothic Vignette
     if (!this.vignetteGradient) this.buildVignetteCache();
     ctx.fillStyle = this.vignetteGradient;
