@@ -453,7 +453,7 @@ class SaveManager {
         }
         const classIds = ['knight', 'ranger', 'pyromancer', 'paladin', 'berserker', 'necromancer', 'assassin', 'dark_knight', 'plague_alchemist'];
         classIds.forEach(cid => {
-          const origId = ${cid}_orig;
+          const origId = cid + '_orig';
           if (!Array.isArray(this.data.skillTrees[cid]) || this.data.skillTrees[cid].length === 0) {
             this.data.skillTrees[cid] = [origId];
           }
