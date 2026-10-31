@@ -1395,6 +1395,78 @@ class TwinDaggersWeapon extends BaseWeapon {
   }
 }
 
+// Projétil Terrestre: Fenda Abissal Sísmica (Racha o chão em linha reta deixando espinhos de obsidiana e magma negro)
+class AbyssalFissureWave {
+  constructor(cfg) {
+    this.x = cfg.x;
+    this.y = cfg.y;
+    this.angle = cfg.angle;
+    this.speed = cfg.speed || 215;
+    this.damage = cfg.damage;
+    this.radius = cfg.radius || 22;
+    this.pierce = cfg.pierce || 6;
+    this.isEvolved = cfg.isEvolved;
+    this.weapon = cfg.weapon;
+    this.life = cfg.life || 0.65;
+    this.maxLife = this.life;
+    this.vx = Math.cos(this.angle) * this.speed;
+    this.vy = Math.sin(this.angle) * this.speed;
+    this.renderHeight = 2.5;
+    this.alive = true;
+    this.isAbyssalFissure = true;
+    this.hitEnemies = new Set();
+  }
+
+  update(dt, enemies, particles) {
+    this.life -= dt;
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+
+    if (particles && Math.random() < 0.45) {
+      particles.createSpark(this.x, this.y, this.isEvolved ? '#ff1744' : '#a29bfe');
+    }
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const e = enemies[i];
+      if (!e.alive || this.hitEnemies.has(e.id)) continue;
+      const dx = e.x - this.x;
+      const dy = e.y - this.y;
+      const hitDist = this.radius + e.radius;
+      if (dx * dx + dy * dy <= hitDist * hitDist) {
+        this.hitEnemies.add(e.id);
+        // Marca de Ruína Abissal: inimigo sofre 25% a mais de dano e tem velocidade reduzida
+        e.abyssalRuin = true;
+        e.abyssalRuinTimer = 3.0;
+        e.speedModifier = 0.75;
+
+        // Bônus de execução em monstros abaixo de 25% de vida
+        let dmg = this.damage;
+        const isExecution = e.hp <= (e.maxHp || 100) * 0.25;
+        if (isExecution) dmg = Math.round(dmg * 1.5);
+
+        const dealt = e.takeDamage(dmg, Math.cos(this.angle) * 12, Math.sin(this.angle) * 12, 0.15);
+        if (this.weapon) this.weapon.totalDamageDealt += dealt;
+
+        if (particles && particles.createBloodSparks) {
+          particles.createBloodSparks(e.x, e.y, isExecution ? 6 : 3, this.isEvolved ? '#ff1744' : '#9b59b6');
+        }
+
+        this.pierce--;
+        if (this.pierce <= 0) {
+          this.alive = false;
+          return false;
+        }
+      }
+    }
+
+    if (this.life <= 0) {
+      this.alive = false;
+      return false;
+    }
+    return true;
+  }
+}
+
 // 9. MONTANTE DAS TREVAS (Dark Greatsword - Dark Knight)
 class DarkGreatswordWeapon extends BaseWeapon {
   constructor() {
@@ -1402,93 +1474,206 @@ class DarkGreatswordWeapon extends BaseWeapon {
       id: 'dark_greatsword',
       name: 'Montante das Trevas',
       icon: '⚔️',
-      description: 'Lâmina colossal forjada em obsidiana negra. Desfere ondas pesadas de impacto que esmagam os monstros ao redor.',
+      description: 'Lâmina colossal forjada em obsidiana negra. Desfere cortes massivos de alto impacto e racha a terra com Fendas Abissais que estilhaçam inimigos e aplicam Ruína Sombria.',
       maxLevel: 8,
-      damage: 54,
+      damage: 64,
       cooldown: 1.45,
-      area: 1.25,
+      area: 1.35,
       count: 1,
       levelsConfig: [
-        { damage: 54, cooldown: 1.45, count: 1, description: 'Impacto brutal e alcance estendido.' },
-        { damage: 75, area: 1.4, description: 'Dano: 54 ➔ 75 | +15% Alcance' },
-        { count: 2, cooldown: 1.3, description: 'Golpe Duplo em arco esmagador.' },
-        { damage: 105, area: 1.6, description: 'Dano: 75 ➔ 105 | +20% Área' },
-        { count: 3, cooldown: 1.15, description: 'Golpe Triplo devastador.' },
-        { damage: 150, area: 1.85, description: 'Dano: 105 ➔ 150 | Grande Onda de Choque' },
-        { count: 4, cooldown: 0.95, description: 'Tempestade Quádrupla de Ferro Negro' },
-        { damage: 240, area: 2.1, cooldown: 0.75, description: 'EVOLUÇÃO: Devoradora de Reis (240 Dano, ondas carmesins 360° com atordoamento)' }
+        { damage: 64, cooldown: 1.45, count: 1, description: 'Corte Colossal de longo alcance + 1 Fenda Abissal Terrestre com Ruína Sombria.' },
+        { damage: 88, area: 1.55, description: 'Dano: 64 ➔ 88 | +15% Alcance e impacto amplificado' },
+        { count: 2, cooldown: 1.30, description: 'Dispara 2 Fendas Abissais convergentes rachando a terra.' },
+        { damage: 122, area: 1.75, description: 'Dano: 88 ➔ 122 | +15% Área | Detonação violenta ao abater inimigos amaldiçoados' },
+        { count: 3, cooldown: 1.15, description: '3 Fendas Abissais em leque devastador.' },
+        { damage: 168, area: 2.0, description: 'Dano: 122 ➔ 168 | +20% Alcance | Atordoamento e knockback colossal' },
+        { count: 4, cooldown: 0.95, description: '4 Fendas Abissais | Tempestade de Obsidiana Terrestre' },
+        { damage: 280, area: 2.35, cooldown: 0.78, description: 'EVOLUÇÃO: Devoradora de Reis (280 Dano, Corte Cataclísmico 360°, 4 Fendas Abissais em Cruz e Dreno de Almas: restaura 1 HP a cada 12 abates)' }
       ]
     });
     this.slashEffects = [];
+    this.soulDevourKills = 0;
   }
 
   attack(player, enemies, projectiles, particles) {
-    window.MedievalSurvivors.sound.playSwordSlash();
+    if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playDarkGreatswordSlash) {
+      window.MedievalSurvivors.sound.playDarkGreatswordSlash();
+    } else if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playSwordSlash) {
+      window.MedievalSurvivors.sound.playSwordSlash();
+    }
 
     const isEvo = this.level >= 8;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
-    const baseReach = 52 * effectiveArea;
-    const facingAngle = player.facingAngle || 0;
+    const baseReach = 74 * effectiveArea;
+    const facingAngle = (player.facingAngle !== undefined)
+      ? player.facingAngle
+      : ((player.vx || player.vy) ? Math.atan2(player.vy, player.vx) : 0);
     const totalCount = this.count + (player.bonusProjectiles || 0);
 
-    const arcs = [];
-    if (isEvo) {
-      arcs.push(facingAngle);
-    } else if (totalCount === 1) {
-      arcs.push(facingAngle);
-    } else if (totalCount === 2) {
-      arcs.push(facingAngle - 0.32);
-      arcs.push(facingAngle + 0.32);
-    } else if (totalCount === 3) {
-      arcs.push(facingAngle - 0.42);
-      arcs.push(facingAngle);
-      arcs.push(facingAngle + 0.42);
-    } else {
-      for (let i = 0; i < totalCount; i++) {
-        arcs.push(facingAngle + (i * Math.PI * 2 / totalCount));
-      }
+    // Micro-shake no impacto do montante
+    if (window.MedievalSurvivors.game && window.MedievalSurvivors.game.renderer && window.MedievalSurvivors.game.renderer.triggerShake) {
+      window.MedievalSurvivors.game.renderer.triggerShake(isEvo ? 5.5 : 3.5, 0.14);
     }
 
-    const arcSpreadHalf = isEvo ? Math.PI : (Math.PI * 0.42);
-    arcs.forEach(angle => {
+    // 1. Corte Colossal da Lâmina (Slash Effects)
+    const slashDuration = 0.22;
+    if (isEvo) {
+      // Evolução: Cataclismo de 360°
       this.slashEffects.push({
         x: player.x,
         y: player.y,
         player: player,
-        angle: angle,
-        radius: baseReach,
-        duration: 0.20,
-        maxDuration: 0.20,
-        isEvolved: isEvo,
+        angle: facingAngle,
+        radius: baseReach * 1.15,
+        reach: baseReach * 1.15,
+        duration: slashDuration,
+        maxDuration: slashDuration,
+        isEvolved: true,
         isDark: true,
-        color: isEvo ? '#e74c3c' : '#2f3542'
+        is360: true
       });
+    } else {
+      // Corte em arco frontal amplo (~140°)
+      this.slashEffects.push({
+        x: player.x,
+        y: player.y,
+        player: player,
+        angle: facingAngle,
+        radius: baseReach,
+        reach: baseReach,
+        duration: slashDuration,
+        maxDuration: slashDuration,
+        isEvolved: false,
+        isDark: true
+      });
+    }
 
-      for (let i = 0, len = enemies.length; i < len; i++) {
-        const enemy = enemies[i];
-        if (!enemy.alive) continue;
-        const dx = enemy.x - player.x;
-        const dy = enemy.y - player.y;
-        const maxDist = baseReach + enemy.radius;
-        const distSq = dx * dx + dy * dy;
+    // 2. Disparo de Fendas Abissais Terrestres (Projectiles)
+    if (projectiles) {
+      const fissureDamage = Math.round(effectiveDamage * 0.72);
+      const fissureAngles = [];
+      if (isEvo) {
+        // Cruz de 4 Fendas Abissais
+        fissureAngles.push(facingAngle);
+        fissureAngles.push(facingAngle + Math.PI * 0.5);
+        fissureAngles.push(facingAngle + Math.PI);
+        fissureAngles.push(facingAngle - Math.PI * 0.5);
+        if (totalCount > 4) {
+          fissureAngles.push(facingAngle + Math.PI * 0.25);
+          fissureAngles.push(facingAngle - Math.PI * 0.25);
+        }
+      } else if (totalCount === 1) {
+        fissureAngles.push(facingAngle);
+      } else if (totalCount === 2) {
+        fissureAngles.push(facingAngle - 0.22);
+        fissureAngles.push(facingAngle + 0.22);
+      } else if (totalCount === 3) {
+        fissureAngles.push(facingAngle - 0.35);
+        fissureAngles.push(facingAngle);
+        fissureAngles.push(facingAngle + 0.35);
+      } else {
+        const spread = Math.min(Math.PI * 0.8, 0.22 * (totalCount - 1));
+        const step = spread / (totalCount - 1);
+        for (let i = 0; i < totalCount; i++) {
+          fissureAngles.push(facingAngle - (spread / 2) + i * step);
+        }
+      }
 
-        if (distSq <= maxDist * maxDist) {
-          const enemyAngle = Math.atan2(dy, dx);
-          let diff = Math.abs(enemyAngle - angle);
-          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+      for (let i = 0; i < fissureAngles.length; i++) {
+        const fAngle = fissureAngles[i];
+        projectiles.push(new AbyssalFissureWave({
+          x: player.x + Math.cos(fAngle) * 20,
+          y: player.y + Math.sin(fAngle) * 20,
+          angle: fAngle,
+          speed: isEvo ? 260 : 215,
+          damage: fissureDamage,
+          radius: 24 * effectiveArea,
+          pierce: isEvo ? 999 : (4 + this.level),
+          isEvolved: isEvo,
+          weapon: this
+        }));
+      }
+    }
 
-          if (diff <= arcSpreadHalf) {
-            const dist = Math.sqrt(distSq) || 1;
-            const dealt = enemy.takeDamage(effectiveDamage, dx / dist, dy / dist, 24);
-            this.totalDamageDealt += dealt;
-            if (particles && particles.createBloodSparks) {
-              particles.createBloodSparks(enemy.x, enemy.y, 5, '#e74c3c');
-            }
+    // 3. Detecção de Dano do Corte Colossal
+    const arcSpreadHalf = isEvo ? Math.PI : (Math.PI * 0.40);
+    const enemiesKilled = [];
+
+    for (let i = 0, len = enemies.length; i < len; i++) {
+      const enemy = enemies[i];
+      if (!enemy.alive) continue;
+
+      const dx = enemy.x - player.x;
+      const dy = enemy.y - player.y;
+      const maxDist = baseReach + enemy.radius;
+      const distSq = dx * dx + dy * dy;
+
+      if (distSq <= maxDist * maxDist) {
+        const enemyAngle = Math.atan2(dy, dx);
+        let diff = Math.abs(enemyAngle - facingAngle);
+        while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+
+        if (diff <= arcSpreadHalf) {
+          const dist = Math.sqrt(distSq) || 1;
+          const hitDirX = dx / dist;
+          const hitDirY = dy / dist;
+
+          // Marca de Ruína Abissal
+          enemy.abyssalRuin = true;
+          enemy.abyssalRuinTimer = 3.0;
+          enemy.speedModifier = 0.75;
+
+          // Mecânica de Execução (Monstros com < 25% HP sofrem 50% a mais de dano)
+          const isExecution = enemy.hp <= (enemy.maxHp || 100) * 0.25;
+          let hitDmg = effectiveDamage;
+          if (isExecution) hitDmg = Math.round(hitDmg * 1.5);
+          if (enemy.abyssalRuin) hitDmg = Math.round(hitDmg * 1.25);
+
+          // Knockback violento de Greatsword (força 34)
+          const dealt = enemy.takeDamage(hitDmg, hitDirX, hitDirY, 34);
+          this.totalDamageDealt += dealt;
+
+          if (particles && particles.createBloodSparks) {
+            particles.createBloodSparks(enemy.x, enemy.y, isExecution ? 8 : 5, isEvo ? '#ff1744' : '#8e44ad');
+          }
+
+          if (enemy.hp <= 0) {
+            enemiesKilled.push(enemy);
           }
         }
       }
-    });
+    }
+
+    // 4. Detonação de Matéria Escura & Devoração de Almas (Abates)
+    if (enemiesKilled.length > 0) {
+      enemiesKilled.forEach(deadEnemy => {
+        const blastRadius = 46 * effectiveArea;
+        const blastDmg = Math.round(effectiveDamage * 0.40);
+        for (let j = 0, len = enemies.length; j < len; j++) {
+          const nearby = enemies[j];
+          if (!nearby.alive || nearby === deadEnemy) continue;
+          const bdx = nearby.x - deadEnemy.x;
+          const bdy = nearby.y - deadEnemy.y;
+          if (bdx * bdx + bdy * bdy <= blastRadius * blastRadius) {
+            nearby.takeDamage(blastDmg, 0, 0, 8);
+          }
+        }
+        if (particles && particles.createSpark) {
+          particles.createSpark(deadEnemy.x, deadEnemy.y, isEvo ? '#ff0055' : '#a29bfe');
+        }
+
+        if (isEvo) {
+          this.soulDevourKills++;
+          if (this.soulDevourKills % 12 === 0) {
+            player.heal(1);
+            if (window.MedievalSurvivors.game && window.MedievalSurvivors.game.addFloatingText) {
+              window.MedievalSurvivors.game.addFloatingText(player.x, player.y - 36, '+1 HP (Alma Devorada)', '#ff1744', true);
+            }
+          }
+        }
+      });
+    }
   }
 
   update(dt, player, enemies, projectiles, particles) {

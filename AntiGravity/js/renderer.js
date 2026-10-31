@@ -1001,6 +1001,8 @@ class GameRenderer {
           pMesh = window.MedievalSurvivors.models3d.createRetributionShieldMesh(p.isEvolved);
         } else if (p.isPlague || (p.constructor && p.constructor.name === 'PlagueFlask')) {
           pMesh = window.MedievalSurvivors.models3d.createPlagueFlaskMesh(p.isEvolved);
+        } else if (p.isAbyssalFissure || (p.constructor && p.constructor.name === 'AbyssalFissureWave')) {
+          pMesh = window.MedievalSurvivors.models3d.createAbyssalFissureMesh(p.isEvolved);
         } else {
           pMesh = window.MedievalSurvivors.models3d.createHolyFireFlaskMesh(p.isEvolved);
         }
@@ -1050,6 +1052,8 @@ class GameRenderer {
         pMesh.rotation.y = -p.angle + Math.PI / 2;
         pMesh.rotation.z += dt * 15;
       } else if (p.isShockwave || (p.constructor && p.constructor.name === 'SpearShockwave')) {
+        pMesh.rotation.y = -p.angle + Math.PI / 2;
+      } else if (p.isAbyssalFissure || (p.constructor && p.constructor.name === 'AbyssalFissureWave')) {
         pMesh.rotation.y = -p.angle + Math.PI / 2;
       } else if (p.angle !== undefined) {
         pMesh.rotation.y = -p.angle + Math.PI / 2;

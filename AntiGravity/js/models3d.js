@@ -3286,20 +3286,126 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
+  // 10. Colossal Dark Greatsword Slash Mesh (Massive obsidian cleave with dark void edge & demonic teeth)
   function createDarkSlashMesh(isEvolved) {
     const root = new THREE.Group();
-    const arcRadius = 40;
-    const bladeGeo = new THREE.RingGeometry(6, arcRadius, 24, 1, -Math.PI * 0.35, Math.PI * 0.7);
-    bladeGeo.rotateX(-Math.PI / 2);
-    const bladeMat = new THREE.MeshBasicMaterial({
-      color: isEvolved ? 0xd63031 : 0x6c5ce7,
+    const arcRadius = 48;
+    const arcHalf = isEvolved ? Math.PI : (Math.PI * 0.38);
+    const thetaStart = -Math.PI / 2 - arcHalf;
+    const thetaLength = arcHalf * 2;
+
+    // 1. Núcleo interno de obsidiana negra profunda
+    const coreGeo = new THREE.RingGeometry(isEvolved ? 12 : 8, arcRadius * 0.86, isEvolved ? 36 : 28, 1, thetaStart, thetaLength);
+    coreGeo.rotateX(-Math.PI / 2);
+    const coreMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x220205 : 0x0c0618,
+      transparent: true,
+      opacity: 0.95,
+      side: THREE.DoubleSide
+    });
+    root.add(new THREE.Mesh(coreGeo, coreMat));
+
+    // 2. Gume afiado luminoso abissal / carmesim
+    const edgeGeo = new THREE.RingGeometry(arcRadius * 0.76, arcRadius, isEvolved ? 36 : 28, 1, thetaStart, thetaLength);
+    edgeGeo.rotateX(-Math.PI / 2);
+    const edgeMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xff0044 : 0x9b59b6,
+      transparent: true,
+      opacity: 0.9,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    root.add(new THREE.Mesh(edgeGeo, edgeMat));
+
+    // 3. Fio externo ultra-cortante (brilho puro no perímetro)
+    const rimGeo = new THREE.RingGeometry(arcRadius * 0.94, arcRadius * 1.04, isEvolved ? 36 : 28, 1, thetaStart, thetaLength);
+    rimGeo.rotateX(-Math.PI / 2);
+    const rimMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xffffff : 0xdfb0ff,
       transparent: true,
       opacity: 0.85,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending
     });
-    const bladeMesh = new THREE.Mesh(bladeGeo, bladeMat);
-    root.add(bladeMesh);
+    root.add(new THREE.Mesh(rimGeo, rimMat));
+
+    // 4. Espinhos serrilhados de obsidiana na silhueta da lâmina
+    const spikeGeo = new THREE.ConeGeometry(1.8, 8, 4);
+    spikeGeo.rotateX(Math.PI / 2);
+    const spikeMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xff1744 : 0x6c5ce7,
+      transparent: true,
+      opacity: 0.9
+    });
+
+    const spikeAngles = isEvolved 
+      ? [-Math.PI * 0.75, -Math.PI * 0.25, Math.PI * 0.25, Math.PI * 0.75]
+      : [-arcHalf * 0.55, 0, arcHalf * 0.55];
+
+    for (let k = 0; k < spikeAngles.length; k++) {
+      const a = spikeAngles[k];
+      const sm = new THREE.Mesh(spikeGeo, spikeMat);
+      sm.position.set(Math.sin(a) * (arcRadius * 0.94), 0.2, Math.cos(a) * (arcRadius * 0.94));
+      sm.rotation.y = a;
+      root.add(sm);
+    }
+
+    return root;
+  }
+
+  // Abyssal Fissure Mesh (Jagged ground fissure with obsidian spikes & void rift)
+  function createAbyssalFissureMesh(isEvolved) {
+    const root = new THREE.Group();
+
+    // 1. Fenda no solo (Base escura alargada)
+    const riftGeo = new THREE.PlaneGeometry(16, 28);
+    riftGeo.rotateX(-Math.PI / 2);
+    const riftMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x220000 : 0x0e071c,
+      transparent: true,
+      opacity: 0.88,
+      side: THREE.DoubleSide
+    });
+    root.add(new THREE.Mesh(riftGeo, riftMat));
+
+    // 2. Núcleo incandescente de energia abissal na fenda
+    const energyGeo = new THREE.PlaneGeometry(6, 24);
+    energyGeo.rotateX(-Math.PI / 2);
+    const energyMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xff1744 : 0x9b59b6,
+      transparent: true,
+      opacity: 0.9,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    const energyMesh = new THREE.Mesh(energyGeo, energyMat);
+    energyMesh.position.y = 0.2;
+    root.add(energyMesh);
+
+    // 3. Espinhos pontiagudos de obsidiana emergindo da terra
+    const spikeGeo = new THREE.ConeGeometry(1.6, 6.5, 4);
+    const spikeMat = new THREE.MeshLambertMaterial({
+      color: isEvolved ? 0x3d0000 : 0x1a1128,
+      emissive: isEvolved ? 0xaa0022 : 0x4a148c,
+      emissiveIntensity: 0.5
+    });
+
+    const positions = [
+      { x: -3.5, z: -7, h: 5.0, rotZ: -0.2 },
+      { x: 3.2, z: -2, h: 6.8, rotZ: 0.25 },
+      { x: -2.8, z: 4, h: 5.5, rotZ: -0.18 },
+      { x: 2.5, z: 9, h: 4.5, rotZ: 0.15 }
+    ];
+
+    for (let i = 0; i < positions.length; i++) {
+      const p = positions[i];
+      const sm = new THREE.Mesh(spikeGeo, spikeMat);
+      sm.scale.set(1, p.h / 6.5, 1);
+      sm.position.set(p.x, p.h * 0.45, p.z);
+      sm.rotation.z = p.rotZ;
+      root.add(sm);
+    }
+
     return root;
   }
 
@@ -4007,6 +4113,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     createHolyAuraRingMesh,
     createSwordSlashMesh,
     createDarkSlashMesh,
+    createAbyssalFissureMesh,
     createDaggerSlashMesh,
     createSpectralOrbMesh,
     createPlagueFlaskMesh,

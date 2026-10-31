@@ -202,6 +202,45 @@ class SoundEngine {
     noise.start(t);
   }
 
+  // Heavy visceral slam & whoosh of the Dark Greatsword
+  playDarkGreatswordSlash() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+
+    // Sub-bass heavy impact thump
+    const sub = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(130, t);
+    sub.frequency.exponentialRampToValueAtTime(32, t + 0.22);
+    subGain.gain.setValueAtTime(0.48, t);
+    subGain.gain.exponentialRampToValueAtTime(0.005, t + 0.22);
+    sub.connect(subGain);
+    subGain.connect(this.ctx.destination);
+    sub.start(t);
+    sub.stop(t + 0.22);
+
+    // Deep metallic blade whoosh
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this._slashNoiseBuffer;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(this.getPitchVariation(550), t);
+    filter.frequency.exponentialRampToValueAtTime(180, t + 0.22);
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.42, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.22);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+    noise.start(t);
+  }
+
   // Crossbow bolt shoot
   playCrossbow() {
     if (this.muted) return;
