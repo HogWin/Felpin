@@ -67,16 +67,22 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   unitDiscBossGeo.rotateX(-Math.PI / 2);
   unitDiscBossGeo._isShared = true;
 
-  const threatRingMatRegular = new THREE.MeshBasicMaterial({ color: 0xe74c3c, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
+  const threatRingMatRegular = new THREE.MeshBasicMaterial({ color: 0xff3838, transparent: true, opacity: 0.72, side: THREE.DoubleSide });
   threatRingMatRegular._isShared = true;
 
-  const threatRingMatBoss = new THREE.MeshBasicMaterial({ color: 0xff2222, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+  const threatRingMatElite = new THREE.MeshBasicMaterial({ color: 0xffa502, transparent: true, opacity: 0.88, side: THREE.DoubleSide });
+  threatRingMatElite._isShared = true;
+
+  const threatRingMatBoss = new THREE.MeshBasicMaterial({ color: 0xff1744, transparent: true, opacity: 0.95, side: THREE.DoubleSide });
   threatRingMatBoss._isShared = true;
 
-  const threatFillMatRegular = new THREE.MeshBasicMaterial({ color: 0xc0392b, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
+  const threatFillMatRegular = new THREE.MeshBasicMaterial({ color: 0x990000, transparent: true, opacity: 0.14, side: THREE.DoubleSide });
   threatFillMatRegular._isShared = true;
 
-  const threatFillMatBoss = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.22, side: THREE.DoubleSide });
+  const threatFillMatElite = new THREE.MeshBasicMaterial({ color: 0xd35400, transparent: true, opacity: 0.20, side: THREE.DoubleSide });
+  threatFillMatElite._isShared = true;
+
+  const threatFillMatBoss = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
   threatFillMatBoss._isShared = true;
 
   // Shared XP Gem geometries and materials
@@ -1378,32 +1384,38 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     shadow.position.y = 0.12;
     root.add(shadow);
 
-    // 2. Indicador visual de perigo no chão (Threat Ring exclusivo para Chefes e Campeões - poupa centenas de draw calls)
-    const attackR = Math.max(12, enemy.radius || 14);
+    // 2. Indicador visual de Hitbox Vermelha no chão para TODOS os inimigos (raio exato de colisão)
+    const attackR = Math.max(6, enemy.radius || 14);
     const isBoss = !!enemy.isBoss;
     const isChampion = !!enemy.isChampion;
-    let threatGroup = null;
-    let bossOuterRing = null;
+    const threatGroup = new THREE.Group();
+    threatGroup.position.y = 0.16;
 
-    if (isBoss || isChampion) {
-      threatGroup = new THREE.Group();
-      threatGroup.position.y = 0.18;
-
-      const threatRing = new THREE.Mesh(isBoss ? unitRingBossGeo : unitRingGeo, isBoss ? threatRingMatBoss : threatRingMatRegular);
-      threatRing.scale.set(attackR, 1, attackR);
-      threatGroup.add(threatRing);
-
-      const threatFill = new THREE.Mesh(isBoss ? unitDiscBossGeo : unitDiscGeo, isBoss ? threatFillMatBoss : threatFillMatRegular);
-      threatFill.scale.set(attackR, 1, attackR);
-      threatGroup.add(threatFill);
-
-      if (isBoss) {
-        bossOuterRing = new THREE.Mesh(unitRingBossGeo, threatRingMatBoss);
-        bossOuterRing.scale.set(attackR * 1.25, 1, attackR * 1.25);
-        threatGroup.add(bossOuterRing);
-      }
-      root.add(threatGroup);
+    let ringMat = threatRingMatRegular;
+    let fillMat = threatFillMatRegular;
+    if (isBoss) {
+      ringMat = threatRingMatBoss;
+      fillMat = threatFillMatBoss;
+    } else if (isChampion) {
+      ringMat = threatRingMatElite;
+      fillMat = threatFillMatElite;
     }
+
+    const threatRing = new THREE.Mesh(isBoss ? unitRingBossGeo : unitRingGeo, ringMat);
+    threatRing.scale.set(attackR, 1, attackR);
+    threatGroup.add(threatRing);
+
+    const threatFill = new THREE.Mesh(isBoss ? unitDiscBossGeo : unitDiscGeo, fillMat);
+    threatFill.scale.set(attackR, 1, attackR);
+    threatGroup.add(threatFill);
+
+    let bossOuterRing = null;
+    if (isBoss) {
+      bossOuterRing = new THREE.Mesh(unitRingBossGeo, threatRingMatBoss);
+      bossOuterRing.scale.set(attackR * 1.25, 1, attackR * 1.25);
+      threatGroup.add(bossOuterRing);
+    }
+    root.add(threatGroup);
 
     // Collect all render meshes for zero-allocation hit flashing (ignoring shadows and threat indicators)
     anim.flashMeshes = [];
@@ -1442,10 +1454,16 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         root.position.y = 4 + Math.sin(walk) * 2.2;
       }
 
-      // Pulse boss danger perimeter
+      // Hitbox visual synchronization & boss danger pulsing
+      const currentR = Math.max(6, enemyObj.radius || 14);
+      if (threatRing) threatRing.scale.set(currentR, 1, currentR);
+      if (threatFill) threatFill.scale.set(currentR, 1, currentR);
+      const curSRadius = currentR * 0.75;
+      shadow.scale.set(curSRadius, 1, curSRadius);
+
       if (bossOuterRing) {
         const pulse = 1.0 + Math.sin(Date.now() / 200) * 0.08;
-        bossOuterRing.scale.set(pulse, 1, pulse);
+        bossOuterRing.scale.set(currentR * 1.25 * pulse, 1, currentR * 1.25 * pulse);
       }
 
       // Damage Flash (when damaged, flashes bright red)

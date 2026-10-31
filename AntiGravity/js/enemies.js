@@ -253,7 +253,7 @@ class PlagueRatEnemy extends BaseEnemy {
       hp: Math.round(18 * scaling),
       damage: Math.round(8 * dmgScaling),
       speed: 105,
-      radius: 17,
+      radius: 11,
       xpValue: 1,
       color: '#555555'
     });
@@ -337,7 +337,7 @@ class SkeletonEnemy extends BaseEnemy {
       hp: Math.round(40 * scaling),
       damage: Math.round(12 * dmgScaling),
       speed: 72,
-      radius: 22,
+      radius: 14,
       xpValue: 5,
       color: '#ecf0f1'
     });
@@ -422,7 +422,7 @@ class CursedVillagerEnemy extends BaseEnemy {
       hp: Math.round(75 * scaling),
       damage: Math.round(16 * dmgScaling),
       speed: 55,
-      radius: 26,
+      radius: 15,
       xpValue: 5,
       color: '#27ae60'
     });
@@ -511,7 +511,7 @@ class DarkKnightEnemy extends BaseEnemy {
       hp: Math.round(180 * scaling),
       damage: Math.round(24 * dmgScaling),
       speed: 62,
-      radius: 30,
+      radius: 18,
       xpValue: 25,
       color: '#2c3e50'
     });
@@ -603,7 +603,7 @@ class WitchEnemy extends BaseEnemy {
       hp: Math.round(55 * scaling),
       damage: Math.round(10 * dmgScaling),
       speed: 58,
-      radius: 22,
+      radius: 13,
       xpValue: 25,
       color: '#8e44ad'
     });
@@ -886,7 +886,7 @@ class ExecutionerBoss extends BaseEnemy {
       hp: Math.round(1400 * scaling),
       damage: 28,
       speed: 78,
-      radius: 46,
+      radius: 28,
       xpValue: 100,
       isBoss: true,
       bossTier: 1,
@@ -1015,7 +1015,7 @@ class StoneGolemBoss extends BaseEnemy {
       hp: Math.round(3200 * scaling),
       damage: 35,
       speed: 48,
-      radius: 56,
+      radius: 34,
       xpValue: 100,
       isBoss: true,
       bossTier: 2,
@@ -1108,7 +1108,7 @@ class DeathBaronBoss extends BaseEnemy {
       hp: Math.round(6000 * scaling),
       damage: 42,
       speed: 68,
-      radius: 58,
+      radius: 30,
       xpValue: 100,
       isBoss: true,
       bossTier: 3,
