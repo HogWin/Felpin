@@ -88,8 +88,9 @@ class Player {
     const mult = this.etherMultiplier || 1.0;
     const gained = Math.max(1, Math.round(amount * mult));
     this.ether = (this.ether || 0) + gained;
-    if (showFloating && this.game) {
-      this.game.addFloatingText(this.x, this.y - 22, `+${gained} 🔮`, '#e0b0ff', false);
+    const game = this.game || (window.MedievalSurvivors && window.MedievalSurvivors.game);
+    if (showFloating && game && game.addFloatingText) {
+      game.addFloatingText(this.x, this.y - 22, `+${gained} 🔮`, '#e0b0ff', false);
     }
     return gained;
   }

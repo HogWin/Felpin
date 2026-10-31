@@ -26,6 +26,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     {
       id: 'necropolis',
       name: 'Necrópole Imperial',
+      subtitle: 'Catacumbas Antigas e Mausoléus Profanados',
       icon: '💀',
       fogColor: 0x07110e,
       fogDensity: 0.0008,
@@ -38,6 +39,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     {
       id: 'forest',
       name: 'Floresta das Sombras',
+      subtitle: 'Bosque Amaldiçoado pela Névoa Eterna',
       icon: '🌲',
       fogColor: 0x081008,
       fogDensity: 0.0008,
@@ -110,6 +112,68 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         fireRed: new THREE.MeshBasicMaterial({ color: 0xff2222 }),
         bone: new THREE.MeshStandardMaterial({ color: 0xd8cca8, roughness: 0.7 })
       };
+    }
+
+    // Procedural Gothic Flagstone Floor Texture Generator
+    createProceduralGroundTexture(biome) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const tones = (biome && biome.groundTones && biome.groundTones.length)
+        ? biome.groundTones
+        : ['#221d2b', '#2c2538', '#191520', '#342c42'];
+
+      // Fill base mortar tone
+      ctx.fillStyle = tones[2] || '#191520';
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Draw 8x8 staggered medieval flagstone grid
+      const rows = 8;
+      const cols = 8;
+      const tileW = 512 / cols;
+      const tileH = 512 / rows;
+
+      for (let r = 0; r < rows; r++) {
+        const offsetX = (r % 2 === 1) ? tileW * 0.5 : 0;
+        for (let c = -1; c <= cols; c++) {
+          const x = c * tileW + offsetX + 2;
+          const y = r * tileH + 2;
+          const w = tileW - 4;
+          const h = tileH - 4;
+
+          const toneIndex = Math.abs(c * 7 + r * 13) % tones.length;
+          ctx.fillStyle = tones[toneIndex];
+          ctx.fillRect(x, y, w, h);
+
+          // Subtle top/left bevel highlight
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(x, y, w, h);
+
+          // Deep dark bottom/right shadow mortar line
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(x + w, y);
+          ctx.lineTo(x + w, y + h);
+          ctx.lineTo(x, y + h);
+          ctx.stroke();
+        }
+      }
+
+      // Vignette effect for gothic ambient depth
+      const vignette = ctx.createRadialGradient(256, 256, 120, 256, 256, 256);
+      vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      vignette.addColorStop(1, 'rgba(0, 0, 0, 0.22)');
+      ctx.fillStyle = vignette;
+      ctx.fillRect(0, 0, 512, 512);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(32, 32);
+      return texture;
     }
 
     // Generate a fresh bounded procedural arena when a new run starts!
@@ -1048,6 +1112,14 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       if (this.arenaGroup) {
         this.scene.remove(this.arenaGroup);
         this.arenaGroup = null;
+      }
+      if (this.groundTexture) {
+        this.groundTexture.dispose();
+        this.groundTexture = null;
+      }
+      if (this.groundMaterial) {
+        this.groundMaterial.dispose();
+        this.groundMaterial = null;
       }
       this.wallNorth = null;
       this.wallSouth = null;
