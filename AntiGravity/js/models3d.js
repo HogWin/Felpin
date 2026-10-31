@@ -3030,15 +3030,124 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
-  function createEnemyProjectileMesh(type) {
+  // 9. Enemy & Boss Projectiles (Distinct 3D models with energetic cores & animations)
+  function createEnemyProjectileMesh(type, unblockable) {
     const root = new THREE.Group();
-    let mat = materials.glowingRed;
-    if (type === 'poison') mat = materials.glowingGreen;
-    if (type === 'dark') mat = materials.glowingViolet;
 
-    const sphere = new THREE.Mesh(new THREE.SphereGeometry(3.5, 8, 8), mat);
-    sphere.position.y = 8;
-    root.add(sphere);
+    if (type === 'stone_shard') {
+      // Pedregulho pontiagudo multifacetado com veios de magma do Golem
+      const rockGeo = new THREE.DodecahedronGeometry(5.2, 0);
+      const rockMat = new THREE.MeshLambertMaterial({
+        color: 0x474b52,
+        roughness: 0.85
+      });
+      root.add(new THREE.Mesh(rockGeo, rockMat));
+
+      const magmaGeo = new THREE.DodecahedronGeometry(5.4, 0);
+      const magmaMat = new THREE.MeshBasicMaterial({
+        color: unblockable ? 0xff3838 : 0xff793f,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending
+      });
+      root.add(new THREE.Mesh(magmaGeo, magmaMat));
+
+      // Fragmentos de rochas menores orbitando
+      for (let i = 0; i < 3; i++) {
+        const miniGeo = new THREE.TetrahedronGeometry(1.6, 0);
+        const miniMat = new THREE.MeshLambertMaterial({ color: 0x2f3542 });
+        const mini = new THREE.Mesh(miniGeo, miniMat);
+        const a = (i / 3) * Math.PI * 2;
+        mini.position.set(Math.cos(a) * 7.5, Math.sin(a) * 2.5, Math.sin(a) * 7.5);
+        root.add(mini);
+      }
+    } else if (type === 'death_orb') {
+      // Orbe de Vácuo Necrótico com Halo Pulsante e Anel de Runas do Barão da Morte
+      const coreGeo = new THREE.SphereGeometry(4.8, 16, 16);
+      const coreMat = new THREE.MeshBasicMaterial({
+        color: 0x130024,
+        transparent: true,
+        opacity: 0.95
+      });
+      root.add(new THREE.Mesh(coreGeo, coreMat));
+
+      const haloGeo = new THREE.SphereGeometry(6.4, 16, 16);
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: unblockable ? 0xff0055 : 0xbe2edd,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending
+      });
+      root.add(new THREE.Mesh(haloGeo, haloMat));
+
+      const runeGeo = new THREE.RingGeometry(7.2, 9.4, 18);
+      runeGeo.rotateX(-Math.PI * 0.35);
+      const runeMat = new THREE.MeshBasicMaterial({
+        color: 0xe056fd,
+        transparent: true,
+        opacity: 0.85,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
+      });
+      const runeMesh = new THREE.Mesh(runeGeo, runeMat);
+      root.runeRing = runeMesh;
+      root.add(runeMesh);
+    } else if (type === 'blood_cleave') {
+      // Onda cortante carmesim em foice giratória do Carrasco
+      const bladeGeo = new THREE.RingGeometry(4, 14, 20, 1, -Math.PI * 0.35, Math.PI * 0.7);
+      bladeGeo.rotateX(-Math.PI / 2);
+      const bladeMat = new THREE.MeshBasicMaterial({
+        color: 0x800000,
+        transparent: true,
+        opacity: 0.95,
+        side: THREE.DoubleSide
+      });
+      root.add(new THREE.Mesh(bladeGeo, bladeMat));
+
+      const edgeGeo = new THREE.RingGeometry(12, 15.5, 20, 1, -Math.PI * 0.35, Math.PI * 0.7);
+      edgeGeo.rotateX(-Math.PI / 2);
+      const edgeMat = new THREE.MeshBasicMaterial({
+        color: 0xff0044,
+        transparent: true,
+        opacity: 0.9,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
+      });
+      root.add(new THREE.Mesh(edgeGeo, edgeMat));
+    } else if (type === 'poison') {
+      // Globo tóxico esmeralda borbulhante da Bruxa
+      const coreGeo = new THREE.SphereGeometry(4.2, 14, 14);
+      const coreMat = new THREE.MeshBasicMaterial({
+        color: 0x2ed573,
+        transparent: true,
+        opacity: 0.9
+      });
+      root.add(new THREE.Mesh(coreGeo, coreMat));
+
+      const shellGeo = new THREE.DodecahedronGeometry(5.8, 1);
+      const shellMat = new THREE.MeshBasicMaterial({
+        color: 0x7bed9f,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.5,
+        blending: THREE.AdditiveBlending
+      });
+      root.add(new THREE.Mesh(shellGeo, shellMat));
+    } else {
+      // Projétil sombrio padrão
+      const sphere = new THREE.Mesh(new THREE.SphereGeometry(4.0, 12, 12), materials.glowingViolet);
+      root.add(sphere);
+
+      const aura = new THREE.Mesh(new THREE.SphereGeometry(5.4, 12, 12), new THREE.MeshBasicMaterial({
+        color: 0x9b59b6,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.45,
+        blending: THREE.AdditiveBlending
+      }));
+      root.add(aura);
+    }
 
     return root;
   }

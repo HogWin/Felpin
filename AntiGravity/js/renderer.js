@@ -1071,11 +1071,37 @@ class GameRenderer {
       this._activeProjectiles.add(ep);
       let epMesh = this.projectileMeshMap.get(ep);
       if (!epMesh) {
-        epMesh = window.MedievalSurvivors.models3d.createEnemyProjectileMesh(ep.type || 'dark');
+        epMesh = window.MedievalSurvivors.models3d.createEnemyProjectileMesh(ep.type || 'dark', ep.unblockable);
         this.scene.add(epMesh);
         this.projectileMeshMap.set(ep, epMesh);
       }
-      epMesh.position.set(ep.x, 8, ep.y);
+      const h = ep.renderHeight || 8;
+      epMesh.position.set(ep.x, h, ep.y);
+
+      // Animações 3D contínuas e rotações de projéteis inimigos/chefes
+      if (ep.type === 'stone_shard') {
+        epMesh.rotation.x += dt * 8.0;
+        epMesh.rotation.y += dt * 9.5;
+        epMesh.rotation.z += dt * 5.0;
+      } else if (ep.type === 'death_orb') {
+        epMesh.rotation.y += dt * 4.0;
+        if (epMesh.runeRing) {
+          epMesh.runeRing.rotation.z += dt * 7.0;
+        }
+        const pulse = 1.0 + Math.sin((ep.animTime || 0) * 14) * 0.16;
+        epMesh.scale.set(pulse, pulse, pulse);
+      } else if (ep.type === 'blood_cleave') {
+        epMesh.rotation.y = -ep.angle + Math.PI / 2;
+        epMesh.rotation.z += dt * 24; // Giro rápido de lâmina cortante
+      } else if (ep.type === 'poison') {
+        epMesh.rotation.y += dt * 4.5;
+        epMesh.rotation.x += dt * 3.0;
+        const wobble = 1.0 + Math.sin((ep.animTime || 0) * 10) * 0.12;
+        epMesh.scale.set(wobble, 1 / wobble, wobble);
+      } else {
+        epMesh.rotation.y += dt * 6.0;
+        epMesh.rotation.x += dt * 4.0;
+      }
     }
 
     // 4. Slashes & Lashes (Broadsword, Twin Daggers, Dark Greatsword, Penitent Whip, Supremes)

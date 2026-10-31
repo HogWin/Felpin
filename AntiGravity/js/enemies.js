@@ -626,7 +626,8 @@ class WitchEnemy extends BaseEnemy {
         angle: angle,
         speed: 180,
         damage: Math.round(14 * this.dmgScaling),
-        color: '#9b59b6'
+        color: '#2ed573',
+        type: 'poison'
       }));
     }
   }
@@ -716,10 +717,13 @@ class EnemyProjectile {
     this.speed = cfg.speed;
     this.damage = cfg.damage;
     this.color = cfg.color || '#e74c3c';
+    this.type = cfg.type || 'dark';
     this.radius = cfg.unblockable ? 8.5 : 7;
-    this.life = 4.0;
-    // Boss and Mini-Boss projectiles cannot be cancelled/deflected by player weapons!
+    this.life = cfg.life || 4.0;
+    this.renderHeight = cfg.renderHeight || 8;
     this.unblockable = Boolean(cfg.unblockable);
+    this.alive = true; // Necessário para detecção no loop de renderização 3D do Three.js
+    this.animTime = 0;
 
     // Apply active battle modifiers
     const game = window.MedievalSurvivors && window.MedievalSurvivors.game;
@@ -734,15 +738,17 @@ class EnemyProjectile {
 
   update(dt, player, particles, playerProjectiles = []) {
     this.life -= dt;
+    this.animTime += dt;
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
 
-    if (Math.random() < 0.18) {
+    if (particles && Math.random() < 0.35) {
       particles.createSpark(this.x, this.y, this.color);
     }
 
     // Weapon contact cancellation / parry (ONLY for non-boss projectiles)
     if (!this.unblockable && this.checkWeaponContact(player, playerProjectiles, particles)) {
+      this.alive = false;
       return false; // Cancelled by player weapon contact!
     }
 
@@ -751,10 +757,16 @@ class EnemyProjectile {
     const r = this.radius + player.radius;
     if (dx * dx + dy * dy <= r * r) {
       player.takeDamage(this.damage);
+      this.alive = false;
       return false; // Hit player and destroyed
     }
 
-    return this.life > 0;
+    if (this.life <= 0) {
+      this.alive = false;
+      return false;
+    }
+
+    return true;
   }
 
   checkWeaponContact(player, playerProjectiles, particles) {
@@ -920,6 +932,26 @@ class ExecutionerBoss extends BaseEnemy {
       if (this.chargeDuration <= 0) {
         this.isCharging = false;
         this.chargeCooldown = cooldownTime;
+
+        // Ao terminar a investida, desfere ondas carmesins cortantes em leque!
+        if (enemyProjectiles) {
+          const cleaveAngle = Math.atan2(player.y - this.y, player.x - this.x);
+          const cleaveCount = this.isEnraged ? 3 : 1;
+          const spread = this.isEnraged ? 0.35 : 0;
+          for (let c = 0; c < cleaveCount; c++) {
+            const ang = cleaveAngle + (cleaveCount > 1 ? (-spread + c * spread) : 0);
+            enemyProjectiles.push(new EnemyProjectile({
+              x: this.x,
+              y: this.y,
+              angle: ang,
+              speed: this.isEnraged ? 220 : 185,
+              damage: this.isEnraged ? 26 : 20,
+              color: '#ff0055',
+              type: 'blood_cleave',
+              unblockable: true
+            }));
+          }
+        }
       }
       return;
     }
@@ -1040,9 +1072,10 @@ class StoneGolemBoss extends BaseEnemy {
           x: this.x,
           y: this.y,
           angle: ang,
-          speed: this.isEnraged ? 195 : 160,
+          speed: this.isEnraged ? 205 : 165,
           damage: this.isEnraged ? 24 : 18,
-          color: this.isEnraged ? '#e17055' : '#7f8c8d',
+          color: this.isEnraged ? '#ff4757' : '#ffa502',
+          type: 'stone_shard',
           unblockable: true
         }));
       }
@@ -1135,7 +1168,8 @@ class DeathBaronBoss extends BaseEnemy {
           angle: ang,
           speed: this.isEnraged ? 200 : 175,
           damage: this.isEnraged ? 28 : 22,
-          color: this.isEnraged ? '#ff4757' : '#e056fd',
+          color: this.isEnraged ? '#ff1744' : '#e056fd',
+          type: 'death_orb',
           unblockable: true
         }));
       }
