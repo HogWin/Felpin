@@ -74,7 +74,7 @@ class SaveManager {
         description: 'Aumenta a Vida Máxima permanente de todos os personagens.',
         statPerLevel: '+15 Max HP',
         maxLevel: 5,
-        costs: [80, 180, 350, 650, 1200]
+        costs: [160, 360, 720, 1400, 2600]
       },
       {
         id: 'armor',
@@ -83,7 +83,7 @@ class SaveManager {
         description: 'Concede redução de dano permanente contra todos os golpes inimigos.',
         statPerLevel: '+1 de Armadura',
         maxLevel: 5,
-        costs: [100, 220, 420, 750, 1400]
+        costs: [200, 450, 900, 1700, 3200]
       },
       {
         id: 'strength',
@@ -92,7 +92,7 @@ class SaveManager {
         description: 'Amplifica o poder de destruição de todas as armas.',
         statPerLevel: '+8% Dano Global',
         maxLevel: 5,
-        costs: [120, 250, 480, 850, 1600]
+        costs: [240, 520, 1050, 2000, 3800]
       },
       {
         id: 'area',
@@ -101,7 +101,7 @@ class SaveManager {
         description: 'Estende a área de impacto, corte de espadas e raio de explosões.',
         statPerLevel: '+10% Área de Efeito',
         maxLevel: 5,
-        costs: [90, 200, 380, 700, 1300]
+        costs: [180, 400, 820, 1600, 3000]
       },
       {
         id: 'luck',
@@ -110,7 +110,7 @@ class SaveManager {
         description: 'Aumenta a probabilidade de acertos críticos e ganho de ouro.',
         statPerLevel: '+10% Crítico / +8% Ouro',
         maxLevel: 5,
-        costs: [100, 220, 450, 800, 1500]
+        costs: [200, 460, 950, 1800, 3400]
       },
       {
         id: 'speed',
@@ -119,7 +119,7 @@ class SaveManager {
         description: 'Permite mover-se mais rapidamente pelo campo de batalha.',
         statPerLevel: '+6% Velocidade',
         maxLevel: 5,
-        costs: [75, 170, 320, 600, 1100]
+        costs: [150, 340, 700, 1350, 2500]
       },
       {
         id: 'projectiles',
@@ -128,7 +128,7 @@ class SaveManager {
         description: 'Aumenta permanentemente a quantidade de projéteis e golpes de todas as armas.',
         statPerLevel: '+1 Projétil / Golpe',
         maxLevel: 2,
-        costs: [250, 600]
+        costs: [750, 2200]
       },
       {
         id: 'reroll',
@@ -137,7 +137,7 @@ class SaveManager {
         description: 'Concede cargas permanentes na run para trocar as opções de aprimoramento ao subir de nível.',
         statPerLevel: '+1 Carga de Reroll por Run',
         maxLevel: 5,
-        costs: [60, 140, 260, 450, 750]
+        costs: [120, 280, 560, 1050, 1900]
       },
       {
         id: 'ether_attunement',
@@ -146,7 +146,7 @@ class SaveManager {
         description: 'Sintoniza o herói com os fluxos astrais, aumentando permanentemente a obtenção de Éter Ancestral durante a batalha.',
         statPerLevel: '+20% Ganho de Éter por Grau',
         maxLevel: 5,
-        costs: [90, 190, 360, 680, 1250]
+        costs: [180, 400, 800, 1550, 2900]
       },
       {
         id: 'sword_boost',
@@ -155,7 +155,7 @@ class SaveManager {
         description: 'Aumenta permanentemente o dano base inicial da Espada Longa.',
         statPerLevel: '+6 Dano Base na Espada',
         maxLevel: 5,
-        costs: [110, 240, 460, 820, 1500]
+        costs: [220, 480, 980, 1850, 3400]
       },
       {
         id: 'bow_boost',
@@ -164,7 +164,7 @@ class SaveManager {
         description: 'Aumenta permanentemente o dano base inicial da Besta de Precisão.',
         statPerLevel: '+5 Dano Base na Besta',
         maxLevel: 5,
-        costs: [110, 240, 460, 820, 1500]
+        costs: [220, 480, 980, 1850, 3400]
       },
       {
         id: 'fire_boost',
@@ -173,7 +173,7 @@ class SaveManager {
         description: 'Aumenta permanentemente o dano base das chamas do Fogo Sagrado.',
         statPerLevel: '+4 Dano Base nas Chamas',
         maxLevel: 5,
-        costs: [110, 240, 460, 820, 1500]
+        costs: [220, 480, 980, 1850, 3400]
       }
     ];
     if (window.MedievalIcons) {
