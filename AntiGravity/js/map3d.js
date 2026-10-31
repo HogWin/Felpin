@@ -95,10 +95,15 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
     initSharedResources() {
       this.materials = {
-        stone: new THREE.MeshStandardMaterial({ color: 0x545b63, roughness: 0.85, metalness: 0.1 }),
-        darkStone: new THREE.MeshStandardMaterial({ color: 0x2e3238, roughness: 0.8 }),
-        mossStone: new THREE.MeshStandardMaterial({ color: 0x3d473b, roughness: 0.9 }),
-        wood: new THREE.MeshStandardMaterial({ color: 0x422d1b, roughness: 0.85 }),
+        stone: new THREE.MeshStandardMaterial({ color: 0x4d535b, roughness: 0.85, metalness: 0.1 }),
+        darkStone: new THREE.MeshStandardMaterial({ color: 0x24282f, roughness: 0.8 }),
+        darkGothicStone: new THREE.MeshStandardMaterial({ color: 0x1a1c22, roughness: 0.75, metalness: 0.15 }),
+        blackObsidian: new THREE.MeshStandardMaterial({ color: 0x111317, metalness: 0.7, roughness: 0.35 }),
+        gildedTrim: new THREE.MeshStandardMaterial({ color: 0xb58b2a, metalness: 0.85, roughness: 0.3, emissive: 0x241804, emissiveIntensity: 0.15 }),
+        darkIron: new THREE.MeshStandardMaterial({ color: 0x1c1e22, metalness: 0.85, roughness: 0.35 }),
+        mossStone: new THREE.MeshStandardMaterial({ color: 0x2c382b, roughness: 0.9 }),
+        bloodStone: new THREE.MeshStandardMaterial({ color: 0x3d1419, roughness: 0.75 }),
+        wood: new THREE.MeshStandardMaterial({ color: 0x3d2716, roughness: 0.85 }),
         iron: new THREE.MeshStandardMaterial({ color: 0x23272b, metalness: 0.8, roughness: 0.35 }),
         fireGold: new THREE.MeshBasicMaterial({ color: 0xff7700 }),
         fireGreen: new THREE.MeshBasicMaterial({ color: 0x00ff88 }),
@@ -256,139 +261,121 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
     createCornerTower(rng) {
       const group = new THREE.Group();
-      // Octagonal/square heavy bastion base
-      const base = new THREE.Mesh(new THREE.BoxGeometry(32, 48, 32), this.materials.darkStone);
-      base.position.y = 24;
-      group.add(base);
+      const stoneMat = this.materials.darkGothicStone;
+      const trimMat = this.materials.stone;
+      const ironMat = this.materials.darkIron;
 
-      // Tower upper battlements
-      const top = new THREE.Mesh(new THREE.BoxGeometry(36, 12, 36), this.materials.stone);
-      top.position.y = 54;
-      group.add(top);
+      // 1. Sloped Battered Fortress Base
+      const talus = new THREE.Mesh(new THREE.BoxGeometry(40, 10, 40), stoneMat);
+      talus.position.y = 5;
+      group.add(talus);
 
-      // Corner pinnacle spire
-      const spire = new THREE.Mesh(new THREE.ConeGeometry(9, 26, 4), this.materials.darkStone);
-      spire.position.y = 73;
+      // 2. Main Citadel Tower Body
+      const body = new THREE.Mesh(new THREE.BoxGeometry(34, 42, 34), stoneMat);
+      body.position.y = 31;
+      group.add(body);
+
+      // Corner Pilasters (Reinforcing Bevels)
+      const p1 = new THREE.Mesh(new THREE.BoxGeometry(4, 44, 4), trimMat);
+      p1.position.set(-17, 31, -17);
+      group.add(p1);
+      const p2 = new THREE.Mesh(new THREE.BoxGeometry(4, 44, 4), trimMat);
+      p2.position.set(17, 31, -17);
+      group.add(p2);
+      const p3 = new THREE.Mesh(new THREE.BoxGeometry(4, 44, 4), trimMat);
+      p3.position.set(-17, 31, 17);
+      group.add(p3);
+      const p4 = new THREE.Mesh(new THREE.BoxGeometry(4, 44, 4), trimMat);
+      p4.position.set(17, 31, 17);
+      group.add(p4);
+
+      // 3. Machicolated Corbel Gallery
+      const gallery = new THREE.Mesh(new THREE.BoxGeometry(42, 8, 42), trimMat);
+      gallery.position.y = 56;
+      group.add(gallery);
+
+      // 4. Crenellated Merlons (8 battlements around roof)
+      const merlonGeo = new THREE.BoxGeometry(6, 6, 3);
+      for (let s = -1; s <= 1; s += 2) {
+        const mN = new THREE.Mesh(merlonGeo, stoneMat);
+        mN.position.set(s * 14, 63, -20);
+        group.add(mN);
+        const mS = new THREE.Mesh(merlonGeo, stoneMat);
+        mS.position.set(s * 14, 63, 20);
+        group.add(mS);
+        const mW = new THREE.Mesh(new THREE.BoxGeometry(3, 6, 6), stoneMat);
+        mW.position.set(-20, 63, s * 14);
+        group.add(mW);
+        const mE = new THREE.Mesh(new THREE.BoxGeometry(3, 6, 6), stoneMat);
+        mE.position.set(20, 63, s * 14);
+        group.add(mE);
+      }
+
+      // 5. Grand Gothic High Spire
+      const spire = new THREE.Mesh(new THREE.ConeGeometry(11, 36, 4), stoneMat);
+      spire.position.y = 78;
       spire.rotation.y = Math.PI / 4;
       group.add(spire);
+
+      // Iron Cross Finial atop Spire
+      const finialShaft = new THREE.Mesh(new THREE.BoxGeometry(0.8, 6, 0.8), ironMat);
+      finialShaft.position.y = 98;
+      group.add(finialShaft);
+      const finialBar = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.8, 0.8), ironMat);
+      finialBar.position.y = 99;
+      group.add(finialBar);
 
       return group;
     }
 
     createBoundaryWallPiece(biomeId, angle, rng) {
       const group = new THREE.Group();
+      const stoneMat = this.materials.darkGothicStone;
+      const trimMat = this.materials.stone;
 
-      if (biomeId === 'forest') {
-        // Ancient dead giant oak barrier with druidic menhir
-        const tree = this.createDeadTree(rng);
-        tree.scale.set(1.5, 1.8, 1.5);
-        group.add(tree);
-        const menhir = this.createStoneMenhir(rng);
-        menhir.position.set(18, 0, 0);
-        group.add(menhir);
-      } else if (biomeId === 'crimson') {
-        // Spiked gothic fortress barricade with obsidian pillar
-        const barricade = this.createBarricade();
-        barricade.scale.set(1.4, 1.4, 1.4);
-        group.add(barricade);
+      // Heavy Curtain Wall Slab
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(50, 32, 10), stoneMat);
+      wall.position.y = 16;
+      group.add(wall);
 
-        const pillar = this.createPillar(false);
-        pillar.position.set(18, 0, 0);
-        group.add(pillar);
-      } else if (biomeId === 'necropolis') {
-        // High crypt stone wall with sarcophagus & cross
-        const slab = new THREE.Mesh(new THREE.BoxGeometry(34, 28, 6), this.materials.darkStone);
-        slab.position.y = 14;
-        group.add(slab);
+      // Stepped Foundation Plinth
+      const base = new THREE.Mesh(new THREE.BoxGeometry(52, 4, 13), trimMat);
+      base.position.y = 2;
+      group.add(base);
 
-        const battlement = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 7), this.materials.stone);
-        battlement.position.set(0, 30, 0);
-        group.add(battlement);
+      // Recessed Gothic Pointed Blind Arches in wall face
+      for (let a = -1; a <= 1; a += 2) {
+        const arch = new THREE.Mesh(new THREE.BoxGeometry(10, 16, 2.5), this.materials.blackObsidian);
+        arch.position.set(a * 14, 15, 4.5);
+        group.add(arch);
 
-        const cross = new THREE.Mesh(new THREE.BoxGeometry(2, 9, 1), this.materials.mossStone);
-        cross.position.set(0, 18, 3.2);
-        group.add(cross);
-      } else {
-        // Ruínas de Valoria: Colossal fortress battlements & arches
-        const wall = new THREE.Mesh(new THREE.BoxGeometry(38, 30, 7), this.materials.stone);
-        wall.position.y = 15;
-        group.add(wall);
-
-        const crenel1 = new THREE.Mesh(new THREE.BoxGeometry(8, 7, 8), this.materials.darkStone);
-        crenel1.position.set(-12, 32, 0);
-        group.add(crenel1);
-
-        const crenel2 = new THREE.Mesh(new THREE.BoxGeometry(8, 7, 8), this.materials.darkStone);
-        crenel2.position.set(12, 32, 0);
-        group.add(crenel2);
+        const archTop = new THREE.Mesh(new THREE.ConeGeometry(5, 6, 4), this.materials.blackObsidian);
+        archTop.rotation.y = Math.PI / 4;
+        archTop.position.set(a * 14, 25, 4.5);
+        group.add(archTop);
       }
+
+      // Wall-Walk Battlements (Crenels and Merlons)
+      const walkway = new THREE.Mesh(new THREE.BoxGeometry(50, 3.5, 12), trimMat);
+      walkway.position.y = 33.5;
+      group.add(walkway);
+
+      const m1 = new THREE.Mesh(new THREE.BoxGeometry(12, 6, 4), stoneMat);
+      m1.position.set(-15, 38, 4);
+      group.add(m1);
+      const m2 = new THREE.Mesh(new THREE.BoxGeometry(12, 6, 4), stoneMat);
+      m2.position.set(15, 38, 4);
+      group.add(m2);
+
+      // Iron Torch Sconce on Wall
+      const sconceArm = new THREE.Mesh(new THREE.BoxGeometry(0.8, 4, 3), this.materials.darkIron);
+      sconceArm.position.set(0, 20, 5.5);
+      group.add(sconceArm);
+      const sconceFlame = new THREE.Mesh(new THREE.ConeGeometry(1.6, 4.2, 5), this.materials.fireGold);
+      sconceFlame.position.set(0, 23.5, 6.8);
+      group.add(sconceFlame);
 
       return group;
-    }
-
-    createProceduralGroundTexture(biome) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 512;
-      const ctx = canvas.getContext('2d');
-
-      const tones = biome.groundTones;
-
-      // Base background
-      ctx.fillStyle = tones[0];
-      ctx.fillRect(0, 0, 512, 512);
-
-      // Procedural flagstones & cobblestone grid
-      const brickW = 64;
-      const brickH = 32;
-      ctx.lineWidth = 2.5;
-
-      for (let y = 0; y < 512; y += brickH) {
-        const offset = (Math.floor(y / brickH) % 2) * (brickW / 2);
-        for (let x = -offset; x < 512; x += brickW) {
-          const toneIdx = Math.floor(Math.random() * tones.length);
-          ctx.fillStyle = tones[toneIdx];
-          ctx.fillRect(x + 2, y + 2, brickW - 4, brickH - 4);
-
-          // Dark mortar joint
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.65)';
-          ctx.strokeRect(x + 1, y + 1, brickW - 2, brickH - 2);
-
-          // Cracked details or mossy accents
-          if (Math.random() > 0.65) {
-            ctx.fillStyle = (biome.id === 'forest') ? 'rgba(46, 204, 113, 0.18)' : 'rgba(255, 255, 255, 0.05)';
-            ctx.fillRect(x + 4, y + 4, brickW - 8, brickH - 8);
-          }
-        }
-      }
-
-      // Add noise grain
-      const imgData = ctx.getImageData(0, 0, 512, 512);
-      const data = imgData.data;
-      for (let i = 0; i < data.length; i += 4) {
-        const noise = (Math.random() - 0.5) * 16;
-        data[i] = Math.min(255, Math.max(0, data[i] + noise));
-        data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
-        data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
-      }
-      ctx.putImageData(imgData, 0, 0);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(36, 36);
-      return texture;
-    }
-
-    // Real-time update for torch flames and braziers (0 chunk allocations during gameplay!)
-    update(playerX, playerZ) {
-      const time = Date.now() / 150;
-      for (let i = 0; i < this.activeTorches.length; i++) {
-        const t = this.activeTorches[i];
-        if (t && t.light) {
-          t.light.intensity = t.baseIntensity + Math.sin(time + t.phase) * 0.25 + (Math.random() - 0.5) * 0.12;
-        }
-      }
     }
 
     createProp(type, rng) {
@@ -413,7 +400,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
           return this.createStoneMenhir(rng);
         case 'fence':
           return this.createFence();
-        case 'spiked_barricade':
+        case 'barricade':
           return this.createBarricade();
         case 'bone_pile':
           return this.createBonePile(rng);
@@ -428,99 +415,278 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       }
     }
 
-
     createBonePile(rng) {
       const group = new THREE.Group();
-      const mound = new THREE.Mesh(new THREE.CylinderGeometry(10, 14, 2, 8), this.materials.darkStone);
-      mound.position.y = 1;
+      const mound = new THREE.Mesh(new THREE.CylinderGeometry(12, 16, 2.8, 8), this.materials.darkGothicStone);
+      mound.position.y = 1.4;
       group.add(mound);
-      for (let i = 0; i < 5; i++) {
-        const skull = new THREE.Mesh(new THREE.DodecahedronGeometry(1.6), this.materials.stone);
-        skull.position.set((rng() - 0.5) * 12, 2.2 + rng() * 1.5, (rng() - 0.5) * 12);
+
+      // Sculpted Skulls & Crossed Leg Bones
+      const boneMat = this.materials.bone;
+      for (let i = 0; i < 7; i++) {
+        const skull = new THREE.Mesh(new THREE.DodecahedronGeometry(2.0), boneMat);
+        const ang = (i / 7) * Math.PI * 2 + (rng() * 0.4);
+        const rad = 2 + rng() * 7;
+        skull.position.set(Math.cos(ang) * rad, 2.5 + rng() * 2.5, Math.sin(ang) * rad);
+        skull.rotation.set(rng() * 0.5, rng() * Math.PI, rng() * 0.5);
         group.add(skull);
       }
+
+      // Crossed Femur Bones
+      const femurGeo = new THREE.CylinderGeometry(0.5, 0.5, 11, 4);
+      const femur1 = new THREE.Mesh(femurGeo, boneMat);
+      femur1.position.set(0, 3.2, 0);
+      femur1.rotation.set(Math.PI / 2, 0.4, 0.7);
+      group.add(femur1);
+      const femur2 = new THREE.Mesh(femurGeo, boneMat);
+      femur2.position.set(0, 3.2, 0);
+      femur2.rotation.set(Math.PI / 2, -0.4, -0.7);
+      group.add(femur2);
+
       return group;
     }
 
     createCryptPillar() {
       const group = new THREE.Group();
-      const obelisk = new THREE.Mesh(new THREE.BoxGeometry(6, 30, 6), this.materials.darkStone);
-      obelisk.position.y = 15;
+      const stoneMat = this.materials.darkGothicStone;
+      const goldMat = this.materials.gildedTrim;
+      const ironMat = this.materials.darkIron;
+
+      // 3-tier stepped square plinth
+      const base1 = new THREE.Mesh(new THREE.BoxGeometry(16, 2.5, 16), stoneMat);
+      base1.position.y = 1.25;
+      group.add(base1);
+      const base2 = new THREE.Mesh(new THREE.BoxGeometry(12, 2.5, 12), stoneMat);
+      base2.position.y = 3.75;
+      group.add(base2);
+
+      // 4 Corner Iron Buttress Struts
+      const strutGeo = new THREE.BoxGeometry(2, 6, 2);
+      const corners = [[-6, -6], [6, -6], [-6, 6], [6, 6]];
+      corners.forEach(([cx, cz]) => {
+        const strut = new THREE.Mesh(strutGeo, ironMat);
+        strut.position.set(cx, 6, cz);
+        group.add(strut);
+      });
+
+      // Tapered Grand Obelisk Shaft
+      const obelisk = new THREE.Mesh(new THREE.BoxGeometry(8, 36, 8), stoneMat);
+      obelisk.position.y = 23;
       group.add(obelisk);
-      const cap = new THREE.Mesh(new THREE.ConeGeometry(5, 8, 4), this.materials.stone);
-      cap.position.y = 34;
+
+      // Engraved Gilded Runes Band
+      const runeBand = new THREE.Mesh(new THREE.BoxGeometry(8.4, 3.5, 8.4), goldMat);
+      runeBand.position.y = 24;
+      group.add(runeBand);
+
+      // Pointed Pyramidion Spire
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(5.8, 9, 4), stoneMat);
+      cap.position.y = 45;
       cap.rotation.y = Math.PI / 4;
       group.add(cap);
+
       return group;
     }
 
     createGargoylePedestal(rng) {
       const group = new THREE.Group();
-      const ped = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 6, 14, 6), this.materials.stone);
-      ped.position.y = 7;
-      group.add(ped);
-      const garg = new THREE.Mesh(new THREE.DodecahedronGeometry(3.6), this.materials.darkStone);
-      garg.position.y = 16.5;
-      group.add(garg);
+      const stoneMat = this.materials.darkGothicStone;
+      const gargMat = this.materials.blackObsidian;
+
+      // Stepped Octagonal Altar Base
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(9, 11, 3, 8), stoneMat);
+      base.position.y = 1.5;
+      group.add(base);
+
+      // Pillar Shaft with Carved Cornice
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(6, 7.5, 18, 8), stoneMat);
+      shaft.position.y = 12;
+      group.add(shaft);
+
+      const abacus = new THREE.Mesh(new THREE.BoxGeometry(14, 2.5, 14), this.materials.stone);
+      abacus.position.y = 22;
+      group.add(abacus);
+
+      // Sculpted Crouched Horned Gargoyle
+      const gargGroup = new THREE.Group();
+      gargGroup.position.set(0, 23.5, 0);
+
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(6, 6.5, 6), gargMat);
+      torso.position.y = 3.5;
+      gargGroup.add(torso);
+
+      // Horned Head
+      const head = new THREE.Mesh(new THREE.ConeGeometry(2.6, 5, 5), gargMat);
+      head.position.set(0, 7.5, 2);
+      head.rotation.x = 0.5;
+      gargGroup.add(head);
+
+      // Glowing Ruby Eyes
+      const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.45, 4, 4), this.materials.fireRed);
+      eyeL.position.set(-1.1, 8.2, 3.6);
+      gargGroup.add(eyeL);
+      const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.45, 4, 4), this.materials.fireRed);
+      eyeR.position.set(1.1, 8.2, 3.6);
+      gargGroup.add(eyeR);
+
+      // 2 Majestic Bat Wings Swept Back
+      const wingGeo = new THREE.BoxGeometry(0.6, 11, 7);
+      const wingL = new THREE.Mesh(wingGeo, gargMat);
+      wingL.position.set(-4.5, 7, -2);
+      wingL.rotation.set(0.3, -0.6, 0.4);
+      gargGroup.add(wingL);
+
+      const wingR = new THREE.Mesh(wingGeo, gargMat);
+      wingR.position.set(4.5, 7, -2);
+      wingR.rotation.set(0.3, 0.6, -0.4);
+      gargGroup.add(wingR);
+
+      group.add(gargGroup);
       return group;
     }
 
     createBloodRunes() {
       const group = new THREE.Group();
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(6, 13, 16),
-        new THREE.MeshBasicMaterial({ color: 0x8b0000, side: THREE.DoubleSide, transparent: true, opacity: 0.65 })
+      // Outer demonic runic circle
+      const ringOuter = new THREE.Mesh(
+        new THREE.RingGeometry(8, 14, 24),
+        new THREE.MeshBasicMaterial({ color: 0x990000, side: THREE.DoubleSide, transparent: true, opacity: 0.75, depthWrite: false })
       );
-      ring.rotation.x = -Math.PI / 2;
-      ring.position.y = 0.35;
-      group.add(ring);
+      ringOuter.rotation.x = -Math.PI / 2;
+      ringOuter.position.y = 0.2;
+      group.add(ringOuter);
+
+      // Inner pentagram/cross star
+      const star = new THREE.Mesh(
+        new THREE.RingGeometry(1, 4.5, 6),
+        new THREE.MeshBasicMaterial({ color: 0xff1744, side: THREE.DoubleSide, transparent: true, opacity: 0.85, depthWrite: false })
+      );
+      star.rotation.x = -Math.PI / 2;
+      star.position.y = 0.25;
+      group.add(star);
+
       return group;
     }
 
-    // 1. Ancient Stone Pillar
+    // 1. Ancient Cathedral Stone Pillar
     createPillar(broken = false) {
       const group = new THREE.Group();
-      const height = broken ? 14 : 36;
+      const height = broken ? 18 : 46;
+      const stoneMat = this.materials.darkGothicStone;
+      const trimMat = this.materials.stone;
+      const ironMat = this.materials.darkIron;
 
-      const base = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 10), this.materials.stone);
-      base.position.y = 2;
-      group.add(base);
+      // 1. Stepped Plinth Base
+      const plinth1 = new THREE.Mesh(new THREE.BoxGeometry(14, 3, 14), stoneMat);
+      plinth1.position.y = 1.5;
+      group.add(plinth1);
 
-      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 4.0, height, 8), this.materials.stone);
-      shaft.position.y = 2 + height / 2;
+      const plinth2 = new THREE.Mesh(new THREE.BoxGeometry(11.5, 2.5, 11.5), trimMat);
+      plinth2.position.y = 4.2;
+      group.add(plinth2);
+
+      // 2. Ribbed Fluted Column Shaft
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(4.4, 4.8, height, 12), trimMat);
+      shaft.position.y = 5.5 + height / 2;
       group.add(shaft);
 
+      // 3. Forged Iron Reinforcing Bands with Rivets
+      const band1 = new THREE.Mesh(new THREE.CylinderGeometry(5.0, 5.0, 1.4, 12), ironMat);
+      band1.position.y = 14;
+      group.add(band1);
+
       if (!broken) {
-        const capital = new THREE.Mesh(new THREE.BoxGeometry(11, 4, 11), this.materials.stone);
-        capital.position.y = height + 4;
+        const band2 = new THREE.Mesh(new THREE.CylinderGeometry(4.8, 4.8, 1.4, 12), ironMat);
+        band2.position.y = 32;
+        group.add(band2);
+
+        // 4. Corinthian Gothic Capital
+        const capital = new THREE.Mesh(new THREE.CylinderGeometry(7.5, 4.6, 5, 8), stoneMat);
+        capital.position.y = 5.5 + height + 2.5;
         group.add(capital);
+
+        const abacus = new THREE.Mesh(new THREE.BoxGeometry(16, 3, 16), stoneMat);
+        abacus.position.y = 5.5 + height + 6.5;
+        group.add(abacus);
+
+        // 4 Corner Pinnacle Finials
+        const finialGeo = new THREE.ConeGeometry(1.5, 4.5, 4);
+        const finialCorners = [[-6.8, -6.8], [6.8, -6.8], [-6.8, 6.8], [6.8, 6.8]];
+        finialCorners.forEach(([fx, fz]) => {
+          const finial = new THREE.Mesh(finialGeo, trimMat);
+          finial.position.set(fx, 5.5 + height + 9, fz);
+          group.add(finial);
+        });
+
+        // Torch Sconce projecting from pillar
+        const sconceArm = new THREE.Mesh(new THREE.BoxGeometry(0.8, 4, 3.5), ironMat);
+        sconceArm.position.set(0, 22, 5.8);
+        group.add(sconceArm);
+        const flame = new THREE.Mesh(new THREE.ConeGeometry(1.6, 4.5, 6), this.materials.fireGold);
+        sconceFlame: flame.position.set(0, 25.5, 7.2);
+        group.add(flame);
       } else {
-        // Fallen broken chunk beside it
-        const rubble = new THREE.Mesh(new THREE.DodecahedronGeometry(3.5), this.materials.stone);
-        rubble.position.set(6, 3, 2);
-        group.add(rubble);
+        // Jagged broken fracture top
+        const fracture = new THREE.Mesh(new THREE.ConeGeometry(4.5, 5, 5), trimMat);
+        fracture.position.set(0, 5.5 + height + 1.5, 0);
+        fracture.rotation.z = 0.4;
+        group.add(fracture);
+
+        // Fallen Chunks of Masonry
+        const chunkGeo = new THREE.DodecahedronGeometry(3.2);
+        const chunk1 = new THREE.Mesh(chunkGeo, trimMat);
+        chunk1.position.set(7, 2.5, 4);
+        chunk1.rotation.set(0.4, 0.8, 0.2);
+        group.add(chunk1);
+
+        const chunk2 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.4), stoneMat);
+        chunk2.position.set(-6, 2, 5);
+        chunk2.rotation.set(0.7, 0.2, 0.5);
+        group.add(chunk2);
       }
 
       return group;
     }
 
-    // 2. Burning Gothic Brazier with PointLight
+    // 2. Burning Ceremonial Gothic Brazier
     createBrazier(colorType = 'gold', rng) {
       const group = new THREE.Group();
-      const mat = this.materials.iron;
+      const ironMat = this.materials.darkIron;
+      const stoneMat = this.materials.darkGothicStone;
 
-      // Stand tripod & bowl
-      const base = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 6, 2, 6), mat);
-      base.position.y = 1;
-      group.add(base);
+      // 1. Circular Carved Stone Hearth Plinth
+      const plinth = new THREE.Mesh(new THREE.CylinderGeometry(9.5, 11, 2.5, 12), stoneMat);
+      plinth.position.y = 1.25;
+      group.add(plinth);
 
-      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 12, 6), mat);
-      shaft.position.y = 7;
+      // 2. Forged Dragon Talon Tripod Legs (3 Curved Struts)
+      for (let i = 0; i < 3; i++) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(1.6, 12, 1.6), ironMat);
+        const ang = (i / 3) * Math.PI * 2;
+        leg.position.set(Math.cos(ang) * 4.5, 6, Math.sin(ang) * 4.5);
+        leg.rotation.y = -ang;
+        leg.rotation.z = 0.25;
+        group.add(leg);
+      }
+
+      // 3. Central Fluted Iron Pedestal
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.8, 11, 8), ironMat);
+      shaft.position.y = 6.5;
       group.add(shaft);
 
-      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(6.5, 3.5, 4.5, 8), mat);
+      // 4. Heavy Spiked Iron Cauldron Basin
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(9.5, 5.5, 6.0, 8), ironMat);
       bowl.position.y = 14;
       group.add(bowl);
+
+      // 8 Spiked Iron Teeth on rim
+      const spikeGeo = new THREE.ConeGeometry(0.8, 3.2, 4);
+      for (let s = 0; s < 8; s++) {
+        const sang = (s / 8) * Math.PI * 2;
+        const spike = new THREE.Mesh(spikeGeo, ironMat);
+        spike.position.set(Math.cos(sang) * 9.2, 18, Math.sin(sang) * 9.2);
+        group.add(spike);
+      }
 
       // Fire flame mesh
       let fireMat = this.materials.fireGold;
@@ -533,19 +699,24 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         lightHex = 0xff3322;
       }
 
-      const flame = new THREE.Mesh(new THREE.ConeGeometry(3.8, 8, 6), fireMat);
-      flame.position.y = 18;
-      group.add(flame);
+      // Volumetric Core Flame + Outer Translucent Flame
+      const flameCore = new THREE.Mesh(new THREE.ConeGeometry(3.5, 7.5, 6), fireMat);
+      flameCore.position.y = 18.5;
+      group.add(flameCore);
 
-      // Real 3D PointLight - keep maximum 2 active across scene to avoid GPU lighting shader bottlenecks
+      const flameOuter = new THREE.Mesh(new THREE.ConeGeometry(5.2, 9.5, 6), fireMat);
+      flameOuter.position.y = 19;
+      flameOuter.rotation.y = 0.5;
+      group.add(flameOuter);
+
       if (this.activeTorches.length < 2) {
-        const light = new THREE.PointLight(lightHex, 1.1, 120, 1.6);
-        light.position.y = 18;
+        const light = new THREE.PointLight(lightHex, 1.2, 140, 1.6);
+        light.position.y = 19;
         group.add(light);
 
         group._light = {
           light: light,
-          baseIntensity: 1.1,
+          baseIntensity: 1.2,
           phase: (rng ? rng() : Math.random()) * Math.PI * 2
         };
       }
@@ -553,105 +724,244 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       return group;
     }
 
-    // 3. Ornate Tombstone with Gothic Cross
+    // 3. Ornate Celtic High Cross Tombstone
     createTombstone(rng) {
       const group = new THREE.Group();
-      const slab = new THREE.Mesh(new THREE.BoxGeometry(7, 12, 2.2), this.materials.darkStone);
-      slab.position.y = 6;
-      group.add(slab);
+      const stoneMat = this.materials.darkGothicStone;
+      const trimMat = this.materials.stone;
 
-      const topCurve = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 2.2, 8), this.materials.darkStone);
-      topCurve.rotation.z = Math.PI / 2;
-      topCurve.position.y = 12;
-      group.add(topCurve);
+      // 2-Tier Stepped Base
+      const base1 = new THREE.Mesh(new THREE.BoxGeometry(11, 2.5, 7), stoneMat);
+      base1.position.y = 1.25;
+      group.add(base1);
+      const base2 = new THREE.Mesh(new THREE.BoxGeometry(8.5, 2, 5.5), trimMat);
+      base2.position.y = 3.25;
+      group.add(base2);
 
-      // Cross engraving
-      const cross = new THREE.Mesh(new THREE.BoxGeometry(1.2, 5, 0.4), this.materials.mossStone);
-      cross.position.set(0, 8, 1.2);
-      group.add(cross);
+      // Tapered Celtic Cross Vertical Shaft
+      const shaft = new THREE.Mesh(new THREE.BoxGeometry(3.8, 19, 2.4), trimMat);
+      shaft.position.y = 13;
+      group.add(shaft);
+
+      // Horizontal Cross Bar
+      const crossBar = new THREE.Mesh(new THREE.BoxGeometry(13, 3.6, 2.4), trimMat);
+      crossBar.position.y = 16;
+      group.add(crossBar);
+
+      // Pierced Celtic Nimbus Ring
+      const nimbus = new THREE.Mesh(
+        new THREE.RingGeometry(3.8, 5.8, 16),
+        trimMat
+      );
+      nimbus.position.set(0, 16, 1.3);
+      group.add(nimbus);
+
+      // Carved Skull Relief in Center
+      const skull = new THREE.Mesh(new THREE.DodecahedronGeometry(1.6), this.materials.bone);
+      skull.position.set(0, 16, 1.8);
+      group.add(skull);
 
       // Tilt slightly for ancient weathering
-      group.rotation.z = (rng() - 0.5) * 0.25;
-      group.rotation.x = (rng() - 0.5) * 0.2;
+      group.rotation.z = (rng() - 0.5) * 0.22;
+      group.rotation.x = (rng() - 0.5) * 0.18;
 
       return group;
     }
 
-    // 4. Stone Sarcophagus
+    // 4. Imperial Knight-King Crypt Sarcophagus
     createSarcophagus() {
       const group = new THREE.Group();
-      const base = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 22), this.materials.darkStone);
-      base.position.y = 3;
+      const stoneMat = this.materials.darkGothicStone;
+      const trimMat = this.materials.stone;
+      const goldMat = this.materials.gildedTrim;
+
+      // Stepped Foundation Plinth
+      const base = new THREE.Mesh(new THREE.BoxGeometry(16, 3, 32), stoneMat);
+      base.position.y = 1.5;
       group.add(base);
 
-      const lid = new THREE.Mesh(new THREE.BoxGeometry(11, 3, 23), this.materials.stone);
-      lid.position.y = 7.5;
-      lid.rotation.y = 0.08; // slightly askew
+      // Casket Vault Body with Side Pillars
+      const casket = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 29), trimMat);
+      casket.position.y = 7;
+      group.add(casket);
+
+      // Side Blind Arcades
+      const sideArcade = new THREE.Mesh(new THREE.BoxGeometry(14.5, 5, 24), stoneMat);
+      sideArcade.position.y = 7;
+      group.add(sideArcade);
+
+      // Sculpted Beveled Lid
+      const lid = new THREE.Mesh(new THREE.BoxGeometry(15.5, 3.5, 30.5), stoneMat);
+      lid.position.y = 12.5;
       group.add(lid);
+
+      // Knight Effigy Resting on Lid
+      // Crusader Great Helm headpiece
+      const helm = new THREE.Mesh(new THREE.BoxGeometry(4.8, 3.6, 5.2), goldMat);
+      helm.position.set(0, 15, -10);
+      group.add(helm);
+
+      // Stone Longsword resting along body
+      const swordBlade = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 18), goldMat);
+      swordBlade.position.set(0, 15, 1);
+      group.add(swordBlade);
+
+      const crossguard = new THREE.Mesh(new THREE.BoxGeometry(7, 1.2, 1.6), goldMat);
+      crossguard.position.set(0, 15, -6);
+      group.add(crossguard);
+
+      // Heraldic Shield at feet
+      const shield = new THREE.Mesh(new THREE.BoxGeometry(6.5, 1.8, 8), stoneMat);
+      shield.position.set(0, 15, 10);
+      group.add(shield);
 
       return group;
     }
 
-    // 5. Twisted Dead Tree
+    // 5. Gnarled Ancient Dead Oak
     createDeadTree(rng) {
       const group = new THREE.Group();
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 5, 28, 6), this.materials.wood);
-      trunk.position.y = 14;
-      trunk.rotation.z = (rng() - 0.5) * 0.15;
+      const woodMat = this.materials.wood;
+
+      // Massive Flared Root Base
+      const roots = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 8.5, 8, 8), woodMat);
+      roots.position.y = 4;
+      group.add(roots);
+
+      // Gnarled Main Trunk
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 5.5, 28, 8), woodMat);
+      trunk.position.y = 18;
+      trunk.rotation.z = (rng() - 0.5) * 0.18;
       group.add(trunk);
 
-      // Gnarled branches
-      for (let b = 0; b < 4; b++) {
-        const branch = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.8, 14, 5), this.materials.wood);
-        branch.position.set(0, 20 + b * 2, 0);
-        branch.rotation.z = 0.6 * ((b % 2 === 0) ? 1 : -1);
-        branch.rotation.y = (b * Math.PI) / 2;
+      // 6 Gnarled Branches Arching Outward
+      const branchAngles = [0, 1.1, 2.2, 3.14, 4.2, 5.3];
+      for (let b = 0; b < branchAngles.length; b++) {
+        const branch = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 2.0, 16, 5), woodMat);
+        const ang = branchAngles[b];
+        branch.position.set(Math.cos(ang) * 2, 22 + (b * 2.2), Math.sin(ang) * 2);
+        branch.rotation.y = ang;
+        branch.rotation.z = 0.65;
         group.add(branch);
       }
 
+      // Hanging Chain Lantern on one major bough
+      const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 8, 4), this.materials.darkIron);
+      chain.position.set(9, 23, 0);
+      group.add(chain);
+
+      const lantern = new THREE.Mesh(new THREE.DodecahedronGeometry(1.8), this.materials.fireGold);
+      lantern.position.set(9, 18, 0);
+      group.add(lantern);
+
       return group;
     }
 
-    // 6. Druidic Standing Stone (Menhir)
+    // 6. Druidic Megalith Monolith (Menhir)
     createStoneMenhir(rng) {
       const group = new THREE.Group();
-      const menhir = new THREE.Mesh(new THREE.ConeGeometry(5, 26, 5), this.materials.mossStone);
-      menhir.position.y = 13;
+      const stoneMat = this.materials.mossStone;
+
+      // Heavy Chiseled Hexagonal Menhir
+      const menhir = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 7.5, 30, 6), stoneMat);
+      menhir.position.y = 15;
       menhir.rotation.y = rng() * Math.PI;
       group.add(menhir);
+
+      // Glowing Runic Engraving band
+      const runes = new THREE.Mesh(
+        new THREE.RingGeometry(2, 5, 6),
+        new THREE.MeshBasicMaterial({ color: 0x00e676, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+      );
+      runes.position.set(0, 16, 4.2);
+      group.add(runes);
+
       return group;
     }
 
-    // 7. Spiked Wooden Barricade
+    // 7. Heavy Fortified Spiked War Barricade
     createBarricade() {
       const group = new THREE.Group();
-      const beam = new THREE.Mesh(new THREE.BoxGeometry(26, 2.5, 2.5), this.materials.wood);
-      beam.position.y = 5;
+      const woodMat = this.materials.wood;
+      const ironMat = this.materials.darkIron;
+
+      // Heavy Squared Timber Beam
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(28, 3.2, 3.2), woodMat);
+      beam.position.y = 5.5;
       group.add(beam);
 
-      for (let s = -2; s <= 2; s++) {
-        const spike = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 1.4, 14, 4), this.materials.wood);
-        spike.position.set(s * 5.5, 5, 0);
-        spike.rotation.x = Math.PI / 4;
-        group.add(spike);
+      // 2 Crossed Timber Trestles with Iron Bolts
+      for (let s of [-11, 11]) {
+        const leg1 = new THREE.Mesh(new THREE.BoxGeometry(2.4, 13, 2.4), woodMat);
+        leg1.position.set(s, 5, 0);
+        leg1.rotation.x = 0.55;
+        group.add(leg1);
+
+        const leg2 = new THREE.Mesh(new THREE.BoxGeometry(2.4, 13, 2.4), woodMat);
+        leg2.position.set(s, 5, 0);
+        leg2.rotation.x = -0.55;
+        group.add(leg2);
       }
+
+      // 5 Sharpened Steel-Tipped Stakes
+      for (let s = -2; s <= 2; s++) {
+        const stake = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.8, 15, 6), woodMat);
+        stake.position.set(s * 5.8, 6, 0);
+        stake.rotation.x = 0.85;
+        group.add(stake);
+
+        // Steel tip
+        const tip = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3.5, 6), ironMat);
+        tip.position.set(s * 5.8, 11.5, 4.5);
+        tip.rotation.x = 0.85;
+        group.add(tip);
+      }
+
       return group;
     }
 
-    // 8. Broken Wooden Fence
+    // 8. Wrought-Iron Gothic Cemetery Railing
     createFence() {
       const group = new THREE.Group();
-      const post1 = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 10, 5), this.materials.wood);
-      post1.position.set(-10, 5, 0);
-      group.add(post1);
-      const post2 = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 10, 5), this.materials.wood);
-      post2.position.set(10, 5, 0);
-      group.add(post2);
+      const stoneMat = this.materials.darkGothicStone;
+      const ironMat = this.materials.darkIron;
 
-      const plank = new THREE.Mesh(new THREE.BoxGeometry(22, 1.8, 0.8), this.materials.wood);
-      plank.position.set(0, 6, 0);
-      plank.rotation.z = -0.08;
-      group.add(plank);
+      // Stone Curb Plinth
+      const curb = new THREE.Mesh(new THREE.BoxGeometry(26, 2, 4), stoneMat);
+      curb.position.y = 1;
+      group.add(curb);
+
+      // 2 Stone Posts with Pyramid Caps
+      for (let p of [-12, 12]) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(3.5, 12, 3.5), stoneMat);
+        post.position.set(p, 6, 0);
+        group.add(post);
+
+        const cap = new THREE.Mesh(new THREE.ConeGeometry(2.5, 3, 4), stoneMat);
+        cap.position.set(p, 13, 0);
+        cap.rotation.y = Math.PI / 4;
+        group.add(cap);
+      }
+
+      // 2 Horizontal Wrought-Iron Rails
+      const rail1 = new THREE.Mesh(new THREE.BoxGeometry(22, 0.8, 0.8), ironMat);
+      rail1.position.set(0, 4.5, 0);
+      group.add(rail1);
+      const rail2 = new THREE.Mesh(new THREE.BoxGeometry(22, 0.8, 0.8), ironMat);
+      rail2.position.set(0, 9.5, 0);
+      group.add(rail2);
+
+      // 6 Vertical Pickets with Spear Finials
+      const finialGeo = new THREE.ConeGeometry(0.8, 2.2, 4);
+      for (let i = -2.5; i <= 2.5; i += 1.0) {
+        const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 9.5, 4), ironMat);
+        bar.position.set(i * 3.8, 7, 0);
+        group.add(bar);
+
+        const finial = new THREE.Mesh(finialGeo, ironMat);
+        finial.position.set(i * 3.8, 12.5, 0);
+        group.add(finial);
+      }
 
       return group;
     }

@@ -2151,44 +2151,121 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
   function createDestructibleModel(type) {
     const root = new THREE.Group();
+    const woodMat = materials.wood;
+    const ironMat = materials.darkSteel;
+    const goldMat = materials.gold;
+    const stoneMat = materials.blackObsidian || materials.stoneGrey;
+
     if (type === 'crate') {
-      const woodMat = materials.wood;
-      const ironMat = materials.darkSteel;
+      // 1. Heavy Royal Reinforced Armory Crate
       const box = new THREE.Mesh(new THREE.BoxGeometry(14, 14, 14), woodMat);
       box.position.y = 7;
       root.add(box);
 
-      const bandX = new THREE.Mesh(new THREE.BoxGeometry(14.4, 2.5, 14.4), ironMat);
-      bandX.position.y = 7;
-      root.add(bandX);
+      // Top lid frame & plank lines
+      const lidFrame = new THREE.Mesh(new THREE.BoxGeometry(14.6, 1.5, 14.6), ironMat);
+      lidFrame.position.y = 13.6;
+      root.add(lidFrame);
+
+      const baseFrame = new THREE.Mesh(new THREE.BoxGeometry(14.6, 1.5, 14.6), ironMat);
+      baseFrame.position.y = 0.8;
+      root.add(baseFrame);
+
+      // 4 Heavy Iron Corner Posts
+      const postGeo = new THREE.BoxGeometry(1.8, 14.2, 1.8);
+      const corners = [[-6.8, -6.8], [6.8, -6.8], [-6.8, 6.8], [6.8, 6.8]];
+      corners.forEach(([cx, cz]) => {
+        const post = new THREE.Mesh(postGeo, ironMat);
+        post.position.set(cx, 7, cz);
+        root.add(post);
+      });
+
+      // Diagonal Iron Straps (X-brace on front & back)
+      const strapGeo = new THREE.BoxGeometry(1.2, 16.5, 0.4);
+      const strap1 = new THREE.Mesh(strapGeo, ironMat);
+      strap1.position.set(0, 7, 7.2);
+      strap1.rotation.z = 0.785;
+      root.add(strap1);
+
+      const strap2 = new THREE.Mesh(strapGeo, ironMat);
+      strap2.position.set(0, 7, 7.2);
+      strap2.rotation.z = -0.785;
+      root.add(strap2);
+
+      // Royal Gold Wax Seal / Lock
+      const lock = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.6, 6), goldMat);
+      lock.rotation.x = Math.PI / 2;
+      lock.position.set(0, 7, 7.4);
+      root.add(lock);
+
     } else if (type === 'sarcophagus') {
-      const stoneMat = materials.stoneGrey;
-      const goldMat = materials.gold;
-      const base = new THREE.Mesh(new THREE.BoxGeometry(14, 12, 26), stoneMat);
-      base.position.y = 6;
+      // 2. Sculpted Crypt Tomb with Effigy
+      const base = new THREE.Mesh(new THREE.BoxGeometry(15, 6, 28), stoneMat);
+      base.position.y = 3;
       root.add(base);
 
-      const cross = new THREE.Mesh(new THREE.BoxGeometry(4, 1.5, 12), goldMat);
-      cross.position.set(0, 12.5, 0);
-      root.add(cross);
-      const crossBar = new THREE.Mesh(new THREE.BoxGeometry(8, 1.5, 3.5), goldMat);
-      crossBar.position.set(0, 12.5, -2);
+      const casket = new THREE.Mesh(new THREE.BoxGeometry(13.5, 6, 26.5), materials.stoneGrey);
+      casket.position.y = 7;
+      root.add(casket);
+
+      const lid = new THREE.Mesh(new THREE.BoxGeometry(14.5, 2.5, 27.5), stoneMat);
+      lid.position.y = 11;
+      root.add(lid);
+
+      // Engraved Gilded Cross
+      const crossShaft = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.8, 16), goldMat);
+      crossShaft.position.set(0, 12.4, 0);
+      root.add(crossShaft);
+
+      const crossBar = new THREE.Mesh(new THREE.BoxGeometry(8, 0.8, 2.4), goldMat);
+      crossBar.position.set(0, 12.4, -3);
       root.add(crossBar);
+
+      // Crusader Great Helm carving at the head
+      const helmRelief = new THREE.Mesh(new THREE.BoxGeometry(5, 2.2, 5), goldMat);
+      helmRelief.position.set(0, 12.8, -9);
+      root.add(helmRelief);
+
     } else {
-      // Default: barrel
-      const woodMat = materials.wood;
-      const ironMat = materials.darkSteel;
-      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(7, 7.5, 16, 10), woodMat);
-      barrel.position.y = 8;
-      root.add(barrel);
+      // 3. Bulging Medieval Oak Wine & Black Powder Cask Barrel
+      const botCylinder = new THREE.Mesh(new THREE.CylinderGeometry(7.2, 6.2, 5, 12), woodMat);
+      botCylinder.position.y = 2.5;
+      root.add(botCylinder);
 
-      const ringTop = new THREE.Mesh(new THREE.CylinderGeometry(7.2, 7.2, 1.8, 10), ironMat);
-      ringTop.position.y = 12;
-      root.add(ringTop);
+      const midCylinder = new THREE.Mesh(new THREE.CylinderGeometry(8.0, 7.2, 6, 12), woodMat);
+      midCylinder.position.y = 8;
+      root.add(midCylinder);
 
-      const ringBottom = new THREE.Mesh(new THREE.CylinderGeometry(7.6, 7.6, 1.8, 10), ironMat);
-      ringBottom.position.y = 4;
-      root.add(ringBottom);
+      const topCylinder = new THREE.Mesh(new THREE.CylinderGeometry(6.2, 8.0, 5, 12), woodMat);
+      topCylinder.position.y = 13.5;
+      root.add(topCylinder);
+
+      // 4 Heavy Forged Iron Hoops
+      const hoopGeo1 = new THREE.CylinderGeometry(6.4, 6.4, 1.2, 12, 1, true);
+      const hoop1 = new THREE.Mesh(hoopGeo1, ironMat);
+      hoop1.position.y = 14.5;
+      root.add(hoop1);
+
+      const hoopGeo2 = new THREE.CylinderGeometry(7.7, 7.7, 1.2, 12, 1, true);
+      const hoop2 = new THREE.Mesh(hoopGeo2, ironMat);
+      hoop2.position.y = 10.5;
+      root.add(hoop2);
+
+      const hoopGeo3 = new THREE.CylinderGeometry(7.7, 7.7, 1.2, 12, 1, true);
+      const hoop3 = new THREE.Mesh(hoopGeo3, ironMat);
+      hoop3.position.y = 5.5;
+      root.add(hoop3);
+
+      const hoopGeo4 = new THREE.CylinderGeometry(6.4, 6.4, 1.2, 12, 1, true);
+      const hoop4 = new THREE.Mesh(hoopGeo4, ironMat);
+      hoop4.position.y = 1.5;
+      root.add(hoop4);
+
+      // Spigot / Bung Valve
+      const bung = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 2.5, 6), ironMat);
+      bung.rotation.x = Math.PI / 2;
+      bung.position.set(0, 8, 8.2);
+      root.add(bung);
     }
 
     return root;
