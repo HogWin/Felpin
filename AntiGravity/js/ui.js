@@ -29,6 +29,10 @@ class UIController {
     this.gameOverModal = document.getElementById('game-over-modal');
     this.pauseModal = document.getElementById('pause-modal');
     this.victoryModal = document.getElementById('victory-modal');
+    this.bloodAltarModal = document.getElementById('blood-altar-modal');
+    this.bloodPactCards = document.getElementById('blood-pact-cards');
+    this.bloodAltarCostText = document.getElementById('blood-altar-cost-text');
+    this.btnRefuseBloodPact = document.getElementById('btn-refuse-blood-pact');
     this.mainMenuModal = document.getElementById('main-menu-modal');
     this.authModal = document.getElementById('auth-modal');
     this.menuTabContent = document.getElementById('menu-tab-content');
@@ -42,6 +46,16 @@ class UIController {
   }
 
   bindEvents() {
+    // Blood Altar refuse button
+    if (this.btnRefuseBloodPact) {
+      this.btnRefuseBloodPact.addEventListener('click', () => {
+        if (this.bloodAltarModal) this.bloodAltarModal.classList.remove('active');
+        if (this.game && this.game.state === 'PAUSED') {
+          this.game.state = 'PLAYING';
+        }
+      });
+    }
+
     // Sound toggle button
     const soundBtn = document.getElementById('btn-sound-toggle');
     if (soundBtn) {
@@ -931,6 +945,137 @@ class UIController {
     }
 
     this.chestModal.classList.add('active');
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  //  BLOOD ALTAR MODAL (PACTOS CARMESINS)
+  // ──────────────────────────────────────────────────────────────
+  showBloodAltarModal(player, altar, game) {
+    if (!this.bloodAltarModal || !this.bloodPactCards) return;
+    game.state = 'PAUSED';
+
+    const costHp = Math.max(1, Math.floor(player.hp * 0.35));
+    if (this.bloodAltarCostText) {
+      this.bloodAltarCostText.textContent = `-${costHp} HP (35% da sua Vida Atual)`;
+    }
+
+    this.bloodPactCards.innerHTML = '';
+
+    const pacts = [
+      {
+        id: 'cataclysm',
+        badge: 'ANIMA CARMESIM',
+        icon: '🩸',
+        title: 'Cataclisma Carmesim',
+        desc: 'Libera uma colossal onda de choque abissal que oblitera todos os monstros na tela, gera +15 Éter Ancestral e gera +35 Gemas de Sangue no chão.',
+        action: () => {
+          if (game.renderer && game.renderer.triggerShake) game.renderer.triggerShake(12, 0.6);
+          if (game.renderer && game.renderer.triggerDamageFlash) game.renderer.triggerDamageFlash(0.4);
+
+          let kills = 0;
+          for (let i = 0; i < game.enemies.length; i++) {
+            const e = game.enemies[i];
+            if (!e.alive) continue;
+            if (!e.isBoss) {
+              e.takeDamage(99999, 0, 0, 0);
+              kills++;
+            } else {
+              e.takeDamage(Math.round(e.maxHp * 0.25), 0, 0, 0);
+            }
+          }
+
+          if (player.addEther) player.addEther(15, true);
+          for (let g = 0; g < 35; g++) {
+            const ang = Math.random() * Math.PI * 2;
+            const rad = 25 + Math.random() * 95;
+            game.gems.push(new window.MedievalSurvivors.XpGem(player.x + Math.cos(ang) * rad, player.y + Math.sin(ang) * rad, 3));
+          }
+
+          game.addFloatingText(player.x, player.y - 45, '💥 CATACLISMA CARMESIM!', '#ff1744', true);
+        }
+      },
+      {
+        id: 'forge',
+        badge: 'FORJA DE SANGUE',
+        icon: '⚔️',
+        title: 'Forja do Sangue Nobre',
+        desc: 'O sangue derramado alimenta instantaneamente uma arma equipada (+1 Grau Imediato) e concede +100 Ouro Real.',
+        action: () => {
+          const upgradeables = player.weapons.filter(w => w.level < w.maxLevel);
+          if (upgradeables.length > 0) {
+            const chosen = upgradeables[Math.floor(Math.random() * upgradeables.length)];
+            chosen.upgrade();
+            game.addFloatingText(player.x, player.y - 40, `✨ ${chosen.name} Aprimorada!`, '#f1c40f', true);
+          }
+          player.gold = (player.gold || 0) + 100;
+          if (game.saveManager) game.saveManager.addGold(100);
+          game.addFloatingText(player.x, player.y - 20, '+100 💰 Ouro Real', '#ffd700', false);
+        }
+      },
+      {
+        id: 'might',
+        badge: 'PODER PROIBIDO',
+        icon: '💀',
+        title: 'Poder Titânico Eterno',
+        desc: 'Pacto de sangue vitalício: concede permanentemente +15% de Dano Global e +10% de Raio de Efeito até o final desta expedição.',
+        action: () => {
+          player.bonusDamageMultiplier = (player.bonusDamageMultiplier || 0) + 0.15;
+          player.bonusAreaMultiplier = (player.bonusAreaMultiplier || 0) + 0.10;
+          game.addFloatingText(player.x, player.y - 40, '+15% Dano & +10% Área!', '#e056fd', true);
+        }
+      }
+    ];
+
+    pacts.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'blood-pact-card';
+      card.innerHTML = `
+        <div class="blood-pact-icon">${p.icon}</div>
+        <div class="blood-pact-info">
+          <span class="blood-pact-badge">${p.badge}</span>
+          <h4 class="blood-pact-title">${p.title}</h4>
+          <p class="blood-pact-desc">${p.desc}</p>
+        </div>
+      `;
+
+      card.onclick = () => {
+        // Sacrifice current HP
+        player.hp -= costHp;
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playPlayerDamage) {
+          window.MedievalSurvivors.sound.playPlayerDamage();
+        }
+        if (game.particles && game.particles.createBloodSparks) {
+          game.particles.createBloodSparks(player.x, player.y, 40, '#c0392b');
+        }
+        game.addFloatingText(player.x, player.y - 25, `-${costHp} HP (Sacrifício)`, '#ff3333', true);
+
+        // Execute pact
+        p.action();
+
+        if (game.saveManager) {
+          if (!game.saveManager.data.stats) game.saveManager.data.stats = {};
+          game.saveManager.data.stats.totalBloodPactsSealed = (game.saveManager.data.stats.totalBloodPactsSealed || 0) + 1;
+        }
+
+        // Update HUD & close
+        this.updateHUD(player, game.gameTime);
+        this.bloodAltarModal.classList.remove('active');
+
+        // Mark altar as consumed
+        if (altar) {
+          altar.used = true;
+          altar.alive = false;
+        }
+
+        setTimeout(() => {
+          game.state = 'PLAYING';
+        }, 80);
+      };
+
+      this.bloodPactCards.appendChild(card);
+    });
+
+    this.bloodAltarModal.classList.add('active');
   }
 
   // ──────────────────────────────────────────────────────────────

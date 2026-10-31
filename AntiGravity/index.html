@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Fallen Kingdom</title>
-  <link rel="stylesheet" href="css/style.css?v=40">
+  <link rel="stylesheet" href="css/style.css?v=41">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22><text y=%2226%22 font-size=%2228%22>⚔️</text></svg>">
 </head>
 <body>
@@ -162,6 +162,36 @@
             <span>Pular Bênção (+25% HP & +35 💰)</span>
           </button>
           </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODAL: Altar de Sangue (Pactos Carmesins) ==================== -->
+    <div class="modal-overlay" id="blood-altar-modal">
+      <div class="modal-box ornate-frame blood-altar-box" style="max-width: 680px; border-color: #c0392b; box-shadow: 0 0 35px rgba(192, 57, 43, 0.45);">
+        <div class="ornate-corner corner-tl"></div>
+        <div class="ornate-corner corner-tr"></div>
+        <div class="ornate-corner corner-bl"></div>
+        <div class="ornate-corner corner-br"></div>
+
+        <div class="modal-header-ribbon" style="background: linear-gradient(135deg, #781005, #b71515, #550700); border-color: #e74c3c;">
+          <span class="ribbon-flourish">🩸</span>
+          <h1 class="modal-title" style="color: #ffcccc; text-shadow: 0 0 10px rgba(231, 76, 60, 0.8);">PACTO CARMESIM DOS ANCESTRAIS</h1>
+          <span class="ribbon-flourish">🩸</span>
+        </div>
+        <p class="modal-subtitle" style="color: #ffb3b3; margin-top: 10px;">
+          O Altar exige sacrifício vital: <strong style="color: #ff4d4d; font-size: 1.1em;" id="blood-altar-cost-text">-35% de Vida Atual</strong> em troca de poder ancestral:
+        </p>
+
+        <div class="blood-pact-cards" id="blood-pact-cards" style="display: flex; flex-direction: column; gap: 12px; margin: 16px 0;">
+          <!-- Dynamically populated cards -->
+        </div>
+
+        <div class="blood-altar-actions" style="display: flex; justify-content: center; margin-top: 10px;">
+          <button class="btn-royal" id="btn-refuse-blood-pact" style="background: linear-gradient(135deg, #2b2b2b, #191919); border-color: #7f8c8d; color: #bdc3c7;">
+            <span class="btn-icon">✖</span>
+            <span>Recusar Sacrifício e Partir</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -550,22 +580,22 @@
   </div>
 
   <!-- 3D Engine & Game Scripts -->
-  <script src="js/three.min.js?v=40"></script>
-  <script src="js/audio.js?v=40"></script>
-  <script src="js/icons.js?v=40"></script>
-  <script src="js/save.js?v=40"></script>
-  <script src="js/classes.js?v=40"></script>
-  <script src="js/passives.js?v=40"></script>
-  <script src="js/weapons.js?v=40"></script>
-  <script src="js/synergies.js?v=40"></script>
-  <script src="js/entities.js?v=40"></script>
-  <script src="js/enemies.js?v=40"></script>
-  <script src="js/models3d.js?v=40"></script>
-  <script src="js/map3d.js?v=40"></script>
-  <script src="js/skilltree.js?v=40"></script>
-  <script src="js/renderer.js?v=40"></script>
-  <script src="js/ui.js?v=40"></script>
-  <script src="js/game.js?v=40"></script>
+  <script src="js/three.min.js?v=41"></script>
+  <script src="js/audio.js?v=41"></script>
+  <script src="js/icons.js?v=41"></script>
+  <script src="js/save.js?v=41"></script>
+  <script src="js/classes.js?v=41"></script>
+  <script src="js/passives.js?v=41"></script>
+  <script src="js/weapons.js?v=41"></script>
+  <script src="js/synergies.js?v=41"></script>
+  <script src="js/entities.js?v=41"></script>
+  <script src="js/enemies.js?v=41"></script>
+  <script src="js/models3d.js?v=41"></script>
+  <script src="js/map3d.js?v=41"></script>
+  <script src="js/skilltree.js?v=41"></script>
+  <script src="js/renderer.js?v=41"></script>
+  <script src="js/ui.js?v=41"></script>
+  <script src="js/game.js?v=41"></script>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {

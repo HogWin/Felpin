@@ -73,6 +73,7 @@ class GameRenderer {
     this.destructibleMeshMap = new Map();
     this.collectibleMeshMap = new Map(); // destructible -> THREE.Group
     this.sanctuaryMeshMap = new Map(); // sanctuary -> THREE.Group
+    this.bloodAltarMeshMap = new Map(); // bloodAltar -> THREE.Group
     this.celestialStrikeMap = new Map(); // celestialStrike -> { telegraphMesh, impactMesh }
     this.damageFlashTimer = 0;
     this.projectileMeshMap = new Map(); // projectile -> THREE.Group
@@ -86,6 +87,7 @@ class GameRenderer {
     this._activeChests = new Set();
     this._activeDestructibles = new Set();
     this._activeSanctuaries = new Set();
+    this._activeBloodAltars = new Set();
     this._activeStrikes = new Set();
     this._activeProjectiles = new Set();
 
@@ -274,6 +276,12 @@ class GameRenderer {
       this.disposeMesh(mesh);
     }
     this.sanctuaryMeshMap.clear();
+
+    for (let [, mesh] of this.bloodAltarMeshMap) {
+      this.scene.remove(mesh);
+      this.disposeMesh(mesh);
+    }
+    this.bloodAltarMeshMap.clear();
 
     for (let [, item] of this.celestialStrikeMap) {
       if (item.telegraphMesh) {
@@ -834,6 +842,36 @@ class GameRenderer {
       }
     }
 
+    // 1.5. Update Blood Altars
+    this._activeBloodAltars.clear();
+    if (eventManager.bloodAltars) {
+      for (let i = 0, len = eventManager.bloodAltars.length; i < len; i++) {
+        const a = eventManager.bloodAltars[i];
+        if (!a.alive || a.used) continue;
+        this._activeBloodAltars.add(a);
+        let mesh = this.bloodAltarMeshMap.get(a);
+
+        if (!mesh) {
+          mesh = window.MedievalSurvivors.models3d.createBloodAltarModel();
+          this.scene.add(mesh);
+          this.bloodAltarMeshMap.set(a, mesh);
+        }
+
+        mesh.position.set(a.x, 0, a.y);
+        if (mesh.updateVisuals) {
+          mesh.updateVisuals(dt);
+        }
+      }
+    }
+
+    for (const [a, mesh] of this.bloodAltarMeshMap.entries()) {
+      if (!this._activeBloodAltars.has(a)) {
+        this.scene.remove(mesh);
+        this.disposeMesh(mesh);
+        this.bloodAltarMeshMap.delete(a);
+      }
+    }
+
     // 2. Update Celestial Strikes (Telegraph warning & holy fire detonation)
     this._activeStrikes.clear();
     for (let i = 0, len = eventManager.celestialStrikes.length; i < len; i++) {
@@ -1247,6 +1285,62 @@ class GameRenderer {
           const text = `📦 Baú Real (${distMeters}m)`;
           ctx.strokeText(text, clampedX, clampedY - 13);
           ctx.fillText(text, clampedX, clampedY - 13);
+          ctx.restore();
+        }
+      }
+    }
+
+    // 2.2 Active Blood Altar Radar & Prompt
+    if (game.arenaEventManager && game.arenaEventManager.bloodAltars && player) {
+      for (let i = 0; i < game.arenaEventManager.bloodAltars.length; i++) {
+        const a = game.arenaEventManager.bloodAltars[i];
+        if (!a.alive || a.used) continue;
+        const screenPos = project3D(a.x, a.y, 22);
+        if (screenPos.onScreen && screenPos.x >= 25 && screenPos.x <= w - 25 && screenPos.y >= 25 && screenPos.y <= h - 25) {
+          ctx.save();
+          ctx.font = 'bold 15px Cinzel, Georgia';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ff4d4d';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 3;
+          ctx.strokeText('🩸 ALTAR DE SANGUE', screenPos.x, screenPos.y - 36);
+          ctx.fillText('🩸 ALTAR DE SANGUE', screenPos.x, screenPos.y - 36);
+          ctx.font = 'bold 12px Cinzel, Georgia';
+          ctx.fillStyle = '#ffcccc';
+          ctx.strokeText('Aproxime-se para o Pacto', screenPos.x, screenPos.y - 20);
+          ctx.fillText('Aproxime-se para o Pacto', screenPos.x, screenPos.y - 20);
+          ctx.restore();
+        } else {
+          const angle = Math.atan2(a.y - player.y, a.x - player.x);
+          const margin = 55;
+          const clampedX = Math.max(margin, Math.min(w - margin, (w / 2) + Math.cos(angle) * (w / 2 - margin)));
+          const clampedY = Math.max(margin, Math.min(h - margin, (h / 2) + Math.sin(angle) * (h / 2 - margin)));
+          const distMeters = Math.max(1, Math.round(Math.hypot(a.x - player.x, a.y - player.y) / 14));
+
+          ctx.save();
+          ctx.translate(clampedX, clampedY);
+          ctx.rotate(angle);
+          ctx.fillStyle = '#c0392b';
+          ctx.strokeStyle = '#e74c3c';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(18, 0);
+          ctx.lineTo(-10, -10);
+          ctx.lineTo(-4, 0);
+          ctx.lineTo(-10, 10);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.save();
+          ctx.font = 'bold 13px Cinzel, Georgia';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ff6b6b';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 3;
+          ctx.strokeText(`🩸 ${distMeters}m`, clampedX, clampedY + 22);
+          ctx.fillText(`🩸 ${distMeters}m`, clampedX, clampedY + 22);
           ctx.restore();
         }
       }

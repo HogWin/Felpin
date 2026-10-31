@@ -969,6 +969,39 @@ class DestructibleObject {
  * Spawns a glowing runic holy circle that demands player presence for 10 cumulative seconds.
  * Upon consecration, unleashes a divine shockwave wiping nearby enemies and awards a Golden Relic Chest!
  */
+// ==================== BLOOD ALTAR (Pactos Carmesins) ====================
+/**
+ * Blood Altar (Altar de Sangue)
+ * Spawns in the deep battlefield at 2:45, 5:45 and 8:30.
+ * Demands a vital sacrifice of 35% current HP in exchange for forbidden power!
+ */
+class BloodAltar {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.radius = 42;
+    this.alive = true;
+    this.used = false;
+    this.playerInside = false;
+    this.bobTimer = Math.random() * Math.PI * 2;
+  }
+
+  update(dt, player, game) {
+    if (!this.alive || this.used) return false;
+    this.bobTimer += dt;
+    const dist = Math.hypot(player.x - this.x, player.y - this.y);
+    this.playerInside = dist <= (this.radius + player.radius);
+
+    if (this.playerInside && game.state === 'PLAYING') {
+      if (game.ui && game.ui.showBloodAltarModal) {
+        this.used = true;
+        game.ui.showBloodAltarModal(player, this, game);
+      }
+    }
+    return !this.used;
+  }
+}
+
 class SanctuaryZone {
   constructor(x, y) {
     this.x = x;
@@ -1181,15 +1214,19 @@ class CelestialStrike {
 class ArenaEventManager {
   constructor() {
     this.sanctuaryZones = [];
+    this.bloodAltars = [];
     this.celestialStrikes = [];
     this.pendingStrikes = []; // Queued strikes for celestial storms
     this.eventTimeline = [
       { time: 135, type: 'swarm' },            // 2:15 - Swarm 1
+      { time: 165, type: 'blood_altar' },      // 2:45 - Altar de Sangue 1
       { time: 210, type: 'sanctuary' },        // 3:30 - Sanctuary 1
       { time: 270, type: 'celestial_storm' },  // 4:30 - Celestial Fire Storm (5 strikes)
       { time: 325, type: 'swarm' },            // 5:25 - Swarm 2
+      { time: 345, type: 'blood_altar' },      // 5:45 - Altar de Sangue 2
       { time: 420, type: 'sanctuary' },        // 7:00 - Sanctuary 2
       { time: 495, type: 'swarm' },            // 8:15 - Swarm 3 (Giant rush)
+      { time: 510, type: 'blood_altar' },      // 8:30 - Altar de Sangue 3
       { time: 570, type: 'celestial_storm' },  // 9:30 - Cataclysmic Celestial Storm (7 strikes)
       { time: 660, type: 'sanctuary' },        // 11:00 - Sanctuary 3
       { time: 730, type: 'swarm' }             // 12:10 - Final Horde Swarm
@@ -1200,6 +1237,7 @@ class ArenaEventManager {
 
   reset() {
     this.sanctuaryZones = [];
+    this.bloodAltars = [];
     this.celestialStrikes = [];
     this.pendingStrikes = [];
     this.nextEventIdx = 0;
@@ -1227,6 +1265,15 @@ class ArenaEventManager {
       if (ps.delay <= 0) {
         this.celestialStrikes.push(new CelestialStrike(ps.x, ps.y));
         this.pendingStrikes.splice(i, 1);
+      }
+    }
+
+    // 2.5. Update Active Blood Altars
+    for (let i = this.bloodAltars.length - 1; i >= 0; i--) {
+      const ba = this.bloodAltars[i];
+      const keep = ba.update(dt, game.player, game);
+      if (!keep) {
+        this.bloodAltars.splice(i, 1);
       }
     }
 
@@ -1264,6 +1311,8 @@ class ArenaEventManager {
   triggerEvent(type, game) {
     if (type === 'swarm') {
       this.spawnFlashSwarm(game);
+    } else if (type === 'blood_altar') {
+      this.spawnBloodAltar(game);
     } else if (type === 'sanctuary') {
       this.spawnSanctuary(game);
     } else if (type === 'celestial_storm') {
@@ -1319,6 +1368,34 @@ class ArenaEventManager {
         game.saveManager.checkAchievements('swarm_survived', null, game);
       }
     }, 18000);
+  }
+
+  // Blood Altar: Spawns near player and challenges them to a crimson pact
+  spawnBloodAltar(game) {
+    const player = game.player;
+    if (!player) return;
+
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 220 + Math.random() * 80;
+    const x = player.x + Math.cos(angle) * dist;
+    const y = player.y + Math.sin(angle) * dist;
+
+    const limit = ((window.MedievalSurvivors && window.MedievalSurvivors.ARENA_HALF_LIMIT) || 1525) - 120;
+    const clampedX = Math.max(-limit, Math.min(limit, x));
+    const clampedY = Math.max(-limit, Math.min(limit, y));
+
+    this.bloodAltars.push(new BloodAltar(clampedX, clampedY));
+
+    if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playBossSpawn) {
+      window.MedievalSurvivors.sound.playBossSpawn();
+    }
+    if (game.ui && game.ui.showEventBanner) {
+      game.ui.showEventBanner(
+        '🩸 ALTAR DE SANGUE SURGIU!',
+        'Um monumento profano emergiu! Encontre o altar para selar um Pacto Carmesim!',
+        '#e74c3c'
+      );
+    }
   }
 
   // Sacred Sanctuary Zone: Spawns near player and gives offscreen radar
@@ -1524,6 +1601,7 @@ window.MedievalSurvivors.FloatingTextPool = FloatingTextPool;
 window.MedievalSurvivors.ParticleSystem = ParticleSystem;
 window.MedievalSurvivors.DestructibleObject = DestructibleObject;
 window.MedievalSurvivors.CollectibleItem = CollectibleItem;
+window.MedievalSurvivors.BloodAltar = BloodAltar;
 window.MedievalSurvivors.SanctuaryZone = SanctuaryZone;
 window.MedievalSurvivors.CelestialStrike = CelestialStrike;
 window.MedievalSurvivors.ArenaEventManager = ArenaEventManager;

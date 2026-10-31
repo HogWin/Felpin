@@ -4507,3 +4507,72 @@ body, html {
   flex-direction: column;
   gap: 4px;
 }
+
+/* ==========================================================================
+   BLOOD ALTAR (PACTOS CARMESINS) MODAL STYLES
+   ========================================================================== */
+.blood-altar-box {
+  border: 2px solid #c0392b !important;
+  box-shadow: 0 0 35px rgba(192, 57, 43, 0.45) !important;
+  background: radial-gradient(circle at center, #1e0d12 0%, #100609 100%) !important;
+}
+
+.blood-pact-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding: 14px 18px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, rgba(60, 15, 20, 0.85), rgba(28, 8, 12, 0.95)) !important;
+  border: 1.5px solid #a93226 !important;
+  cursor: pointer !important;
+  transition: all 0.22s ease !important;
+  text-align: left !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.blood-pact-card:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  border-color: #e74c3c !important;
+  box-shadow: 0 6px 22px rgba(231, 76, 60, 0.45) !important;
+  background: linear-gradient(135deg, rgba(85, 20, 26, 0.95), rgba(42, 10, 16, 0.98)) !important;
+}
+
+.blood-pact-icon {
+  font-size: 2.2rem !important;
+  min-width: 48px !important;
+  text-align: center !important;
+  filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.6)) !important;
+}
+
+.blood-pact-info {
+  flex: 1 !important;
+}
+
+.blood-pact-title {
+  font-family: 'Cinzel', serif !important;
+  font-size: 1.05rem !important;
+  font-weight: bold !important;
+  color: #ffcccc !important;
+  margin-bottom: 4px !important;
+  letter-spacing: 0.5px !important;
+}
+
+.blood-pact-desc {
+  font-size: 0.85rem !important;
+  color: #e0d0d0 !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+}
+
+.blood-pact-badge {
+  display: inline-block !important;
+  font-size: 0.72rem !important;
+  font-weight: bold !important;
+  color: #ff4d4d !important;
+  background: rgba(192, 57, 43, 0.25) !important;
+  border: 1px solid rgba(231, 76, 60, 0.4) !important;
+  padding: 2px 8px !important;
+  border-radius: 6px !important;
+  margin-bottom: 4px !important;
+}
