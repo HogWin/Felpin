@@ -1930,7 +1930,8 @@ class PenitentWhipWeapon extends BaseWeapon {
   attack(player, enemies, projectiles, particles) {
     const isEvo = this.level >= this.maxLevel;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-    const reach = 48 * this.area * player.areaMultiplier;
+    // Chicote: Alcance ampliado substancialmente com amplitude estreita e estalo linear
+    const reach = 94 * this.area * player.areaMultiplier;
 
     // Use player's aiming / movement direction!
     const facing = (player.facingAngle !== undefined)
@@ -1953,7 +1954,8 @@ class PenitentWhipWeapon extends BaseWeapon {
       window.MedievalSurvivors.sound.playSwordSlash();
     }
 
-    const arcHalf = Math.PI * 0.22;
+    // Amplitude estreita e focada (~18° de cada lado, ~36° no total) para simular o estalo linear de um chicote real
+    const arcHalf = Math.PI * 0.10;
     for (let i = 0; i < angles.length; i++) {
       const angle = angles[i];
       const lash = {
@@ -1962,14 +1964,21 @@ class PenitentWhipWeapon extends BaseWeapon {
         angle: angle,
         radius: reach,
         reach: reach,
-        duration: 0.22,
-        maxDuration: 0.22,
+        duration: 0.20,
+        maxDuration: 0.20,
         isEvolved: isEvo,
         player: player
       };
       this.lashEffects.push(lash);
 
-      // Hit detection across the wide sweeping lash arc
+      // Estalo supersônico luminoso na ponta do chicote
+      if (particles && particles.createSpark) {
+        const crackX = player.x + Math.cos(angle) * reach * 0.92;
+        const crackY = player.y + Math.sin(angle) * reach * 0.92;
+        particles.createSpark(crackX, crackY, isEvo ? '#ffffff' : '#ffd700');
+      }
+
+      // Hit detection preciso ao longo da linha de chicotada
       for (let j = 0, len = enemies.length; j < len; j++) {
         const e = enemies[j];
         if (!e.alive) continue;
@@ -1980,11 +1989,12 @@ class PenitentWhipWeapon extends BaseWeapon {
           const ang = Math.atan2(dy, dx);
           let diff = Math.abs(ang - angle);
           while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
-          if (diff <= arcHalf) {
-            const dealt = e.takeDamage(effectiveDamage, Math.cos(angle) * 12, Math.sin(angle) * 12, 0.1);
+          // Focado no feixe linear, com cobertura ligeiramente mais ampla apenas no corpo a corpo imediato (dist <= 28)
+          if (diff <= arcHalf || (dist <= 28 && diff <= Math.PI * 0.35)) {
+            const dealt = e.takeDamage(effectiveDamage, Math.cos(angle) * 15, Math.sin(angle) * 15, 0.1);
             this.totalDamageDealt += dealt;
             if (particles && particles.createBloodSparks) {
-              particles.createBloodSparks(e.x, e.y, 7, isEvo ? '#e74c3c' : '#c0392b');
+              particles.createBloodSparks(e.x, e.y, 8, isEvo ? '#e74c3c' : '#c0392b');
             }
           }
         }

@@ -3479,26 +3479,28 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
-  // 13. Penitent Whip Lash Mesh (2D sweeping crimson barbed lash wave)
+  // 13. Penitent Whip Lash Mesh (Authentic narrow, long razor whip snap)
   function createWhipLashMesh(isEvolved) {
     const root = new THREE.Group();
-    const arcHalf = Math.PI * 0.22;
+    // Amplitude estreita de estalo linear (~18° de cada lado)
+    const arcHalf = Math.PI * 0.10;
     const thetaStart = -Math.PI / 2 - arcHalf;
     const thetaLength = arcHalf * 2;
 
-    const lashGeo = new THREE.RingGeometry(6, 38, 24, 1, thetaStart, thetaLength);
+    const lashGeo = new THREE.RingGeometry(4, 38, 24, 1, thetaStart, thetaLength);
     lashGeo.rotateX(-Math.PI / 2);
     const lashMat = new THREE.MeshBasicMaterial({
-      color: isEvolved ? 0xff2244 : 0xd63031,
+      color: isEvolved ? 0xff0055 : 0xc0392b,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.9,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
     root.add(new THREE.Mesh(lashGeo, lashMat));
 
-    const edgeGeo = new THREE.RingGeometry(33, 39, 24, 1, thetaStart, thetaLength);
+    // Borda farpada afiada e ponta de estalo
+    const edgeGeo = new THREE.RingGeometry(34, 40, 24, 1, thetaStart, thetaLength);
     edgeGeo.rotateX(-Math.PI / 2);
     const edgeMat = new THREE.MeshBasicMaterial({
       color: isEvolved ? 0xffffff : 0xff7675,
@@ -3509,6 +3511,17 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       depthWrite: false
     });
     root.add(new THREE.Mesh(edgeGeo, edgeMat));
+
+    // Espinha central luminosa linear (corda do chicote em estalo)
+    const spineGeo = new THREE.BoxGeometry(1.4, 0.4, 38);
+    spineGeo.translate(0, 0, 19);
+    const spineMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xffffff : 0xfbc531,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending
+    });
+    root.add(new THREE.Mesh(spineGeo, spineMat));
 
     return root;
   }
