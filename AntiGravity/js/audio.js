@@ -877,7 +877,21 @@ class SoundEngine {
   }
 
   // --- Procedural Adaptive Layered Soundtrack Engine ---
+  stopBgm() {
+    if (this.bgmTimer) {
+      clearInterval(this.bgmTimer);
+      this.bgmTimer = null;
+    }
+    this.bgmPlaying = false;
+    if (this.musicMasterGain && this.ctx) {
+      this.musicMasterGain.gain.setValueAtTime(0.0, this.ctx.currentTime);
+    }
+  }
+
   startBgm() {
+    if (this.musicMasterGain && this.ctx && !this.muted) {
+      this.musicMasterGain.gain.setValueAtTime(0.55, this.ctx.currentTime);
+    }
     if (this.bgmPlaying || this.muted) return;
     this.init();
     if (!this.ctx) return;

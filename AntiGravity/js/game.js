@@ -338,6 +338,65 @@ class Game {
     }
   }
 
+  quitToMenu() {
+    // 1. Salva ouro e éter acumulados até o momento na partida
+    if (this.player && this.saveManager) {
+      if (this.player.gold > 0) {
+        this.saveManager.addGold(this.player.gold);
+      }
+      if (this.saveManager.addEther && this.player.ether > 0) {
+        this.saveManager.addEther(this.player.ether);
+      }
+      const totalDmg = this.player.weapons.reduce((sum, w) => sum + (w.totalDamageDealt || 0), 0);
+      const totalSecs = Math.floor(this.gameTime || 0);
+      const hrs = Math.floor(totalSecs / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+      const timeSurvived = hrs > 0
+        ? `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+        : `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+      this.saveManager.recordRun({
+        hero: (this.player.classDef && this.player.classDef.name) || 'Herói',
+        timeSurvived: timeSurvived,
+        timeSeconds: this.gameTime || 0,
+        level: this.player.level || 1,
+        kills: this.player.killCount || 0,
+        damage: totalDmg,
+        goldEarned: this.player.gold || 0,
+        outcome: 'RETIRADA'
+      });
+      this.saveManager.save();
+    }
+
+    // 2. Limpa entidades ativas da arena
+    this.enemies = [];
+    this.allies = [];
+    this.projectiles = [];
+    this.enemyProjectiles = [];
+    this.gems = [];
+    this.chests = [];
+    this.destructibles = [];
+    this.collectibles = [];
+    this.floatingTexts = [];
+    this.gameTime = 0;
+    this.state = 'MENU';
+
+    // 3. Para a trilha sonora adaptativa
+    if (window.MedievalSurvivors.sound) {
+      window.MedievalSurvivors.sound.setMusicIntensity(0.0, false);
+      if (window.MedievalSurvivors.sound.stopBgm) {
+        window.MedievalSurvivors.sound.stopBgm();
+      }
+    }
+
+    // 4. Retorna à interface do Menu Principal
+    if (this.ui) {
+      this.ui.hideAllModals();
+      this.ui.openMainMenu('play');
+    }
+  }
+
   addFloatingText(x, y, text, color, isCritical) {
     if (this.floatingTexts.length >= 60) this.floatingTexts.shift();
     this.floatingTexts.push(this.floatingTextPool.acquire(x, y, text, color, isCritical));

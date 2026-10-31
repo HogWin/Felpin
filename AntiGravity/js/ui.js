@@ -147,6 +147,15 @@ class UIController {
       });
     }
 
+    // Pause -> Retornar ao Menu (Encerra a partida e volta ao menu principal)
+    const pauseQuitBtn = document.getElementById('btn-pause-quit');
+    if (pauseQuitBtn) {
+      pauseQuitBtn.addEventListener('click', () => {
+        this.pauseModal.classList.remove('active');
+        this.game.quitToMenu();
+      });
+    }
+
     // Close Synergies Modal
     const closeSynBtn = document.getElementById('btn-close-synergies');
     if (closeSynBtn) {
