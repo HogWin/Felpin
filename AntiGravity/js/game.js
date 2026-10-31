@@ -727,27 +727,21 @@ class Game {
           this.addFloatingText(enemy.x, enemy.y - 12, `+${goldDrop} 💰`, '#ffeaa7', false);
         }
 
-        // Éter Ancestral: Cristais físicos dropados diretamente no chão dos mobs!
-        let etherCount = 0;
-        let etherVal = 1;
+        // Éter Ancestral: Computado no mesmo modelo do ouro real (com chance um pouco menor)
+        let etherDrop = 0;
         if (enemy.isBoss) {
-          etherCount = enemy.bossTier === 3 ? 10 : (enemy.bossTier === 2 ? 6 : 4);
-          etherVal = enemy.bossTier === 3 ? 3 : 2;
+          etherDrop = enemy.bossTier === 3 ? 35 : (enemy.bossTier === 2 ? 20 : 12);
         } else if (enemy.isChampion) {
-          etherCount = 2; // Elites dropam 2 cristais físicos de Éter
-          etherVal = 1;
-        } else if (Math.random() < 0.15) { // 15% de chance de drop nos mobs comuns
-          etherCount = 1;
-          etherVal = 1;
+          if (Math.random() < 0.70) {
+            etherDrop = Math.max(1, Math.round(1 * (this.player.etherMultiplier || 1)));
+          }
+        } else if (Math.random() < 0.05) { // Chance um pouco menor que o ouro (5% vs 8%)
+          etherDrop = 1;
         }
 
-        if (etherCount > 0) {
-          if (!this.collectibles) this.collectibles = [];
-          for (let ec = 0; ec < etherCount; ec++) {
-            const ox = (Math.random() - 0.5) * (etherCount > 1 ? 26 : 0);
-            const oy = (Math.random() - 0.5) * (etherCount > 1 ? 26 : 0);
-            this.collectibles.push(new window.MedievalSurvivors.CollectibleItem(enemy.x + ox, enemy.y + oy, 'ether', etherVal));
-          }
+        if (etherDrop > 0) {
+          const gained = this.player.addEther ? this.player.addEther(etherDrop, false) : etherDrop;
+          this.addFloatingText(enemy.x, enemy.y - 24, `+${gained} 🔮`, '#bb86fc', false);
         }
 
         // Spawn Treasure Chest if Mini-Boss

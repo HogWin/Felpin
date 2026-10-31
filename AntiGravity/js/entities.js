@@ -942,15 +942,22 @@ class DestructibleObject {
     const roll = Math.random();
     let dropType = 'gold';
     if (roll < 0.22) dropType = 'meat';
-    else if (roll < 0.36) dropType = 'magnet';
-    else if (roll < 0.48) dropType = 'rosary';
-    else if (roll < 0.60) dropType = 'hourglass';
-    else if (roll < 0.72) dropType = 'shield';
-    else if (roll < 0.86) dropType = 'ether';
+    else if (roll < 0.38) dropType = 'magnet';
+    else if (roll < 0.52) dropType = 'rosary';
+    else if (roll < 0.66) dropType = 'hourglass';
+    else if (roll < 0.80) dropType = 'shield';
     else dropType = 'gold';
 
     if (game && game.collectibles) {
-      game.collectibles.push(new window.MedievalSurvivors.CollectibleItem(this.x, this.y, dropType, dropType === 'ether' ? 2 : 1));
+      game.collectibles.push(new window.MedievalSurvivors.CollectibleItem(this.x, this.y, dropType, 1));
+    }
+
+    // Direct ether reward chance on breaking crates/urns (same model, directly computed)
+    if (Math.random() < 0.05 && game && game.player) {
+      const gained = game.player.addEther ? game.player.addEther(1, false) : 1;
+      if (game.addFloatingText) {
+        game.addFloatingText(this.x, this.y - 22, `+${gained} 🔮`, '#bb86fc', false);
+      }
     }
   }
 
