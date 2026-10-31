@@ -60,7 +60,7 @@ class BaseWeapon {
   constructor(config) {
     this.id = config.id;
     this.name = config.name;
-    this.icon = config.icon;
+    this.icon = (window.MedievalIcons && window.MedievalIcons.get(config.id)) || config.icon;
     this.description = config.description;
     this.level = 0;
     this.maxLevel = config.maxLevel || 8;

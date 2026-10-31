@@ -51,7 +51,7 @@ class SaveManager {
   }
 
   initMetaDefinitions() {
-    return [
+    const defs = [
       {
         id: 'health',
         name: 'Vitalidade Ancestral',
@@ -152,10 +152,14 @@ class SaveManager {
         costs: [110, 240, 460, 820, 1500]
       }
     ];
+    if (window.MedievalIcons) {
+      defs.forEach(d => { d.icon = window.MedievalIcons.get(d.id) || d.icon; });
+    }
+    return defs;
   }
 
   initAchievementDefinitions() {
-    return [
+    const defs = [
       {
         id: 'first_blood',
         name: 'Primeiro Sangue',
@@ -404,6 +408,10 @@ class SaveManager {
         check: () => this.getUpgradeLevel('armor') >= 1
       }
     ];
+    if (window.MedievalIcons) {
+      defs.forEach(d => { d.icon = window.MedievalIcons.get(d.id) || d.icon; });
+    }
+    return defs;
   }
 
   load() {

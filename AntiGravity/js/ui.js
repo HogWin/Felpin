@@ -1068,19 +1068,19 @@ class UIController {
             <!-- Stat Meters -->
             <div class="hero-stat-meters">
               <div class="meter-box">
-                <div class="meter-label"><span>❤️ Vida Máxima</span> <strong>${cls.stats.maxHp} HP</strong></div>
+                <div class="meter-label"><span style="display:inline-flex; align-items:center; gap:5px;"><span style="font-size:0.95rem;">${window.MedievalIcons.get('hud_hp')}</span> Vida Máxima</span> <strong>${cls.stats.maxHp} HP</strong></div>
                 <div class="meter-track"><div class="meter-fill hp-meter" style="width:${hpPercent}%;"></div></div>
               </div>
               <div class="meter-box">
-                <div class="meter-label"><span>🛡️ Armadura</span> <strong>${cls.stats.armor} Pontos</strong></div>
+                <div class="meter-label"><span style="display:inline-flex; align-items:center; gap:5px;"><span style="font-size:0.95rem;">${window.MedievalIcons.get('passive_armor')}</span> Armadura</span> <strong>${cls.stats.armor} Pontos</strong></div>
                 <div class="meter-track"><div class="meter-fill armor-meter" style="width:${armorPercent}%;"></div></div>
               </div>
               <div class="meter-box">
-                <div class="meter-label"><span>⚡ Agilidade</span> <strong>${(cls.stats.moveSpeed * 100).toFixed(0)} Vel.</strong></div>
+                <div class="meter-label"><span style="display:inline-flex; align-items:center; gap:5px;"><span style="font-size:0.95rem;">${window.MedievalIcons.get('passive_speed')}</span> Agilidade</span> <strong>${(cls.stats.moveSpeed * 100).toFixed(0)} Vel.</strong></div>
                 <div class="meter-track"><div class="meter-fill speed-meter" style="width:${speedPercent}%;"></div></div>
               </div>
               <div class="meter-box">
-                <div class="meter-label"><span>⚔️ Dano Base</span> <strong>+${((cls.stats.damageMultiplier - 1) * 100).toFixed(0)}%</strong></div>
+                <div class="meter-label"><span style="display:inline-flex; align-items:center; gap:5px;"><span style="font-size:0.95rem;">${window.MedievalIcons.get('weapon_broadsword')}</span> Dano Base</span> <strong>+${((cls.stats.damageMultiplier - 1) * 100).toFixed(0)}%</strong></div>
                 <div class="meter-track"><div class="meter-fill dmg-meter" style="width:${dmgPercent}%;"></div></div>
               </div>
             </div>
@@ -1350,10 +1350,10 @@ class UIController {
               </div>
             ` : `
               <div class="hero-card-stats-box">
-                <div class="stat-line"><span>❤️ Vida Máxima:</span> <strong>${c.stats.maxHp}</strong></div>
-                <div class="stat-line"><span>🛡️ Armadura:</span> <strong>${c.stats.armor}</strong></div>
-                <div class="stat-line"><span>⚡ Velocidade:</span> <strong>${(c.stats.moveSpeed * 100).toFixed(0)}</strong></div>
-                <div class="stat-line"><span>⚔️ Dano Base:</span> <strong>+${((c.stats.damageMultiplier - 1) * 100).toFixed(0)}%</strong></div>
+                <div class="stat-line"><span style="display:inline-flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('hud_hp')}</span> Vida Máxima:</span> <strong>${c.stats.maxHp}</strong></div>
+                <div class="stat-line"><span style="display:inline-flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('passive_armor')}</span> Armadura:</span> <strong>${c.stats.armor}</strong></div>
+                <div class="stat-line"><span style="display:inline-flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('passive_speed')}</span> Velocidade:</span> <strong>${(c.stats.moveSpeed * 100).toFixed(0)}</strong></div>
+                <div class="stat-line"><span style="display:inline-flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('weapon_broadsword')}</span> Dano Base:</span> <strong>+${((c.stats.damageMultiplier - 1) * 100).toFixed(0)}%</strong></div>
               </div>
 
               <div class="hero-card-perk">
@@ -1362,13 +1362,13 @@ class UIController {
             `}
 
             ${w ? `
-            <div class="hero-card-wep">
-              <span>Arma:</span> <strong>${w.icon} ${w.name}</strong>
+            <div class="hero-card-wep" style="display:flex; align-items:center; gap:6px;">
+              <span>Arma:</span> <span style="font-size:1.1rem; display:inline-flex;">${w.icon}</span> <strong>${w.name}</strong>
             </div>
             ` : ''}
 
             <button class="btn-primary btn-hero-select ${isSelected ? 'active-hero-btn' : (!isUnlocked ? 'btn-hero-locked' : '')}" ${!isUnlocked ? 'disabled' : ''}>
-              ${!isUnlocked ? '🔒 Bloqueado por Conquista' : (isSelected ? '✅ Combatente Selecionado' : '⚔️ Escolher Combatente')}
+              ${!isUnlocked ? 'Bloqueado por Conquista' : (isSelected ? 'Combatente Selecionado' : 'Escolher Combatente')}
             </button>
           </div>
           `;
@@ -1691,28 +1691,36 @@ class UIController {
   }
 
   _codexEnemiesHTML() {
+    const I = window.MedievalIcons || { get: () => '' };
     const enemies = [
-      { icon: '💀', name: 'Zumbi Camponês', type: 'Básico', hp: '30-50', dmg: '8-10', desc: 'A mais comum ameaça. Avança lentamente mas em grandes hordas perigosas.' },
-      { icon: '🧟', name: 'Arqueiro Cadáver', type: 'Básico', hp: '25-40', dmg: '6 (Projétil)', desc: 'Mantém distância e lança flechas podres. Projéteis podem ser cancelados por suas armas.' },
-      { icon: '👹', name: 'Ogro das Trevas', type: 'Elite', hp: '120-180', dmg: '18-25', desc: 'Colosso lento que causa tremores ao andar. Alta resistência a knockback.' },
-      { icon: '🧙', name: 'Mago Negro', type: 'Elite', hp: '80-110', dmg: '15 (Projétil)', desc: 'Lança bolas de energia sombria. Seus projéteis são deflectidos por armas activas.' },
-      { icon: '🐺', name: 'Lobo Fantasma', type: 'Rápido', hp: '45-65', dmg: '12-16', desc: 'Extremamente veloz. Ziguezagueia ao aproximar-se, difícil de rastrear.' },
-      { icon: '🦇', name: 'Morcego das Cavernas', type: 'Rápido', hp: '20-35', dmg: '7-10', desc: 'Ataca em voos rasantes. Pequeno mas numeroso ao amanhecer.' },
-      { icon: '🪖', name: 'Guarda Corrompido', type: 'Armado', hp: '90-130', dmg: '14-20', desc: 'Antigo soldado ressuscitado. Avança em formação e resiste melhor a dano.' },
-      { icon: '👑', name: 'Carrasco Carmesim', type: 'Mini-Chefe', hp: '500+', dmg: '30+', desc: 'Mini-chefe frequente. Derrubá-lo garante um baú de recompensas de armas.' },
-      { icon: '🐉', name: 'Dragão das Ruínas', type: 'Chefe Final', hp: '2000+', dmg: '50+', desc: 'O mais temido dos bosses. Aparece no final e dissolve exércitos inteiros.' },
-      { icon: '💀', name: 'Lich Ancestral', type: 'Chefe', hp: '1200+', dmg: '40+', desc: 'Senhor dos mortos-vivos. Convoca reforços e lança projéteis de morte massivos.' },
+      { id: 'rat', icon: I.get('enemy_rat'), name: 'Rato da Peste', type: 'Enxame', hp: '15-30', dmg: '6-9', desc: 'Roedores pestilentos e rápidos. Atacam em enxames contínuos ao anoitecer.' },
+      { id: 'skeleton', icon: I.get('enemy_skeleton'), name: 'Esqueleto Renegado', type: 'Horda', hp: '35-55', dmg: '10-14', desc: 'Combatentes mortos-vivos ressuscitados das catacumbas com lâminas antigas.' },
+      { id: 'villager', icon: I.get('enemy_villager'), name: 'Aldeão Amaldiçoado', type: 'Corrompido', hp: '45-70', dmg: '12-16', desc: 'Camponeses possuídos por forças das trevas, empunhando forquilhas enferrujadas.' },
+      { id: 'dark_knight', icon: I.get('enemy_dark_knight'), name: 'Cavaleiro Negro', type: 'Elite Pesado', hp: '140-220', dmg: '22-30', desc: 'Guerreiro de armadura negra impenetrável. Resiste a repelimento e golpeia com brutalidade.' },
+      { id: 'witch', icon: I.get('enemy_witch'), name: 'Bruxa da Peste', type: 'Conjuradora', hp: '70-110', dmg: '16-24', desc: 'Mística nefasta que lança frascos venenosos e maldições à distância.' },
+      { id: 'bat', icon: I.get('enemy_bat'), name: 'Morcego das Cavernas', type: 'Aéreo Veloz', hp: '20-35', dmg: '7-10', desc: 'Voa em rasantes erráticos que desafiam a pontaria do herói.' },
+      { id: 'guard', icon: I.get('enemy_guard'), name: 'Guarda Corrompido', type: 'Defensivo', hp: '90-130', dmg: '14-20', desc: 'Antigo sentinela real com elmo de grade de ferro e passadas cadenciadas.' },
+      { id: 'boss_executioner', icon: I.get('enemy_boss_executioner'), name: 'O Carrasco Carmesim', type: 'Chefe Brutal', hp: '800+', dmg: '35+', desc: 'Lorde com capuz carmesim e cutelo colossal. Derrubá-lo rende baús régios de armas.' },
+      { id: 'boss_golem', icon: I.get('enemy_boss_golem'), name: 'Golem das Catacumbas', type: 'Chefe Colosso', hp: '1500+', dmg: '45+', desc: 'Monólito ancestral de rocha maciça e runas luminosas. Imune a atordoamento.' },
+      { id: 'boss_death_baron', icon: I.get('enemy_boss_death_baron'), name: 'Barão da Morte Von Kroll', type: 'Lorde Supremo', hp: '2500+', dmg: '60+', desc: 'Suserano das trevas que comanda as hordas fúnebres de Valoria com magia de sangue.' }
     ];
+
+    const hpIcon = I.get('hud_hp');
+    const dmgIcon = I.get('weapon_broadsword');
 
     return `
       <div class="codex-grid">
         ${enemies.map(e => `
           <div class="codex-card" style="text-align:left;">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-              <span style="font-size:2.2rem;">${e.icon}</span>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+              <span style="font-size:2.4rem; display:inline-flex; align-items:center; justify-content:center; width:48px; height:48px;">${e.icon}</span>
               <div>
                 <div style="font-weight:700; color:#f0c05a; font-size:0.95rem;">${e.name}</div>
-                <div style="font-size:0.75rem; color:#aaa;">${e.type} &nbsp;|&nbsp; ❤️ ${e.hp} &nbsp;|&nbsp; ⚔️ ${e.dmg}</div>
+                <div style="font-size:0.75rem; color:#aaa; display:flex; align-items:center; gap:6px; margin-top:2px;">
+                  <span>${e.type}</span> &bull; 
+                  <span style="display:inline-flex; align-items:center; gap:2px;"><span style="font-size:0.85rem;">${hpIcon}</span> ${e.hp}</span> &bull; 
+                  <span style="display:inline-flex; align-items:center; gap:2px;"><span style="font-size:0.85rem;">${dmgIcon}</span> ${e.dmg}</span>
+                </div>
               </div>
             </div>
             <p style="font-size:0.82rem; color:#ccc; margin:0; line-height:1.5;">${e.desc}</p>
@@ -1736,16 +1744,16 @@ class UIController {
           <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
             <span style="font-size:2.2rem; ${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${w.icon}</span>
             <div>
-              <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'};">
-                ${w.name} ${!isUnlocked ? '🔒' : '✅'}
+              <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'}; display:flex; align-items:center; gap:6px;">
+                <span>${w.name}</span> <span style="font-size:0.9rem; display:inline-flex;">${!isUnlocked ? window.MedievalIcons.get('hud_lock') : window.MedievalIcons.get('hud_check')}</span>
               </div>
               <div style="font-size:0.75rem; color:#aaa;">Dano: ${w.damage} &nbsp;|&nbsp; Máx Nível: ${w.maxLevel}</div>
             </div>
           </div>
           <p style="font-size:0.82rem; color:#ccc; margin:0; line-height:1.5;">${w.description}</p>
           ${!isUnlocked ? `
-            <div class="codex-lock-tag">
-              🔒 Requer Conquista: ${unlockHint}
+            <div class="codex-lock-tag" style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:0.9rem; display:inline-flex;">${window.MedievalIcons.get('hud_lock')}</span> Requer Conquista: ${unlockHint}
             </div>
           ` : ''}
         </div>
@@ -1769,16 +1777,16 @@ class UIController {
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
               <span style="font-size:2.2rem; ${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${p.icon}</span>
               <div>
-                <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'};">
-                  ${p.name} ${!isUnlocked ? '🔒' : '✅'}
+                <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'}; display:flex; align-items:center; gap:6px;">
+                  <span>${p.name}</span> <span style="font-size:0.9rem; display:inline-flex;">${!isUnlocked ? window.MedievalIcons.get('hud_lock') : window.MedievalIcons.get('hud_check')}</span>
                 </div>
                 <div style="font-size:0.75rem; color:#aaa;">Máx Nível: ${p.maxLevel}</div>
               </div>
             </div>
             <p style="font-size:0.82rem; color:#ccc; margin:0; line-height:1.5;">${p.description}</p>
             ${!isUnlocked ? `
-              <div class="codex-lock-tag">
-                🔒 Requer Conquista: ${unlockHint}
+              <div class="codex-lock-tag" style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:0.9rem; display:inline-flex;">${window.MedievalIcons.get('hud_lock')}</span> Requer Conquista: ${unlockHint}
               </div>
             ` : ''}
           </div>
@@ -1800,16 +1808,16 @@ class UIController {
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
               <span style="font-size:2.4rem; ${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${c.icon}</span>
               <div>
-                <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'};">
-                  ${c.name} ${!isUnlocked ? '🔒' : '✅'}
+                <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'}; display:flex; align-items:center; gap:6px;">
+                  <span>${c.name}</span> <span style="font-size:0.9rem; display:inline-flex;">${!isUnlocked ? window.MedievalIcons.get('hud_lock') : window.MedievalIcons.get('hud_check')}</span>
                 </div>
                 <div style="font-size:0.75rem; color:#aaa;">${c.subtitle}</div>
               </div>
             </div>
             <p style="font-size:0.82rem; color:#ccc; margin:0 0 8px; line-height:1.5;">${c.description}</p>
             ${!isUnlocked ? `
-              <div class="codex-lock-tag">
-                🔒 Requisito: ${c.unlockHint}
+              <div class="codex-lock-tag" style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:0.9rem; display:inline-flex;">${window.MedievalIcons.get('hud_lock')}</span> Requisito: ${c.unlockHint}
               </div>
             ` : `
               <div style="font-size:0.8rem; color:#f0c05a; background:rgba(0,0,0,0.3); border-radius:6px; padding:8px;">
@@ -1817,10 +1825,10 @@ class UIController {
               </div>
             `}
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; font-size:0.78rem; color:#ccc;">
-              <div>❤️ ${c.stats.maxHp} Max HP</div>
-              <div>🛡️ ${c.stats.armor} Armadura</div>
-              <div>⚡ ${(c.stats.moveSpeed * 100).toFixed(0)} Velocidade</div>
-              <div>⚔️ +${((c.stats.damageMultiplier - 1) * 100).toFixed(0)}% Dano</div>
+              <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('hud_hp')}</span> ${c.stats.maxHp} Max HP</div>
+              <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('passive_armor')}</span> ${c.stats.armor} Armadura</div>
+              <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('passive_speed')}</span> ${(c.stats.moveSpeed * 100).toFixed(0)} Velocidade</div>
+              <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('weapon_broadsword')}</span> +${((c.stats.damageMultiplier - 1) * 100).toFixed(0)}% Dano</div>
             </div>
           </div>
           `;
@@ -1983,14 +1991,14 @@ class UIController {
           return `
             <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
               <div class="achievement-card-icon">
-                ${isUnlocked ? a.icon : '🔒'}
+                ${isUnlocked ? a.icon : window.MedievalIcons.get('hud_lock')}
               </div>
               <div class="achievement-card-info">
                 <div class="achievement-card-header">
                   <h4 class="achievement-card-title">${a.name}</h4>
                   ${a.reward && a.reward.gold ? `
-                    <span class="achievement-reward-tag ${isUnlocked ? 'claimed' : 'unclaimed'}">
-                      +${a.reward.gold} 💰
+                    <span class="achievement-reward-tag ${isUnlocked ? 'claimed' : 'unclaimed'}" style="display:inline-flex; align-items:center; gap:4px;">
+                      +${a.reward.gold} <span style="font-size:0.95rem; display:inline-flex;">${window.MedievalIcons.get('hud_gold')}</span>
                     </span>
                   ` : ''}
                 </div>
@@ -2077,10 +2085,10 @@ class UIController {
               <td style="padding: 10px 8px; font-weight: bold; color: ${rankColor}; text-align: center; font-size: 1rem;">${rankIcon}</td>
               <td style="padding: 10px 8px; font-weight: bold; color: #ffffff;">${safeName}</td>
               <td style="padding: 10px 8px; color: #ced6e0; font-size: 0.85rem;">${safeClass}</td>
-              <td style="padding: 10px 8px; font-weight: bold; color: #2ed573;">⏱️ ${timeStr}</td>
+              <td style="padding: 10px 8px; font-weight: bold; color: #2ed573;"><span style="font-size:0.9rem; vertical-align:middle; display:inline-flex;">${window.MedievalIcons.get('hud_timer')}</span> ${timeStr}</td>
               <td style="padding: 10px 8px; color: #eccc68;">Nvl ${s.level}</td>
-              <td style="padding: 10px 8px; color: #ff6b81;">💀 ${s.kills}</td>
-              <td style="padding: 10px 8px; color: #ffa502;">💰 ${s.gold}</td>
+              <td style="padding: 10px 8px; color: #ff6b81;"><span style="font-size:0.9rem; vertical-align:middle; display:inline-flex;">${window.MedievalIcons.get('hud_skull')}</span> ${s.kills}</td>
+              <td style="padding: 10px 8px; color: #ffa502;"><span style="font-size:0.9rem; vertical-align:middle; display:inline-flex;">${window.MedievalIcons.get('hud_gold')}</span> ${s.gold}</td>
               <td style="padding: 10px 8px;">${isHyper} ${curseBadge}</td>
             </tr>
           `;

@@ -1382,6 +1382,17 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   };
 
   // Export to namespace
+  if (window.MedievalIcons) {
+    WEAPON_FUSIONS.forEach(f => {
+      f.icon = window.MedievalIcons.get(f.id) || window.MedievalIcons.get('divine_crusader');
+      if (f.item1) f.item1.icon = window.MedievalIcons.get(f.item1.id) || f.item1.icon;
+      if (f.item2) f.item2.icon = window.MedievalIcons.get(f.item2.id) || f.item2.icon;
+    });
+    WEAPON_PASSIVE_ASCENSIONS.forEach(a => {
+      a.weaponIcon = window.MedievalIcons.get(a.weaponId) || a.weaponIcon;
+      a.passiveIcon = window.MedievalIcons.get(a.passiveId) || a.passiveIcon;
+    });
+  }
   window.MedievalSurvivors.synergies = SynergySystem;
 
   // Export Supreme Weapon Classes

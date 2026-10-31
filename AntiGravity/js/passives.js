@@ -9,6 +9,9 @@ class PassiveRegistry {
   }
 
   register(def) {
+    if (window.MedievalIcons) {
+      def.icon = window.MedievalIcons.get(def.id) || def.icon;
+    }
     this.definitions.set(def.id, def);
   }
 

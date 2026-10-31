@@ -15,7 +15,7 @@ class ClassRegistry {
       id: config.id,
       name: config.name || "Guerreiro Desconhecido",
       subtitle: config.subtitle || "Combatente Medieval",
-      icon: config.icon || "⚔️",
+      icon: (window.MedievalIcons && window.MedievalIcons.get(config.id)) || config.icon || "⚔️",
       description: config.description || "Um valente guerreiro pronto para a batalha.",
       unlocked: config.unlocked !== undefined ? config.unlocked : false,
       unlockAchievementId: config.unlockAchievementId || null,

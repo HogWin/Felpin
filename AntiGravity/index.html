@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Fallen Kingdom</title>
-  <link rel="stylesheet" href="css/style.css?v=24">
+  <link rel="stylesheet" href="css/style.css?v=25">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22><text y=%2226%22 font-size=%2228%22>⚔️</text></svg>">
 </head>
 <body>
@@ -20,7 +20,7 @@
         <!-- Top Left: Player HP -->
         <div class="top-left-stats">
           <div class="stat-group hp-group">
-            <span class="icon hp-icon">❤️</span>
+            <span class="icon hp-icon"><svg viewBox="0 0 64 64" class="gothic-svg" style="width:1.2em; height:1.2em;"><path d="M32 56 C16 44, 8 32, 8 20 C8 12, 14 6, 22 6 C28 6, 31 10, 32 12 C33 10, 36 6, 42 6 C50 6, 56 12, 56 20 C56 32, 48 44, 32 56 Z" fill="#c0392b" stroke="#781005" stroke-width="2"/><path d="M22 10 C18 10, 14 14, 14 18" fill="none" stroke="#ff7675" stroke-width="2" stroke-linecap="round"/></svg></span>
             <div class="hp-bar-hud">
               <div class="hp-bar-fill" id="hp-fill"></div>
               <div class="hp-text" id="hp-text">120 / 120 HP</div>
@@ -31,7 +31,7 @@
         <!-- Top Center: Survival Timer (Centralized) -->
         <div class="top-center-timer">
           <div class="stat-group timer-box">
-            <span class="timer-icon">⏳</span>
+            <span class="timer-icon"><svg viewBox="0 0 64 64" class="gothic-svg" style="width:1.2em; height:1.2em;"><polygon points="20,10 44,10 36,32 44,54 20,54 28,32" fill="none" stroke="#d4af37" stroke-width="2.5"/><line x1="16" y1="10" x2="48" y2="10" stroke="#d4af37" stroke-width="3" stroke-linecap="round"/><line x1="16" y1="54" x2="48" y2="54" stroke="#d4af37" stroke-width="3" stroke-linecap="round"/><polygon points="26,14 38,14 32,26" fill="#f39c12"/><polygon points="32,38 36,50 28,50" fill="#f1c40f"/></svg></span>
             <span class="timer-item" id="timer-text">00:00</span>
           </div>
           <!-- Active Battle Modifiers Badges (Hyper Mode & Curse) -->
@@ -42,12 +42,12 @@
         <div class="top-right-stats">
           <div class="stat-group mini-stats">
             <div class="stat-item" title="Inimigos Derrotados">
-              <span class="icon">💀</span>
+              <span class="icon"><svg viewBox="0 0 64 64" class="gothic-svg" style="width:1.15em; height:1.15em;"><line x1="12" y1="12" x2="52" y2="52" stroke="#718093" stroke-width="3" stroke-linecap="round"/><line x1="52" y1="12" x2="12" y2="52" stroke="#718093" stroke-width="3" stroke-linecap="round"/><path d="M22 26 C22 16, 42 16, 42 26 C42 36, 38 40, 36 44 L28 44 C26 40, 22 36, 22 26 Z" fill="#f5f6fa" stroke="#2f3640" stroke-width="2"/><circle cx="28" cy="27" r="3" fill="#1e272e"/><circle cx="36" cy="27" r="3" fill="#1e272e"/></svg></span>
               <span id="kills-text">0</span>
             </div>
 
             <div class="stat-item" title="Ouro Coletado nesta Partida">
-              <span class="icon">💰</span>
+              <span class="icon"><svg viewBox="0 0 64 64" class="gothic-svg" style="width:1.15em; height:1.15em;"><circle cx="32" cy="32" r="24" fill="#f1c40f" stroke="#b7791f" stroke-width="3"/><circle cx="32" cy="32" r="19" fill="#f39c12" stroke="#d4af37" stroke-width="1.5" stroke-dasharray="4 2"/><polygon points="32,18 40,24 38,38 32,44 26,38 24,24" fill="#ffffff" opacity="0.9"/></svg></span>
               <span id="gold-text">0</span>
             </div>
           </div>
@@ -100,12 +100,12 @@
           <div class="equipment-panel">
             <!-- Weapons Row -->
             <div class="equipment-row">
-              <div class="equipment-label">⚔️ Armas:</div>
+              <div class="equipment-label"><span style="display:inline-flex; width:16px; height:16px; vertical-align:middle; margin-right:4px;"><svg viewBox="0 0 64 64" class="gothic-svg"><polygon points="56,8 54,16 26,44 20,38 48,10" fill="#ecf0f1" stroke="#2c3e50" stroke-width="1.8"/><polygon points="17,35 30,48 26,52 13,39" fill="#f5cd79" stroke="#533c06" stroke-width="1.5"/><line x1="18" y1="44" x2="10" y2="52" stroke="#592512" stroke-width="4.5" stroke-linecap="round"/></svg></span> Armas:</div>
               <div id="weapon-slots" class="slots-row"></div>
             </div>
             <!-- Passives Row -->
             <div class="equipment-row">
-              <div class="equipment-label">✨ Passivas:</div>
+              <div class="equipment-label"><span style="display:inline-flex; width:16px; height:16px; vertical-align:middle; margin-right:4px;"><svg viewBox="0 0 64 64" class="gothic-svg"><polygon points="32,10 38,26 32,38 26,26" fill="#45aaf2" stroke="#2d98da" stroke-width="1.5"/><polygon points="16,24 22,38 16,48 10,38" fill="#a55eea" stroke="#8854d0" stroke-width="1.5"/><polygon points="48,24 54,38 48,48 42,38" fill="#2ed573" stroke="#26de81" stroke-width="1.5"/></svg></span> Passivas:</div>
               <div id="passive-slots" class="slots-row"></div>
             </div>
           </div>
@@ -528,20 +528,21 @@
   </div>
 
   <!-- 3D Engine & Game Scripts -->
-  <script src="js/three.min.js?v=24"></script>
-  <script src="js/audio.js?v=24"></script>
-  <script src="js/save.js?v=24"></script>
-  <script src="js/classes.js?v=24"></script>
-  <script src="js/passives.js?v=24"></script>
-  <script src="js/weapons.js?v=24"></script>
-  <script src="js/synergies.js?v=24"></script>
-  <script src="js/entities.js?v=24"></script>
-  <script src="js/enemies.js?v=24"></script>
-  <script src="js/models3d.js?v=24"></script>
-  <script src="js/map3d.js?v=24"></script>
-  <script src="js/renderer.js?v=24"></script>
-  <script src="js/ui.js?v=24"></script>
-  <script src="js/game.js?v=24"></script>
+  <script src="js/three.min.js?v=25"></script>
+  <script src="js/audio.js?v=25"></script>
+  <script src="js/icons.js?v=25"></script>
+  <script src="js/save.js?v=25"></script>
+  <script src="js/classes.js?v=25"></script>
+  <script src="js/passives.js?v=25"></script>
+  <script src="js/weapons.js?v=25"></script>
+  <script src="js/synergies.js?v=25"></script>
+  <script src="js/entities.js?v=25"></script>
+  <script src="js/enemies.js?v=25"></script>
+  <script src="js/models3d.js?v=25"></script>
+  <script src="js/map3d.js?v=25"></script>
+  <script src="js/renderer.js?v=25"></script>
+  <script src="js/ui.js?v=25"></script>
+  <script src="js/game.js?v=25"></script>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
