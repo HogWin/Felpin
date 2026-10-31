@@ -445,8 +445,6 @@ body, html {
   text-shadow: 1px 1px 3px #000, -1px -1px 3px #000;
   letter-spacing: 1px;
 }
-  transition: transform 0.2s, border-color 0.2s;
-}
 
 .item-slot.active {
   border-color: var(--gold-primary);
@@ -1334,7 +1332,7 @@ body, html {
 
 /* ==================== MAIN MENU & GRAND HUB ==================== */
 .main-menu-box {
-  max-width: 1120px;
+  max-width: 1240px;
   width: 95%;
   height: 90vh;
   display: flex;
@@ -1425,29 +1423,76 @@ body, html {
   text-shadow: 0 0 10px rgba(240, 192, 90, 0.6);
 }
 
-/* ── Menu Navigation Tabs ────────────────────────────────────────────────── */
+/* ── Main Menu Layout: Left Content + Right Vertical Nav List ─────────── */
+.main-menu-body-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  gap: 22px;
+  width: 100%;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+/* Tab Scrollable Body (Left / Center) */
+.menu-tab-body {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 14px;
+  text-align: left;
+  scrollbar-width: thin;
+  scrollbar-color: #c9932b rgba(10, 8, 14, 0.6);
+}
+
+.menu-tab-body::-webkit-scrollbar {
+  width: 7px;
+}
+.menu-tab-body::-webkit-scrollbar-track {
+  background: rgba(10, 8, 14, 0.6);
+  border-radius: 4px;
+}
+.menu-tab-body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f0c05a, #885c13);
+  border-radius: 4px;
+}
+
+/* ── Menu Navigation Tabs: Vertical List on the RIGHT ───────────────────── */
 .menu-nav-tabs {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px 10px;
-  margin-bottom: 18px;
-  border-bottom: 1.5px solid rgba(226, 177, 60, 0.25);
-  padding-bottom: 10px;
-  overflow: visible;
+  width: 240px;
+  min-width: 230px;
+  max-width: 255px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 6px 4px 16px;
+  border-left: 1.5px solid rgba(226, 177, 60, 0.28);
+  border-bottom: none;
+  margin-bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #c9932b rgba(10, 8, 14, 0.6);
 }
 
-@media (max-width: 1100px) {
-  .menu-nav-tabs {
-    grid-template-columns: repeat(4, 1fr);
-  }
+.menu-nav-tabs::-webkit-scrollbar {
+  width: 5px;
+}
+.menu-nav-tabs::-webkit-scrollbar-track {
+  background: rgba(10, 8, 14, 0.4);
+  border-radius: 4px;
+}
+.menu-nav-tabs::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f0c05a, #885c13);
+  border-radius: 4px;
 }
 
-@media (max-width: 720px) {
-  .menu-nav-tabs {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
+/* Generic Tab Button (for internal sub-tabs like codex) */
 .tab-btn {
   background: rgba(25, 18, 36, 0.75);
   border: 1px solid rgba(226, 177, 60, 0.35);
@@ -1455,19 +1500,15 @@ body, html {
   font-family: 'Cinzel', serif;
   font-size: 0.86rem;
   font-weight: 700;
-  padding: 8px 10px;
-  display: flex;
+  padding: 8px 12px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   white-space: nowrap;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
   letter-spacing: 0.5px;
 }
 
@@ -1484,29 +1525,121 @@ body, html {
   border-color: #fff1b8;
   box-shadow: 0 0 16px rgba(240, 192, 90, 0.5), inset 0 1px 0 rgba(255,255,255,0.4);
   font-weight: 900;
-  transform: translateY(-1px);
 }
 
-/* Tab Scrollable Body */
-.menu-tab-body {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 10px;
+/* ── Vertical List Styling for Right Navigation Sidebar ─────────────── */
+.menu-nav-tabs .tab-btn {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 8px 12px;
+  gap: 10px;
+  background: rgba(22, 16, 32, 0.65);
+  border: 1px solid rgba(226, 177, 60, 0.22);
+  border-radius: 7px;
+  color: #c7b9ab;
+  font-family: 'Cinzel', serif;
+  font-size: 0.84rem;
+  font-weight: 700;
   text-align: left;
-  scrollbar-width: thin;
-  scrollbar-color: #c9932b rgba(10, 8, 14, 0.6);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  letter-spacing: 0.4px;
 }
 
-.menu-tab-body::-webkit-scrollbar {
-  width: 7px;
+.menu-nav-tabs .tab-btn .tab-icon {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
 }
-.menu-tab-body::-webkit-scrollbar-track {
-  background: rgba(10, 8, 14, 0.6);
-  border-radius: 4px;
+
+.menu-nav-tabs .tab-btn .tab-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
 }
-.menu-tab-body::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #f0c05a, #885c13);
-  border-radius: 4px;
+
+.menu-nav-tabs .tab-btn .tab-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: rgba(200, 180, 150, 0.35);
+  transition: all 0.2s ease;
+}
+
+.menu-nav-tabs .tab-btn .pin-svg {
+  width: 13px;
+  height: 13px;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.menu-nav-tabs .tab-btn:hover {
+  background: rgba(48, 35, 68, 0.85);
+  color: #f7d774;
+  border-color: rgba(240, 192, 90, 0.55);
+  transform: translateX(-3px);
+}
+
+.menu-nav-tabs .tab-btn:hover .tab-pin {
+  color: rgba(240, 192, 90, 0.85);
+}
+
+.menu-nav-tabs .tab-btn:hover .pin-svg {
+  transform: rotate(45deg) scale(1.15);
+}
+
+.menu-nav-tabs .tab-btn.active {
+  background: linear-gradient(90deg, rgba(216, 160, 50, 0.25) 0%, rgba(136, 92, 19, 0.45) 100%), rgba(26, 18, 38, 0.95);
+  color: #fff2c4;
+  border-color: #f1c40f;
+  border-right: 3.5px solid #f1c40f;
+  box-shadow: 0 2px 14px rgba(240, 192, 90, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  font-weight: 800;
+  transform: translateX(-3px);
+}
+
+.menu-nav-tabs .tab-btn.active .tab-pin {
+  color: #f1c40f;
+  filter: drop-shadow(0 0 4px rgba(241, 196, 15, 0.6));
+}
+
+.menu-nav-tabs .tab-btn.active .pin-svg {
+  transform: rotate(45deg) scale(1.2);
+}
+
+@media (max-width: 900px) {
+  .main-menu-body-layout {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+  .menu-nav-tabs {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: auto;
+    max-height: 140px;
+    border-left: none;
+    border-bottom: 1.5px solid rgba(226, 177, 60, 0.25);
+    padding: 0 0 10px 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .menu-nav-tabs .tab-btn.active {
+    border-right: 1px solid #f1c40f;
+    border-bottom: 3px solid #f1c40f;
+  }
 }
 
 /* ── TAB: Iniciar Batalha (Battle Prep) ───────────────────────────────────── */
