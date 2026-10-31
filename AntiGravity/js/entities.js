@@ -85,6 +85,27 @@ class Player {
     return (this.metaBonusProjectiles || 0) + (this.runBonusProjectiles || 0);
   }
 
+  onCriticalHit(targetEnemy) {
+    // Passiva da Pedra Angular: Avatar da Ruina
+    if (this.shockwaveOnCrit) {
+      const game = window.MedievalSurvivors && window.MedievalSurvivors.game;
+      if (game && game.enemies) {
+        const cx = targetEnemy ? targetEnemy.x : this.x;
+        const cy = targetEnemy ? targetEnemy.y : this.y;
+        const shockRadius = 85;
+        const targets = game.spatialGrid ? game.spatialGrid.query(cx, cy, shockRadius) : game.enemies;
+        for (const e of targets) {
+          if (e.alive && e !== targetEnemy && (e.x - cx)**2 + (e.y - cy)**2 <= shockRadius * shockRadius) {
+            e.takeDamage(Math.round(20 * this.damageMultiplier), 0, 0, 8);
+          }
+        }
+        if (game.renderer && game.renderer.triggerShake) {
+          game.renderer.triggerShake(2.5, 0.1);
+        }
+      }
+    }
+  }
+
   get effectiveArmor() {
     return this.baseArmor + this.bonusArmor;
   }
@@ -152,9 +173,30 @@ class Player {
   addXp(amount) {
     const game = window.MedievalSurvivors && window.MedievalSurvivors.game;
     let earned = amount;
+    if (this.xpMultiplier && this.xpMultiplier > 1.0) {
+      earned = Math.round(earned * this.xpMultiplier);
+    }
     if (game && game.hyperMode) {
       earned = Math.round(earned * 1.30); // +30% Ganho de XP em Modo Hiper!
     }
+
+    // Passiva da Pedra Angular: Singularidade Cosmica
+    if (this.cosmicGems && Math.random() < 0.15) {
+      this.gold = (this.gold || 0) + 1;
+      if (game && game.enemies) {
+        const shockRadius = 90;
+        const targets = game.spatialGrid ? game.spatialGrid.query(this.x, this.y, shockRadius) : game.enemies;
+        for (const e of targets) {
+          if (e.alive && (e.x - this.x)**2 + (e.y - this.y)**2 <= shockRadius * shockRadius) {
+            e.takeDamage(12 + Math.floor(this.level * 1.5), 0, 0, 4);
+          }
+        }
+        if (game.addFloatingText) {
+          game.addFloatingText(this.x, this.y - 20, '+1 OURO ESTELAR', '#74b9ff', true);
+        }
+      }
+    }
+
     this.xp += earned;
     this.totalGemsCollected = (this.totalGemsCollected || 0) + 1;
     if (game && game.saveManager) {

@@ -39,6 +39,7 @@ class SaveManager {
         fire_boost: 0   // Holy Fire Base Damage
       },
       history: [],
+      skillTree: ['origin'],
       discoveredSynergies: [],
       unlockedAchievements: {},
       stats: {
@@ -424,6 +425,9 @@ class SaveManager {
         this.data.metaUpgrades = Object.assign(this.getDefaultData().metaUpgrades, parsed.metaUpgrades || {});
         this.data.unlockedAchievements = Object.assign({}, parsed.unlockedAchievements || {});
         this.data.stats = Object.assign(this.getDefaultData().stats, parsed.stats || {});
+        if (!Array.isArray(this.data.skillTree) || this.data.skillTree.length === 0) {
+          this.data.skillTree = ['origin'];
+        }
       }
     } catch (e) {
       console.warn('Erro ao carregar save:', e);
@@ -666,6 +670,64 @@ class SaveManager {
     this.save();
   }
 
+
+  // ── SKILL TREE (PoE2 STYLE) METHODS ─────────────────────────
+  getSkillTreeAllocated() {
+    if (!this.data.skillTree || !Array.isArray(this.data.skillTree)) {
+      this.data.skillTree = ['origin'];
+    }
+    return this.data.skillTree;
+  }
+
+  isSkillTreeNodeAllocated(nodeId) {
+    return this.getSkillTreeAllocated().includes(nodeId);
+  }
+
+  getSkillTreeBonuses() {
+    if (window.MedievalSurvivors && window.MedievalSurvivors.skillTreeEngine) {
+      return window.MedievalSurvivors.skillTreeEngine.calculateCumulativeBonuses(this.getSkillTreeAllocated());
+    }
+    return null;
+  }
+
+  getSkillTreeSpentGold() {
+    if (window.MedievalSurvivors && window.MedievalSurvivors.skillTreeEngine) {
+      return window.MedievalSurvivors.skillTreeEngine.calculateTotalSpentGold(this.getSkillTreeAllocated());
+    }
+    return 0;
+  }
+
+  canUnlockSkillTreeNode(nodeId) {
+    if (window.MedievalSurvivors && window.MedievalSurvivors.skillTreeEngine) {
+      return window.MedievalSurvivors.skillTreeEngine.canUnlock(nodeId, new Set(this.getSkillTreeAllocated()));
+    }
+    return false;
+  }
+
+  purchaseSkillTreeNode(nodeId) {
+    if (!this.canUnlockSkillTreeNode(nodeId)) return false;
+    const engine = window.MedievalSurvivors && window.MedievalSurvivors.skillTreeEngine;
+    if (!engine) return false;
+    const node = engine.getNode(nodeId);
+    if (!node) return false;
+
+    if (this.data.gold < node.cost) return false;
+
+    this.data.gold -= node.cost;
+    this.data.skillTree.push(nodeId);
+    this.save();
+    return true;
+  }
+
+  refundSkillTree() {
+    const spent = this.getSkillTreeSpentGold();
+    if (spent <= 0 && (!this.data.skillTree || this.data.skillTree.length <= 1)) return 0;
+    this.data.gold += spent;
+    this.data.skillTree = ['origin'];
+    this.save();
+    return spent;
+  }
+
   applyToPlayer(player) {
     const up = this.data.metaUpgrades;
 
@@ -716,6 +778,69 @@ class SaveManager {
     player.bannedIds = new Set();
 
     // Base Weapon Boosts
+
+    // Apply Skill Tree (PoE2 Style) Passives & Keystones
+    const treeBonuses = this.getSkillTreeBonuses();
+    if (treeBonuses) {
+      if (treeBonuses.maxHp > 0) {
+        player.baseMaxHp += treeBonuses.maxHp;
+        player.maxHp = player.baseMaxHp;
+        player.hp = player.maxHp;
+      }
+      if (treeBonuses.armor > 0) {
+        player.baseArmor += treeBonuses.armor;
+      }
+      if (treeBonuses.damageMult > 0) {
+        player.baseDamageMultiplier += treeBonuses.damageMult;
+      }
+      if (treeBonuses.areaMult > 0) {
+        player.baseAreaMultiplier += treeBonuses.areaMult;
+      }
+      if (treeBonuses.critChance > 0) {
+        player.baseCritChance = (player.baseCritChance || 0.05) + treeBonuses.critChance;
+        player.critChance = player.baseCritChance;
+      }
+      if (treeBonuses.critDamage > 0) {
+        player.critMultiplier = (player.critMultiplier || 1.5) + treeBonuses.critDamage;
+      }
+      if (treeBonuses.speedMult > 0) {
+        player.speedMultiplier += treeBonuses.speedMult;
+      }
+      if (treeBonuses.cooldownReduc > 0) {
+        player.cooldownReduction = Math.min(0.60, (player.cooldownReduction || 0) + treeBonuses.cooldownReduc);
+      }
+      if (treeBonuses.magnetRadius > 0) {
+        player.magnetMultiplier = (player.magnetMultiplier || 1.0) + treeBonuses.magnetRadius;
+      }
+      if (treeBonuses.goldMult > 0) {
+        player.goldMultiplier = (player.goldMultiplier || 1.0) + treeBonuses.goldMult;
+      }
+      if (treeBonuses.xpMult > 0) {
+        player.xpMultiplier = (player.xpMultiplier || 1.0) + treeBonuses.xpMult;
+      }
+      if (treeBonuses.hpRegen > 0) {
+        player.baseHpRegen = (player.baseHpRegen || 0) + treeBonuses.hpRegen;
+      }
+      if (treeBonuses.extraProjectiles > 0) {
+        player.metaBonusProjectiles = (player.metaBonusProjectiles || 0) + treeBonuses.extraProjectiles;
+      }
+      if (treeBonuses.extraRerolls > 0) {
+        player.rerolls += treeBonuses.extraRerolls;
+        player.maxRerolls = player.rerolls;
+      }
+      if (treeBonuses.colossusPact) {
+        player.colossusPact = true;
+        // Colosso: Converte 50% da Armadura em regeneração de HP/s contínua
+        player.baseHpRegen = (player.baseHpRegen || 0) + (player.baseArmor * 0.5);
+      }
+      if (treeBonuses.shockwaveOnCrit) {
+        player.shockwaveOnCrit = true;
+      }
+      if (treeBonuses.cosmicGems) {
+        player.cosmicGems = true;
+      }
+    }
+
     player.weapons.forEach(w => {
       if (w.id === 'broadsword' && up.sword_boost > 0) {
         w.baseDamage += up.sword_boost * 6;

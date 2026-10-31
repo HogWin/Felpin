@@ -2184,6 +2184,62 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
+  function createBloodAltarModel() {
+    const root = new THREE.Group();
+    const stoneMat = materials.blackObsidian || materials.stoneGrey;
+    const bloodMat = materials.glowingRed;
+    const goldMat = materials.gold;
+
+    // 1. Octagonal Tiered Stone Pedestal
+    const basePillar = new THREE.Mesh(new THREE.CylinderGeometry(14, 18, 5, 8), stoneMat);
+    basePillar.position.y = 2.5;
+    root.add(basePillar);
+
+    const midPillar = new THREE.Mesh(new THREE.CylinderGeometry(10, 13, 8, 8), stoneMat);
+    midPillar.position.y = 9;
+    root.add(midPillar);
+
+    const topPillar = new THREE.Mesh(new THREE.CylinderGeometry(13, 9, 3, 8), stoneMat);
+    topPillar.position.y = 14.5;
+    root.add(topPillar);
+
+    // 2. Ornate Blood Chalice
+    const chalice = new THREE.Mesh(new THREE.CylinderGeometry(8, 4, 6, 8, 1, true), goldMat);
+    chalice.position.y = 19;
+    root.add(chalice);
+
+    // 3. Boiling Blood Liquid Core
+    const liquid = new THREE.Mesh(new THREE.CircleGeometry(7.2, 12), bloodMat);
+    liquid.rotation.x = -Math.PI / 2;
+    liquid.position.y = 21;
+    root.add(liquid);
+
+    // 4. Floating Mystic Blood Crystal / Core
+    const orb = new THREE.Mesh(new THREE.OctahedronGeometry(4.5, 0), bloodMat);
+    orb.position.y = 30;
+    root.add(orb);
+
+    // 5. Pulsing Ground Rune Circle
+    const groundRuneGeo = new THREE.RingGeometry(18, 38, 24);
+    groundRuneGeo.rotateX(-Math.PI / 2);
+    const groundRune = new THREE.Mesh(groundRuneGeo, new THREE.MeshBasicMaterial({ color: 0x990000, transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
+    groundRune.position.y = 0.4;
+    root.add(groundRune);
+
+    root.updateVisuals = function(dt) {
+      orb.rotation.y += dt * 2.2;
+      orb.rotation.z += dt * 1.1;
+      const bob = Math.sin(Date.now() * 0.005) * 2.5;
+      orb.position.y = 30 + bob;
+
+      groundRune.rotation.z += dt * 0.5;
+      const pulse = 1.0 + Math.sin(Date.now() * 0.007) * 0.08;
+      groundRune.scale.set(pulse, pulse, 1);
+    };
+
+    return root;
+  }
+
   // ==========================================
   // 4. 3D PROJECTILES & WEAPON EFFECTS
   // ==========================================
@@ -3269,6 +3325,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     createGemModel,
     createChestModel,
     createDestructibleModel,
+    createBloodAltarModel,
     createSanctuaryZoneMesh,
     createCelestialStrikeTelegraphMesh,
     createCelestialStrikeImpactMesh,

@@ -1027,6 +1027,7 @@ class UIController {
     switch (tabName) {
       case 'play':      this.renderPlayTab();      break;
       case 'heroes':    this.renderHeroesTab();    break;
+      case 'tree':      this.renderSkillTreeTab(); break;
       case 'forge':     this.renderForgeTab();     break;
       case 'synergies': this.renderSynergiesTab(); break;
       case 'codex':     this.renderCodexTab();     break;
@@ -1483,6 +1484,470 @@ class UIController {
       grid.appendChild(card);
     });
   }
+
+  // ── TAB: Árvore de Habilidades & Talentos PoE2 ────────────────
+  renderSkillTreeTab() {
+    const sm = this.game.saveManager;
+    const engine = window.MedievalSurvivors.skillTreeEngine;
+    if (!engine) return;
+
+    if (!this._skillTreeSelectedNode) {
+      this._skillTreeSelectedNode = 'origin';
+    }
+    if (this._skillTreeZoom === undefined) {
+      this._skillTreeZoom = 1.0;
+    }
+    if (!this._skillTreeCenter) {
+      this._skillTreeCenter = { x: 500, y: 500 };
+    }
+
+    const allocatedArray = sm.getSkillTreeAllocated();
+    const allocatedSet = new Set(allocatedArray);
+    const totalSpent = sm.getSkillTreeSpentGold();
+    const allNodes = engine.getAllNodes();
+    const selectedNode = engine.getNode(this._skillTreeSelectedNode) || engine.getNode('origin');
+    const branches = engine.branches;
+
+    const bonuses = engine.calculateCumulativeBonuses(allocatedArray);
+
+    this.menuTabContent.innerHTML = `
+      <div class="skill-tree-tab-wrap">
+        <div class="skill-tree-header-banner">
+          <div class="tree-header-titles">
+            <h3>🕸️ CONSTELAÇÃO ANCESTRAL DE VALORIA</h3>
+            <p>Evolua caminhos arcanos no estilo PoE2 com pequenas passivas (+1%, +2 HP), notáveis e pedras angulares lendárias.</p>
+          </div>
+          <div class="tree-header-actions">
+            <div class="tree-pill-stat">
+              <span>Ouro Disponível:</span>
+              <strong class="text-gold">${sm.getGold().toLocaleString()} 💰</strong>
+            </div>
+            <div class="tree-pill-stat">
+              <span>Talentos Alocados:</span>
+              <strong class="text-emerald">${allocatedArray.length} / ${allNodes.length}</strong>
+            </div>
+            <div class="tree-pill-stat">
+              <span>Investido:</span>
+              <strong>${totalSpent.toLocaleString()} 💰</strong>
+            </div>
+            <button class="btn-royal btn-refund-gold" id="btn-refund-tree" ${totalSpent <= 0 ? 'disabled' : ''}>
+              🔄 Reembolsar Talentos (${totalSpent.toLocaleString()} 💰)
+            </button>
+            <button class="btn-royal btn-tree-summary" id="btn-toggle-tree-summary">
+              📜 Resumo das Bênçãos
+            </button>
+          </div>
+        </div>
+
+        <div class="skill-tree-main-layout">
+          <!-- Interactive SVG Viewport -->
+          <div class="poe-tree-viewport" id="poe-tree-viewport">
+            <!-- Viewport Controls -->
+            <div class="poe-tree-controls">
+              <button class="tree-ctrl-btn" id="btn-zoom-in" title="Aproximar Zoom">➕</button>
+              <button class="tree-ctrl-btn" id="btn-zoom-out" title="Afastar Zoom">➖</button>
+              <button class="tree-ctrl-btn" id="btn-zoom-reset" title="Centralizar Origem">🎯</button>
+            </div>
+
+            <!-- SVG Constellation Map -->
+            <svg id="poe-tree-svg" class="poe-tree-svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <filter id="glow-gold" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+                <filter id="glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+                <filter id="glow-node-avail" x="-40%" y="-40%" width="180%" height="180%">
+                  <feGaussianBlur stdDeviation="3.5" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+
+              <!-- Galaxy/Constellation Background Elements -->
+              <g class="tree-constellation-bg">
+                <circle cx="500" cy="500" r="435" fill="none" stroke="rgba(241,196,15,0.06)" stroke-width="1.5" stroke-dasharray="8 6"/>
+                <circle cx="500" cy="500" r="285" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                <circle cx="500" cy="500" r="145" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="4 4"/>
+                <line x1="500" y1="40" x2="500" y2="960" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+                <line x1="40" y1="500" x2="960" y2="500" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+              </g>
+
+              <!-- Constellation Lines (Edges) -->
+              <g class="tree-edges-layer" id="tree-edges-group"></g>
+
+              <!-- Constellation Nodes Layer -->
+              <g class="tree-nodes-layer" id="tree-nodes-group"></g>
+            </svg>
+          </div>
+
+          <!-- Talent Inspector Panel (Sidebar Card) -->
+          <div class="talent-inspector-panel" id="talent-inspector-card"></div>
+        </div>
+
+        <!-- Collapsible Summary Drawer -->
+        <div class="tree-summary-drawer" id="tree-summary-drawer" style="display: ${this._skillTreeShowSummary ? 'block' : 'none'};">
+          <div class="drawer-header">
+            <h4>📜 BÊNÇÃOS ACUMULADAS DA CONSTELAÇÃO</h4>
+            <button class="drawer-close-btn" id="btn-close-summary">✖</button>
+          </div>
+          <div class="summary-stats-grid">
+            <div class="summary-stat-box"><span class="lbl">Vida Máxima:</span><strong class="val text-gold">+${bonuses.maxHp} HP</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Armadura:</span><strong class="val text-gold">+${bonuses.armor.toFixed(1)}</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Dano Global:</span><strong class="val text-gold">+${(bonuses.damageMult * 100).toFixed(1)}%</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Área de Efeito:</span><strong class="val text-gold">+${(bonuses.areaMult * 100).toFixed(0)}%</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Chance Crítica:</span><strong class="val text-gold">+${(bonuses.critChance * 100).toFixed(1)}%</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Dano Crítico:</span><strong class="val text-gold">+${(bonuses.critDamage * 100).toFixed(0)}%</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Velocidade:</span><strong class="val text-gold">+${(bonuses.speedMult * 100).toFixed(1)}%</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Redução Recarga:</span><strong class="val text-gold">-${(bonuses.cooldownReduc * 100).toFixed(1)}%</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Raio de Ímã:</span><strong class="val text-gold">+${(bonuses.magnetRadius * 100).toFixed(0)}%</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Ouro Pilhado:</span><strong class="val text-gold">+${(bonuses.goldMult * 100).toFixed(0)}%</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Experiência:</span><strong class="val text-gold">+${(bonuses.xpMult * 100).toFixed(0)}%</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Regeneração:</span><strong class="val text-gold">+${bonuses.hpRegen.toFixed(1)} HP/s</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Projéteis Extras:</span><strong class="val text-gold">+${bonuses.extraProjectiles}</strong></div>
+            <div class="summary-stat-box"><span class="lbl">Cargas Reroll:</span><strong class="val text-gold">+${bonuses.extraRerolls}</strong></div>
+          </div>
+          <div class="summary-keystones-row">
+            <span class="keystone-pill ${bonuses.colossusPact ? 'active' : ''}">🛡️ Colosso Indomável: ${bonuses.colossusPact ? 'ATIVO' : 'INATIVO'}</span>
+            <span class="keystone-pill ${bonuses.shockwaveOnCrit ? 'active' : ''}">💥 Avatar da Ruína: ${bonuses.shockwaveOnCrit ? 'ATIVO' : 'INATIVO'}</span>
+            <span class="keystone-pill ${bonuses.extraProjectiles > 0 ? 'active' : ''}">🏹 Chuva de Estilhaços: ${bonuses.extraProjectiles > 0 ? 'ATIVO' : 'INATIVO'}</span>
+            <span class="keystone-pill ${bonuses.cosmicGems ? 'active' : ''}">✨ Singularidade Cósmica: ${bonuses.cosmicGems ? 'ATIVO' : 'INATIVO'}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // ── Helper to render the Inspector Card ───────────────────
+    const renderInspector = (nodeId) => {
+      this._skillTreeSelectedNode = nodeId;
+      const node = engine.getNode(nodeId) || engine.getNode('origin');
+      const card = document.getElementById('talent-inspector-card');
+      if (!card) return;
+
+      const isAllocated = allocatedSet.has(node.id);
+      const canUnlock = engine.canUnlock(node.id, allocatedSet);
+      const canAfford = sm.getGold() >= node.cost;
+      const branchInfo = branches[node.branch] || { name: 'Núcleo Central', color: '#f1c40f', icon: 'spark' };
+
+      let tierBadge = '';
+      if (node.tier === 'origin') tierBadge = '<span class="badge-origin">CENTRO ANCESTRAL</span>';
+      else if (node.tier === 'minor') tierBadge = '<span class="badge-minor">PASSIVA MENOR</span>';
+      else if (node.tier === 'notable') tierBadge = '<span class="badge-notable">⭐ TALENTO NOTÁVEL</span>';
+      else if (node.tier === 'keystone') tierBadge = '<span class="badge-keystone">👑 PEDRA ANGULAR (KEYSTONE)</span>';
+
+      let reqBranchText = '';
+      if (node.reqBranchCount && node.reqBranchCount > 0) {
+        const curCount = engine.getBranchAllocatedCount(node.branch, allocatedSet);
+        const met = curCount >= node.reqBranchCount;
+        reqBranchText = `<div class="inspect-req-line ${met ? 'req-met' : 'req-missing'}">
+          ${met ? '✅' : '⚠️'} Requer ${node.reqBranchCount} talentos neste ramo (Atual: ${curCount}/${node.reqBranchCount})
+        </div>`;
+      }
+
+      let btnHTML = '';
+      if (node.tier === 'origin' || isAllocated) {
+        btnHTML = `<button class="btn-primary btn-talent-action btn-allocated" disabled>✅ TALENTO JÁ ATIVADO</button>`;
+      } else if (canUnlock && canAfford) {
+        btnHTML = `<button class="btn-primary btn-talent-action btn-can-buy" id="btn-buy-talent">✨ ATIVAR TALENTO (${node.cost} 💰)</button>`;
+      } else if (canUnlock && !canAfford) {
+        btnHTML = `<button class="btn-primary btn-talent-action btn-no-gold" disabled>❌ OURO INSUFICIENTE (${node.cost} 💰)</button>`;
+      } else {
+        btnHTML = `<button class="btn-primary btn-talent-action btn-locked" disabled>🔒 CAMINHO BLOQUEADO</button>`;
+      }
+
+      card.innerHTML = `
+        <div class="inspect-header" style="border-left: 4px solid ${branchInfo.color};">
+          <div class="inspect-branch-tag" style="color: ${branchInfo.color};">${branchInfo.name}</div>
+          ${tierBadge}
+          <h4 class="inspect-name">${node.name}</h4>
+        </div>
+
+        <div class="inspect-stat-highlight">
+          <span class="inspect-stat-icon">✨</span>
+          <span class="inspect-stat-val">${node.statText}</span>
+        </div>
+
+        <p class="inspect-desc">${node.description}</p>
+
+        <div class="inspect-requirements">
+          <div class="inspect-req-title">CONDIÇÕES DE DESBLOQUEIO:</div>
+          <div class="inspect-req-line ${isAllocated || canUnlock ? 'req-met' : 'req-missing'}">
+            ${isAllocated || canUnlock ? '✅' : '❌'} Conectado a um nó já ativo
+          </div>
+          ${reqBranchText}
+          ${node.cost > 0 ? `
+          <div class="inspect-cost-pill">
+            <span>Custo em Ouro:</span>
+            <strong class="text-gold">${node.cost} 💰</strong>
+          </div>
+          ` : ''}
+        </div>
+
+        <div class="inspect-action-wrap">
+          ${btnHTML}
+        </div>
+      `;
+
+      const buyBtn = document.getElementById('btn-buy-talent');
+      if (buyBtn) {
+        buyBtn.addEventListener('click', () => {
+          const success = sm.purchaseSkillTreeNode(node.id);
+          if (success) {
+            if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playLevelUp) {
+              window.MedievalSurvivors.sound.playLevelUp();
+            }
+            this.updateMenuGoldDisplay();
+            this.renderSkillTreeTab();
+          }
+        });
+      }
+
+      // Highlight selected node on SVG
+      document.querySelectorAll('#tree-nodes-group .tree-node').forEach(el => {
+        el.classList.toggle('node-selected', el.getAttribute('data-id') === node.id);
+      });
+    };
+
+    // ── Build SVG Edges & Nodes ──────────────────────────────
+    const edgesGroup = document.getElementById('tree-edges-group');
+    const nodesGroup = document.getElementById('tree-nodes-group');
+    const drawnEdges = new Set();
+
+    allNodes.forEach(node => {
+      (node.connects || []).forEach(targetId => {
+        const targetNode = engine.getNode(targetId);
+        if (!targetNode) return;
+        const edgeKey = [node.id, targetId].sort().join('--');
+        if (drawnEdges.has(edgeKey)) return;
+        drawnEdges.add(edgeKey);
+
+        const nodeAllocated = allocatedSet.has(node.id);
+        const targetAllocated = allocatedSet.has(targetId);
+        const bothAllocated = nodeAllocated && targetAllocated;
+        const isPathAvailable = (nodeAllocated && engine.canUnlock(targetId, allocatedSet)) ||
+                                (targetAllocated && engine.canUnlock(node.id, allocatedSet));
+
+        let edgeClass = 'tree-edge-locked';
+        let strokeColor = 'rgba(255, 255, 255, 0.08)';
+        let strokeWidth = '2';
+        let dashArray = 'none';
+
+        if (bothAllocated) {
+          edgeClass = 'tree-edge-allocated';
+          strokeColor = '#f1c40f';
+          strokeWidth = '3.5';
+        } else if (isPathAvailable) {
+          edgeClass = 'tree-edge-available';
+          strokeColor = '#3498db';
+          strokeWidth = '2.5';
+          dashArray = '6 4';
+        }
+
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', node.x);
+        line.setAttribute('y1', node.y);
+        line.setAttribute('x2', targetNode.x);
+        line.setAttribute('y2', targetNode.y);
+        line.setAttribute('class', `tree-edge ${edgeClass}`);
+        line.setAttribute('stroke', strokeColor);
+        line.setAttribute('stroke-width', strokeWidth);
+        if (dashArray !== 'none') line.setAttribute('stroke-dasharray', dashArray);
+        if (bothAllocated) line.setAttribute('filter', 'url(#glow-gold)');
+        edgesGroup.appendChild(line);
+      });
+    });
+
+    allNodes.forEach(node => {
+      const isAllocated = allocatedSet.has(node.id);
+      const canUnlock = engine.canUnlock(node.id, allocatedSet);
+      const isSelected = node.id === this._skillTreeSelectedNode;
+      const branchInfo = branches[node.branch] || { color: '#f1c40f' };
+
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      let statusClass = isAllocated ? 'node-allocated' : (canUnlock ? 'node-available' : 'node-locked');
+      if (isSelected) statusClass += ' node-selected';
+      g.setAttribute('class', `tree-node node-${node.tier} ${statusClass}`);
+      g.setAttribute('data-id', node.id);
+      g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+
+      if (node.tier === 'origin') {
+        // Origin Node: Grand Sun
+        g.innerHTML = `
+          <circle r="34" fill="rgba(241,196,15,0.18)" class="pulse-aura" />
+          <circle r="26" fill="#1b1202" stroke="#f1c40f" stroke-width="3" filter="url(#glow-gold)" />
+          <circle r="16" fill="#f39c12" />
+          <polygon points="0,-12 3,-3 12,0 3,3 0,12 -3,3 -12,0 -3,-3" fill="#ffffff" />
+        `;
+      } else if (node.tier === 'minor') {
+        // Minor Node: Glowing Gem Jewel
+        const fillColor = isAllocated ? branchInfo.color : (canUnlock ? '#1e2430' : '#121016');
+        const strokeColor = isAllocated ? '#fff1b8' : (canUnlock ? '#3498db' : 'rgba(255,255,255,0.2)');
+        g.innerHTML = `
+          ${canUnlock ? '<circle r="18" fill="none" stroke="#3498db" stroke-width="1.5" class="pulse-aura" />' : ''}
+          <circle r="13" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isAllocated ? '2.5' : '1.5'}" ${isAllocated ? 'filter="url(#glow-gold)"' : ''} />
+          <circle r="6" fill="${isAllocated ? '#ffffff' : (canUnlock ? branchInfo.color : '#2d2938')}" opacity="${isAllocated ? '0.85' : '0.6'}" />
+        `;
+      } else if (node.tier === 'notable') {
+        // Notable Node: Diamond / Octagon Emblem
+        const strokeColor = isAllocated ? '#f1c40f' : (canUnlock ? '#00d2d3' : 'rgba(255,255,255,0.25)');
+        const fillColor = isAllocated ? branchInfo.color : '#15131f';
+        g.innerHTML = `
+          ${canUnlock ? '<polygon points="0,-27 27,0 0,27 -27,0" fill="none" stroke="#00d2d3" stroke-width="1.5" class="pulse-aura" />' : ''}
+          <polygon points="0,-22 22,0 0,22 -22,0" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isAllocated ? '3' : '2'}" ${isAllocated ? 'filter="url(#glow-gold)"' : ''} />
+          <circle r="10" fill="${isAllocated ? '#fff9ea' : '#272033'}" stroke="${strokeColor}" stroke-width="1.2" />
+          <polygon points="0,-6 2,-2 6,0 2,2 0,6 -2,2 -6,0 -2,-2" fill="${isAllocated ? branchInfo.color : '#f1c40f'}" />
+        `;
+      } else if (node.tier === 'keystone') {
+        // Keystone Node: Majestic Crown Star
+        const strokeColor = isAllocated ? '#f1c40f' : (canUnlock ? '#f39c12' : 'rgba(255,255,255,0.3)');
+        const fillColor = isAllocated ? '#2d1804' : '#140c06';
+        g.innerHTML = `
+          <circle r="38" fill="none" stroke="${strokeColor}" stroke-width="1.5" stroke-dasharray="4 4" class="pulse-aura" />
+          <polygon points="0,-30 8,-12 26,-18 16,-2 30,8 12,12 8,30 -2,16 -18,26 -12,8 -30,0 -12,-8 -18,-26 -2,-16" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isAllocated ? '3' : '2'}" ${isAllocated ? 'filter="url(#glow-gold)"' : ''} />
+          <circle r="16" fill="${isAllocated ? branchInfo.color : '#251508'}" stroke="#ffd32a" stroke-width="2" />
+          <polygon points="0,-9 3,-3 9,0 3,3 0,9 -3,3 -9,0 -3,-3" fill="#ffffff" />
+        `;
+      }
+
+      g.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playWoodHit) {
+          window.MedievalSurvivors.sound.playWoodHit();
+        }
+        renderInspector(node.id);
+      });
+
+      nodesGroup.appendChild(g);
+    });
+
+    // Initial inspector render
+    renderInspector(this._skillTreeSelectedNode);
+
+    // ── Viewport Drag/Pan & Zoom Logic ────────────────────────
+    const viewport = document.getElementById('poe-tree-viewport');
+    const svg = document.getElementById('poe-tree-svg');
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let viewBox = { x: 0, y: 0, w: 1000, h: 1000 };
+
+    const updateViewBox = () => {
+      svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
+    };
+
+    viewport.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.poe-tree-controls') || e.target.closest('.tree-node')) return;
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      viewport.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const dx = (e.clientX - startX) * (viewBox.w / viewport.clientWidth);
+      const dy = (e.clientY - startY) * (viewBox.h / viewport.clientHeight);
+      viewBox.x -= dx;
+      viewBox.y -= dy;
+      startX = e.clientX;
+      startY = e.clientY;
+      updateViewBox();
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        viewport.style.cursor = 'grab';
+      }
+    });
+
+    // Touch support for mobile/tablets
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      const dx = (e.touches[0].clientX - startX) * (viewBox.w / viewport.clientWidth);
+      const dy = (e.touches[0].clientY - startY) * (viewBox.h / viewport.clientHeight);
+      viewBox.x -= dx;
+      viewBox.y -= dy;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      updateViewBox();
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', () => { isDragging = false; });
+
+    // Zoom Buttons
+    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+      const zoomFactor = 0.82;
+      const newW = viewBox.w * zoomFactor;
+      const newH = viewBox.h * zoomFactor;
+      viewBox.x += (viewBox.w - newW) / 2;
+      viewBox.y += (viewBox.h - newH) / 2;
+      viewBox.w = newW;
+      viewBox.h = newH;
+      updateViewBox();
+    });
+
+    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+      const zoomFactor = 1.22;
+      const newW = Math.min(1600, viewBox.w * zoomFactor);
+      const newH = Math.min(1600, viewBox.h * zoomFactor);
+      viewBox.x += (viewBox.w - newW) / 2;
+      viewBox.y += (viewBox.h - newH) / 2;
+      viewBox.w = newW;
+      viewBox.h = newH;
+      updateViewBox();
+    });
+
+    document.getElementById('btn-zoom-reset').addEventListener('click', () => {
+      viewBox = { x: 0, y: 0, w: 1000, h: 1000 };
+      updateViewBox();
+    });
+
+    // ── Refund Action ─────────────────────────────────────────
+    const refundBtn = document.getElementById('btn-refund-tree');
+    if (refundBtn) {
+      refundBtn.addEventListener('click', () => {
+        if (confirm(`Deseja reembolsar todos os talentos da árvore e recuperar ${totalSpent.toLocaleString()} 💰 de Ouro?`)) {
+          const refunded = sm.refundSkillTree();
+          if (refunded > 0) {
+            if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playGemPickup) {
+              window.MedievalSurvivors.sound.playGemPickup();
+            }
+            this.updateMenuGoldDisplay();
+            this.renderSkillTreeTab();
+          }
+        }
+      });
+    }
+
+    // ── Summary Drawer Toggle ─────────────────────────────────
+    const toggleSummaryBtn = document.getElementById('btn-toggle-tree-summary');
+    const closeSummaryBtn = document.getElementById('btn-close-summary');
+    const drawer = document.getElementById('tree-summary-drawer');
+
+    if (toggleSummaryBtn && drawer) {
+      toggleSummaryBtn.addEventListener('click', () => {
+        this._skillTreeShowSummary = !this._skillTreeShowSummary;
+        drawer.style.display = this._skillTreeShowSummary ? 'block' : 'none';
+      });
+    }
+    if (closeSummaryBtn && drawer) {
+      closeSummaryBtn.addEventListener('click', () => {
+        this._skillTreeShowSummary = false;
+        drawer.style.display = 'none';
+      });
+    }
+  }
+
 
   // ── TAB: Grimório de Sinergias & Alquimia ─────────────────────
   renderSynergiesTab() {

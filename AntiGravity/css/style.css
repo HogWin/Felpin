@@ -3563,3 +3563,388 @@ body, html {
   box-shadow: 0 0 12px rgba(241, 196, 15, 0.35);
   letter-spacing: 1px;
 }
+
+/* ==================== POE2 PASSIVE SKILL TREE ==================== */
+.skill-tree-tab-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.skill-tree-header-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: radial-gradient(ellipse at center, rgba(35, 22, 54, 0.95), rgba(14, 9, 24, 0.95));
+  border: 1.5px solid rgba(241, 196, 15, 0.4);
+  border-radius: 12px;
+  padding: 14px 20px;
+  box-shadow: 0 0 25px rgba(241, 196, 15, 0.15);
+}
+
+.tree-header-titles h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.35rem;
+  color: #f7d774;
+  letter-spacing: 1.5px;
+  margin: 0 0 4px 0;
+}
+
+.tree-header-titles p {
+  color: #c7b9ab;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.tree-header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tree-pill-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 7, 18, 0.7);
+  border: 1px solid rgba(241, 196, 15, 0.3);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  color: #c7b9ab;
+}
+
+.btn-tree-summary {
+  padding: 8px 14px !important;
+  font-size: 0.82rem !important;
+  background: rgba(45, 34, 62, 0.8) !important;
+  border-color: rgba(241, 196, 15, 0.4) !important;
+}
+
+.skill-tree-main-layout {
+  display: flex;
+  gap: 16px;
+  min-height: 560px;
+  max-height: 640px;
+}
+
+.poe-tree-viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 50%, #151124 0%, #0d0917 55%, #050309 100%);
+  border: 1.5px solid rgba(241, 196, 15, 0.35);
+  border-radius: 12px;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.85);
+  cursor: grab;
+  user-select: none;
+}
+
+.poe-tree-controls {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 10;
+}
+
+.tree-ctrl-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(20, 15, 30, 0.85);
+  border: 1px solid rgba(241, 196, 15, 0.45);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.tree-ctrl-btn:hover {
+  background: rgba(241, 196, 15, 0.25);
+  border-color: #f1c40f;
+  transform: scale(1.08);
+}
+
+.poe-tree-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tree-edge {
+  transition: stroke 0.3s ease, stroke-width 0.3s ease;
+}
+
+.tree-edge-allocated {
+  stroke: #f1c40f !important;
+  stroke-width: 3.5px !important;
+}
+
+.tree-edge-available {
+  stroke: #3498db !important;
+  stroke-dasharray: 6 4 !important;
+  animation: edgePulse 2s linear infinite;
+}
+
+@keyframes edgePulse {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 20; }
+}
+
+.tree-node {
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tree-node:hover {
+  filter: brightness(1.25);
+}
+
+.node-selected {
+  filter: drop-shadow(0 0 10px rgba(241, 196, 15, 0.9)) !important;
+}
+
+.pulse-aura {
+  animation: nodeAuraPulse 2s infinite ease-in-out;
+  transform-origin: center;
+}
+
+@keyframes nodeAuraPulse {
+  0% { opacity: 0.3; transform: scale(0.96); }
+  50% { opacity: 0.85; transform: scale(1.08); }
+  100% { opacity: 0.3; transform: scale(0.96); }
+}
+
+/* Talent Inspector Panel */
+.talent-inspector-panel {
+  width: 330px;
+  background: radial-gradient(ellipse at 50% 0%, #1e172e 0%, #100b1a 60%, #09060f 100%);
+  border: 1.5px solid rgba(241, 196, 15, 0.35);
+  border-radius: 12px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  box-sizing: border-box;
+}
+
+.inspect-header {
+  padding-left: 10px;
+}
+
+.inspect-branch-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.badge-origin, .badge-minor, .badge-notable, .badge-keystone {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.badge-origin { background: rgba(241, 196, 15, 0.2); color: #f1c40f; border: 1px solid #f1c40f; }
+.badge-minor { background: rgba(52, 152, 219, 0.2); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.4); }
+.badge-notable { background: rgba(155, 89, 182, 0.25); color: #e056fd; border: 1px solid #e056fd; }
+.badge-keystone { background: rgba(230, 126, 34, 0.25); color: #f39c12; border: 1px solid #f39c12; }
+
+.inspect-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.2rem;
+  color: #fff9ea;
+  margin: 4px 0 0 0;
+}
+
+.inspect-stat-highlight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(241, 196, 15, 0.1);
+  border: 1px solid rgba(241, 196, 15, 0.35);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.inspect-stat-icon {
+  font-size: 1.1rem;
+}
+
+.inspect-stat-val {
+  color: #f7d774;
+  font-weight: bold;
+  font-size: 0.92rem;
+}
+
+.inspect-desc {
+  font-size: 0.82rem;
+  color: #c7b9ab;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.inspect-requirements {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.76rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.inspect-req-title {
+  color: #f0c05a;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  font-size: 0.72rem;
+}
+
+.req-met { color: #2ecc71; }
+.req-missing { color: #e74c3c; }
+
+.inspect-cost-pill {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.82rem;
+}
+
+.btn-talent-action {
+  width: 100%;
+  padding: 12px 14px !important;
+  font-family: 'Cinzel', serif !important;
+  font-size: 0.88rem !important;
+  font-weight: bold !important;
+  border-radius: 8px !important;
+  margin-top: 4px;
+}
+
+.btn-talent-action.btn-allocated {
+  background: #27ae60 !important;
+  border-color: #2ecc71 !important;
+  color: #fff !important;
+  cursor: default !important;
+}
+
+.btn-talent-action.btn-can-buy {
+  background: linear-gradient(180deg, #f1c40f 0%, #d4af37 100%) !important;
+  border-color: #fff1b8 !important;
+  color: #1a0f00 !important;
+  box-shadow: 0 0 16px rgba(241, 196, 15, 0.5) !important;
+  cursor: pointer !important;
+}
+
+.btn-talent-action.btn-no-gold,
+.btn-talent-action.btn-locked {
+  background: #201b2a !important;
+  border-color: #3d354d !important;
+  color: #79718a !important;
+  cursor: not-allowed !important;
+}
+
+/* Summary Drawer */
+.tree-summary-drawer {
+  background: radial-gradient(ellipse at center, #1b1429 0%, #0e0917 100%);
+  border: 1.5px solid rgba(241, 196, 15, 0.4);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.drawer-header h4 {
+  font-family: 'Cinzel', serif;
+  color: #f7d774;
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+}
+
+.drawer-close-btn {
+  background: transparent;
+  border: none;
+  color: #ff7675;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.summary-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.summary-stat-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.summary-keystones-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.keystone-pill {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #888;
+}
+
+.keystone-pill.active {
+  background: rgba(241, 196, 15, 0.2);
+  border-color: #f1c40f;
+  color: #f1c40f;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
+}
+
+@media (max-width: 900px) {
+  .skill-tree-main-layout {
+    flex-direction: column;
+    max-height: none;
+  }
+  .talent-inspector-panel {
+    width: 100%;
+  }
+  .poe-tree-viewport {
+    height: 480px;
+  }
+}

@@ -837,6 +837,66 @@
         <ellipse cx="32" cy="16" rx="10" ry="4" fill="#d7a15c" stroke="#3e2723" stroke-width="1.5"/>
         <line x1="26" y1="34" x2="38" y2="34" stroke="#f1c40f" stroke-width="2"/>
       </svg>
+    `,
+
+    hud_blood_altar: `
+      <svg viewBox="0 0 64 64" class="gothic-svg icon-blood-altar" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="18,54 46,54 42,42 22,42" fill="#2d3436" stroke="#c0392b" stroke-width="2"/>
+        <rect x="22" y="24" width="20" height="18" fill="#1e272e" stroke="#c0392b" stroke-width="2"/>
+        <path d="M16 24 L48 24 C48 30, 42 34, 32 34 C22 34, 16 30, 16 24 Z" fill="#781005" stroke="#e74c3c" stroke-width="1.5"/>
+        <circle cx="32" cy="14" r="6" fill="#e74c3c" stroke="#ff7675" stroke-width="1.5"/>
+        <path d="M32 8 C30 14, 28 16, 26 18 C30 18, 34 18, 38 18 C36 16, 34 14, 32 8 Z" fill="#ff4757"/>
+      </svg>
+    `,
+
+    hud_calendar: `
+      <svg viewBox="0 0 64 64" class="gothic-svg icon-calendar" xmlns="http://www.w3.org/2000/svg">
+        <rect x="14" y="16" width="36" height="36" rx="4" fill="#2c3e50" stroke="#d4af37" stroke-width="2"/>
+        <rect x="14" y="16" width="36" height="10" fill="#9b111e"/>
+        <line x1="22" y1="10" x2="22" y2="18" stroke="#d4af37" stroke-width="3" stroke-linecap="round"/>
+        <line x1="42" y1="10" x2="42" y2="18" stroke="#d4af37" stroke-width="3" stroke-linecap="round"/>
+        <polygon points="32,32 36,44 28,44" fill="#f1c40f"/>
+      </svg>
+    `,
+    hud_tree: `
+      <svg viewBox="0 0 64 64" class="gothic-svg icon-tree" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="12" r="5" fill="#f1c40f" stroke="#d4af37" stroke-width="1.5"/>
+        <circle cx="16" cy="28" r="4" fill="#e74c3c" stroke="#c0392b" stroke-width="1.5"/>
+        <circle cx="48" cy="28" r="4" fill="#3498db" stroke="#2980b9" stroke-width="1.5"/>
+        <circle cx="22" cy="46" r="4" fill="#2ecc71" stroke="#27ae60" stroke-width="1.5"/>
+        <circle cx="42" cy="46" r="4" fill="#9b59b6" stroke="#8e44ad" stroke-width="1.5"/>
+        <line x1="32" y1="12" x2="16" y2="28" stroke="#f1c40f" stroke-width="2" opacity="0.8"/>
+        <line x1="32" y1="12" x2="48" y2="28" stroke="#f1c40f" stroke-width="2" opacity="0.8"/>
+        <line x1="16" y1="28" x2="22" y2="46" stroke="#f1c40f" stroke-width="2" opacity="0.8"/>
+        <line x1="48" y1="28" x2="42" y2="46" stroke="#f1c40f" stroke-width="2" opacity="0.8"/>
+        <line x1="22" y1="46" x2="32" y2="58" stroke="#d4af37" stroke-width="2.5"/>
+        <line x1="42" y1="46" x2="32" y2="58" stroke="#d4af37" stroke-width="2.5"/>
+        <circle cx="32" cy="58" r="3" fill="#e67e22"/>
+      </svg>
+    `,
+
+    hud_keystone: `
+      <svg viewBox="0 0 64 64" class="gothic-svg icon-keystone" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="32,4 42,14 56,14 56,28 64,32 56,36 56,50 42,50 32,60 22,50 8,50 8,36 0,32 8,28 8,14 22,14" fill="#2c2416" stroke="#f1c40f" stroke-width="2.5"/>
+        <circle cx="32" cy="32" r="16" fill="#1a1005" stroke="#d4af37" stroke-width="2"/>
+        <circle cx="32" cy="32" r="10" fill="#f39c12"/>
+        <polygon points="32,20 35,29 44,32 35,35 32,44 29,35 20,32 29,29" fill="#ffffff" opacity="0.9"/>
+      </svg>
+    `,
+
+    hud_notable: `
+      <svg viewBox="0 0 64 64" class="gothic-svg icon-notable" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="32,8 54,32 32,56 10,32" fill="#22172b" stroke="#9b59b6" stroke-width="2.5"/>
+        <circle cx="32" cy="32" r="12" fill="#3d1f54" stroke="#e056fd" stroke-width="1.8"/>
+        <polygon points="32,22 35,30 42,32 35,34 32,42 29,34 22,32 29,30" fill="#f5cd79"/>
+      </svg>
+    `,
+
+    hud_spark: `
+      <svg viewBox="0 0 64 64" class="gothic-svg icon-spark" xmlns="http://www.w3.org/2000/svg">
+        <path d="M32,4 Q32,32 4,32 Q32,32 32,60 Q32,32 60,32 Q32,32 32,4 Z" fill="#f1c40f" stroke="#ffffff" stroke-width="1.5"/>
+        <circle cx="32" cy="32" r="5" fill="#ffffff"/>
+      </svg>
     `
   };
 
@@ -968,7 +1028,17 @@
     'chest': 'hud_chest',
     'lock': 'hud_lock',
     'check': 'hud_check',
-    'level': 'hud_level'
+    'level': 'hud_level',
+    'blood_altar': 'hud_blood_altar',
+    'altar': 'hud_blood_altar',
+    'daily': 'hud_calendar',
+    'calendar': 'hud_calendar',
+    'tree': 'hud_tree',
+    'talents': 'hud_tree',
+    'skill_tree': 'hud_tree',
+    'keystone': 'hud_keystone',
+    'notable': 'hud_notable',
+    'spark': 'hud_spark'
   };
 
   const MedievalIcons = {
