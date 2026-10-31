@@ -766,7 +766,7 @@ class EnemyProjectile {
 
       // Holy Aura: continuous protective field around player
       if (w.id === 'holy_aura') {
-        const auraRadius = 80 * w.area * player.areaMultiplier;
+        const auraRadius = (w.activeRadius || (52 * w.area * player.areaMultiplier));
         const d = Math.hypot(this.x - player.x, this.y - player.y);
         if (d <= auraRadius + this.radius) {
           this.deflect(particles, "DISSIPADO!");

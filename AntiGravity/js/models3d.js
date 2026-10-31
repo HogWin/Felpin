@@ -2548,7 +2548,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
   function createHolyAuraRingMesh(radius, isEvolved) {
     const root = new THREE.Group();
-    const r = radius || 80;
+    const r = radius || 52;
 
     // 1. Soft 2D Area of Effect Disc (flat on the ground plane)
     const discGeo = new THREE.CircleGeometry(r, 48);

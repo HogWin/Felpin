@@ -791,7 +791,7 @@ class HolyAuraWeapon extends BaseWeapon {
     this.pulseAnim = 1.0;
 
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-    const radius = 80 * this.area * player.areaMultiplier;
+    const radius = 52 * this.area * player.areaMultiplier;
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const enemy = enemies[i];
@@ -834,7 +834,7 @@ class HolyAuraWeapon extends BaseWeapon {
   update(dt, player, enemies, projectiles, particles) {
     super.update(dt, player, enemies, projectiles, particles);
     if (player) {
-      this.activeRadius = 80 * (this.area || 1.0) * (player.areaMultiplier || 1.0);
+      this.activeRadius = 52 * (this.area || 1.0) * (player.areaMultiplier || 1.0);
     }
     if (this.pulseAnim > 0) {
       this.pulseAnim -= dt * 2.5;
@@ -843,7 +843,7 @@ class HolyAuraWeapon extends BaseWeapon {
 
   renderUnder(ctx, player) {
     if (this.level <= 0) return;
-    const radius = 80 * this.area * player.areaMultiplier;
+    const radius = 52 * this.area * player.areaMultiplier;
 
     ctx.save();
     ctx.translate(player.x, player.y);

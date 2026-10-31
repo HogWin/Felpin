@@ -927,7 +927,7 @@ class GameRenderer {
     // 1. Holy Aura Weapon (2D Ground Area of Effect)
     const auraWep = game.player.weapons.find(w => w.id === 'holy_aura');
     if (auraWep && auraWep.level > 0) {
-      const radius = auraWep.activeRadius || (80 * (auraWep.area || 1.0) * (game.player.areaMultiplier || 1.0));
+      const radius = auraWep.activeRadius || (52 * (auraWep.area || 1.0) * (game.player.areaMultiplier || 1.0));
       auraWep.activeRadius = radius;
       if (!this.holyAuraMesh) {
         this.holyAuraMesh = window.MedievalSurvivors.models3d.createHolyAuraRingMesh(radius, auraWep.level >= 8);
