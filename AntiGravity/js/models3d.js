@@ -130,27 +130,37 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     const bodyRoot = new THREE.Group();
     root.add(bodyRoot);
 
-    // Aim Indicator Rune (Floor disc + directional 3D arrow)
+    // Aim Indicator Rune (2D Floor disc + 2D flat directional chevron arrow)
     const aimGroup = new THREE.Group();
-    const ringGeo = new THREE.RingGeometry(18, 21, 32);
+    const ringGeo = new THREE.RingGeometry(13, 14.5, 32);
     ringGeo.rotateX(-Math.PI / 2);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0xf0c05a, transparent: true, opacity: 0.45, side: THREE.DoubleSide });
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xf0c05a, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false });
     const ringMesh = new THREE.Mesh(ringGeo, ringMat);
     aimGroup.add(ringMesh);
 
-    // Arrow pointer
-    const arrowGeo = new THREE.ConeGeometry(4, 12, 4);
-    arrowGeo.rotateX(Math.PI / 2);
-    arrowGeo.translate(0, 0.5, 26);
-    const arrowMat = new THREE.MeshStandardMaterial({ color: 0xf1c40f, emissive: 0x996515, emissiveIntensity: 0.6 });
+    // 2D Flat directional arrow shape lying flat on the floor (y = 0.08)
+    const arrowShape = new THREE.Shape();
+    arrowShape.moveTo(0, 5.0);        // Arrow tip forward
+    arrowShape.lineTo(-3.0, -2.2);    // Left fin
+    arrowShape.lineTo(-1.1, -1.0);    // Left notch
+    arrowShape.lineTo(-1.1, -5.0);    // Left shaft
+    arrowShape.lineTo(1.1, -5.0);     // Right shaft
+    arrowShape.lineTo(1.1, -1.0);     // Right notch
+    arrowShape.lineTo(3.0, -2.2);     // Right fin
+    arrowShape.closePath();
+
+    const arrowGeo = new THREE.ShapeGeometry(arrowShape);
+    arrowGeo.rotateX(-Math.PI / 2); // Lay flat on the ground plane (2D)
+    arrowGeo.translate(0, 0.08, 16.5);
+    const arrowMat = new THREE.MeshBasicMaterial({
+      color: 0xf1c40f,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
     const arrowMesh = new THREE.Mesh(arrowGeo, arrowMat);
     aimGroup.add(arrowMesh);
-
-    // Aim dashed line
-    const dashGeo = new THREE.BoxGeometry(1.2, 0.2, 14);
-    dashGeo.translate(0, 0.5, 12);
-    const dashMesh = new THREE.Mesh(dashGeo, arrowMat);
-    aimGroup.add(dashMesh);
 
     root.add(aimGroup);
     anim.aimArrow = aimGroup;

@@ -860,15 +860,17 @@ class UIController {
     // If everything maxed or banned, grant a banquet reward
     if (filteredOptions.length === 0) {
       return [{
-        type: 'heal',
-        name: 'Banquete do Cavaleiro',
-        icon: '🍗',
+        type: 'gold_bag',
+        name: 'Tesouro Imperial dos Ancestrais',
+        icon: '💰',
         currentLevel: 0,
-        description: 'Recupera 50% da vida máxima e concede 50 moedas de ouro.',
-        diff: '+50% HP Restauração',
+        description: 'Todo o seu arsenal já atingiu o poder máximo! O avanço de nível é convertido diretamente em ouro e vigor.',
+        diff: '+100 💰 Moedas de Ouro & +50% Vida',
         apply: () => {
           player.heal(player.maxHp * 0.5);
-          player.gold += 50;
+          player.gold += 100;
+          this.game.addFloatingText(player.x, player.y - 15, '+100 💰 & +50% HP', '#f1c40f', true);
+          if (window.MedievalSurvivors.sound) window.MedievalSurvivors.sound.playGemPickup();
         }
       }];
     }
@@ -1056,16 +1058,21 @@ class UIController {
       <div class="battle-prep-container">
         <!-- Hero Spotlight Card -->
         <div class="hero-spotlight-card">
-          <div class="pedestal-wrap">
-            <div class="pedestal-aura"></div>
-            <div class="pedestal-avatar">${cls.icon}</div>
+          <!-- Top Row: Class Avatar on Pedestal (Left) + Class Title/Identity (Right) filling the empty space -->
+          <div class="hero-header-row">
+            <div class="pedestal-wrap">
+              <div class="pedestal-aura"></div>
+              <div class="pedestal-avatar">${cls.icon}</div>
+            </div>
+            <div class="hero-identity-wrap">
+              <div class="hero-role-badge">⚜️ COMBATENTE SELECIONADO</div>
+              <h2 class="hero-title">${cls.name}</h2>
+              <div class="hero-subtitle">${cls.subtitle}</div>
+              <p class="hero-desc">${cls.description}</p>
+            </div>
           </div>
 
           <div class="hero-details-wrap">
-            <div class="hero-role-badge">⚜️ COMBATENTE SELECIONADO</div>
-            <h2 class="hero-title">${cls.name}</h2>
-            <div class="hero-subtitle">${cls.subtitle}</div>
-            <p class="hero-desc">${cls.description}</p>
 
             <!-- Stat Meters -->
             <div class="hero-stat-meters">
@@ -1850,6 +1857,27 @@ class UIController {
         viewport.style.cursor = 'grab';
       }
     });
+
+    // Mouse Wheel Scroll Zoom on Constellation
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = viewport.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const mouseViewX = viewBox.x + (mouseX / viewport.clientWidth) * viewBox.w;
+      const mouseViewY = viewBox.y + (mouseY / viewport.clientHeight) * viewBox.h;
+
+      const zoomFactor = e.deltaY < 0 ? 0.86 : 1.16;
+      const newW = Math.max(280, Math.min(2200, viewBox.w * zoomFactor));
+      const newH = Math.max(280, Math.min(2200, viewBox.h * zoomFactor));
+
+      viewBox.x = mouseViewX - (mouseX / viewport.clientWidth) * newW;
+      viewBox.y = mouseViewY - (mouseY / viewport.clientHeight) * newH;
+      viewBox.w = newW;
+      viewBox.h = newH;
+      updateViewBox();
+    }, { passive: false });
 
     // Touch support for mobile/tablets
     viewport.addEventListener('touchstart', (e) => {

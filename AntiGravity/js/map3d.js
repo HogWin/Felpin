@@ -25,28 +25,26 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     },
     {
       id: 'necropolis',
-      name: 'Necrópole dos Reis Esquecidos',
-      subtitle: 'Catacumbas e Criptas Ancestrais',
-      icon: '⚰️',
-      fogColor: 0x142420,
-      fogDensity: 0.0007,
-      ambientColor: 0x47635b,
-      dirLightColor: 0xa8ded6,
-      dirLightIntensity: 0.60,
-      groundTones: ['#223834', '#2d4742', '#1b2c29', '#385751'],
+      name: 'Necrópole Imperial',
+      icon: '💀',
+      fogColor: 0x07110e,
+      fogDensity: 0.0008,
+      ambientColor: 0x162420,
+      dirLightColor: 0x6ca39a,
+      dirLightIntensity: 0.30,
+      groundTones: ['#0d1715', '#12201d', '#091210', '#172925'],
       accentProps: ['tombstone', 'sarcophagus', 'brazier_green', 'bone_pile', 'crypt_pillar', 'blood_runes', 'gargoyle_pedestal']
     },
     {
       id: 'forest',
-      name: 'Floresta Sombria de Morghul',
-      subtitle: 'Bosque Amaldiçoado pela Peste',
+      name: 'Floresta das Sombras',
       icon: '🌲',
-      fogColor: 0x182618,
-      fogDensity: 0.0007,
-      ambientColor: 0x4a634b,
-      dirLightColor: 0xc8e8ca,
-      dirLightIntensity: 0.60,
-      groundTones: ['#263b25', '#334c32', '#1f301e', '#415e40'],
+      fogColor: 0x081008,
+      fogDensity: 0.0008,
+      ambientColor: 0x182417,
+      dirLightColor: 0x769978,
+      dirLightIntensity: 0.30,
+      groundTones: ['#0e170d', '#132012', '#091108', '#182917'],
       accentProps: ['dead_tree', 'stone_menhir', 'fence', 'brazier', 'stump']
     },
     {
@@ -226,7 +224,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       });
 
       // 4. Randomized Thematic Interior Props scattered throughout the vast square arena
-      const propCount = 115 + Math.floor(rng() * 20);
+      const propCount = 65 + Math.floor(rng() * 15);
       for (let i = 0; i < propCount; i++) {
         const propType = this.currentBiome.accentProps[Math.floor(rng() * this.currentBiome.accentProps.length)];
 

@@ -336,6 +336,7 @@ class Game {
   }
 
   addFloatingText(x, y, text, color, isCritical) {
+    if (this.floatingTexts.length >= 60) this.floatingTexts.shift();
     this.floatingTexts.push(this.floatingTextPool.acquire(x, y, text, color, isCritical));
   }
 
@@ -360,7 +361,6 @@ class Game {
 
   updateDestructibles(dt) {
     if (!this.destructibles) this.destructibles = [];
-    this.collectibles = [];
 
     // Periodic respawn when count is low (Balanced interval of 8.5s, max 8 destructibles)
     this._destructibleTimer = (this._destructibleTimer || 0) + dt;

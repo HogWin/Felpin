@@ -45,15 +45,15 @@ class GameRenderer {
     this.shakeIntensity = 0;
 
     // 3. Dynamic Scene Lighting (Brighter, clearer visibility)
-    this.ambientLight = new THREE.AmbientLight(0x423850, 0.48);
+    this.ambientLight = new THREE.AmbientLight(0x181a22, 0.24);
     this.scene.add(this.ambientLight);
 
-    this.dirLight = new THREE.DirectionalLight(0xa5b1db, 0.65);
+    this.dirLight = new THREE.DirectionalLight(0x5a6688, 0.32);
     this.dirLight.position.set(150, 420, 200);
     this.scene.add(this.dirLight);
 
     // Player Torchlight (Wider, warmer, brighter radiant glow)
-    this.playerLight = new THREE.PointLight(0xff9f43, 2.4, 380, 1.3);
+    this.playerLight = new THREE.PointLight(0xffa544, 2.9, 310, 1.4);
     this.playerLight.position.set(0, 22, 0);
     this.scene.add(this.playerLight);
 
@@ -521,6 +521,11 @@ class GameRenderer {
       this.updateDestructibles(game.destructibles, dt);
     }
 
+    // 6.6. Update Floor Collectibles (Meat, Gold, Magnet, Rosary, Hourglass, Shield)
+    if (game.collectibles) {
+      this.updateCollectibles(game.collectibles, dt);
+    }
+
     // 6.7. Update Dynamic Arena Events (Sacred Sanctuaries & Celestial Strikes)
     if (game.arenaEventManager) {
       this.updateArenaEvents(game.arenaEventManager, dt);
@@ -740,6 +745,36 @@ class GameRenderer {
       }
     }
   }
+  updateCollectibles(collectibles, dt) {
+    if (!collectibles) return;
+    this._activeDestructibles.clear();
+
+    for (let i = 0, len = collectibles.length; i < len; i++) {
+      const c = collectibles[i];
+      if (!c.alive) continue;
+      this._activeDestructibles.add(c);
+      let mesh = this.collectibleMeshMap.get(c);
+
+      if (!mesh) {
+        mesh = window.MedievalSurvivors.models3d.createFloorCollectibleModel(c.type);
+        this.scene.add(mesh);
+        this.collectibleMeshMap.set(c, mesh);
+      }
+
+      mesh.position.set(c.x, 6 + Math.sin(c.bobTimer || 0) * 2.5, c.y);
+      mesh.rotation.y += dt * 3.5;
+    }
+
+    for (const [c, mesh] of this.collectibleMeshMap.entries()) {
+      if (!this._activeDestructibles.has(c)) {
+        this.scene.remove(mesh);
+        this.disposeMesh(mesh);
+        this.collectibleMeshMap.delete(c);
+      }
+    }
+  }
+
+  
 
   updateArenaEvents(eventManager, dt) {
     if (!eventManager) return;
@@ -1070,7 +1105,7 @@ class GameRenderer {
     // 1. Floating Damage Numbers (cull numbers outside viewport before running 4x4 matrix projection)
     if (game.floatingTexts.length > 0) {
       ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4.5;
       ctx.textAlign = 'center';
 
       const px = game.player ? game.player.x : 0;
@@ -1084,8 +1119,8 @@ class GameRenderer {
         if (screenPos.onScreen) {
           ctx.globalAlpha = Math.max(0, Math.min(1, ft.life));
           ctx.fillStyle = ft.color || '#ffffff';
-          ctx.font = ft.isCritical ? 'bold 18px Cinzel, Georgia' : 'bold 14px Cinzel, Georgia';
-          const drawY = screenPos.y - (1 - ft.life) * 20;
+          ctx.font = ft.isCritical ? 'bold 26px Cinzel, Georgia' : 'bold 20px Cinzel, Georgia';
+          const drawY = screenPos.y - (1 - ft.life) * 28;
           ctx.strokeText(ft.text, screenPos.x, drawY);
           ctx.fillText(ft.text, screenPos.x, drawY);
         }
@@ -1133,7 +1168,7 @@ class GameRenderer {
         ctx.textAlign = 'center';
         ctx.fillStyle = '#ff4d4d';
         ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4.5;
         const text = `💀 ${e.name} (${distMeters}m)`;
         ctx.strokeText(text, clampedX, clampedY - 14);
         ctx.fillText(text, clampedX, clampedY - 14);
@@ -1178,7 +1213,7 @@ class GameRenderer {
           ctx.textAlign = 'center';
           ctx.fillStyle = '#ffd700';
           ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 4.5;
           const text = `📦 Baú Real (${distMeters}m)`;
           ctx.strokeText(text, clampedX, clampedY - 13);
           ctx.fillText(text, clampedX, clampedY - 13);
@@ -1224,7 +1259,7 @@ class GameRenderer {
           ctx.textAlign = 'center';
           ctx.fillStyle = '#fffa65';
           ctx.strokeStyle = '#000000';
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 4.5;
           const text = `✨ Santuário Sagrado (${distMeters}m)`;
           ctx.strokeText(text, clampedX, clampedY - 14);
           ctx.fillText(text, clampedX, clampedY - 14);

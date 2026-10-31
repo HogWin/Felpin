@@ -1229,7 +1229,7 @@ class WaveDirector {
   constructor() {
     this.gameTime = 0;
     this.spawnTimer = 0;
-    this.maxActiveRegularEnemies = 180;
+    this.maxActiveRegularEnemies = 95;
     this.currentSpawnScale = 0.3;
     this.bossEvents = [
       { time: 60, type: 'executioner', name: 'O Carrasco Carmesim', spawned: false },
