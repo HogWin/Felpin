@@ -941,19 +941,16 @@ class DestructibleObject {
     // Spawn physical CollectibleItem drop on the battlefield floor!
     const roll = Math.random();
     let dropType = 'gold';
-    if (roll < 0.25) dropType = 'meat';
-    else if (roll < 0.42) dropType = 'magnet';
-    else if (roll < 0.56) dropType = 'rosary';
-    else if (roll < 0.70) dropType = 'hourglass';
-    else if (roll < 0.82) dropType = 'shield';
+    if (roll < 0.22) dropType = 'meat';
+    else if (roll < 0.36) dropType = 'magnet';
+    else if (roll < 0.48) dropType = 'rosary';
+    else if (roll < 0.60) dropType = 'hourglass';
+    else if (roll < 0.72) dropType = 'shield';
+    else if (roll < 0.86) dropType = 'ether';
     else dropType = 'gold';
 
     if (game && game.collectibles) {
-      game.collectibles.push(new window.MedievalSurvivors.CollectibleItem(this.x, this.y, dropType));
-    }
-
-    if (Math.random() < 0.32 && game.player && game.player.addEther) {
-      game.player.addEther(2, true);
+      game.collectibles.push(new window.MedievalSurvivors.CollectibleItem(this.x, this.y, dropType, dropType === 'ether' ? 2 : 1));
     }
   }
 
@@ -1462,13 +1459,15 @@ class ArenaEventManager {
 // COLLECTIBLE FLOOR DROPS (Meat, Gold, Magnet, Rosary, Hourglass, Shield)
 // ==========================================
 class CollectibleItem {
-  constructor(x, y, type = 'gold') {
+  constructor(x, y, type = 'gold', value = 1) {
     this.x = x;
     this.y = y;
     this.type = type;
+    this.value = value || 1;
     this.radius = 18;
     this.alive = true;
     this.floatTimer = Math.random() * Math.PI * 2;
+    this.bobTimer = this.floatTimer;
     this.life = 75.0; // Persists on battlefield for 75 seconds
     this.attracted = false;
     this.speed = 0;
@@ -1477,6 +1476,7 @@ class CollectibleItem {
   update(dt, player, game) {
     if (!this.alive) return;
     this.floatTimer += dt * 3.5;
+    this.bobTimer = this.floatTimer;
     this.life -= dt;
     if (this.life <= 0) {
       this.alive = false;
@@ -1521,9 +1521,20 @@ class CollectibleItem {
         break;
       }
       case 'gold': {
-        const goldAmt = Math.round((35 + Math.floor(Math.random() * 40)) * (player.goldMultiplier || 1));
+        const goldAmt = Math.max(4, Math.round((8 + Math.floor(Math.random() * 8)) * (player.goldMultiplier || 1)));
         player.gold += goldAmt;
         if (game && game.addFloatingText) game.addFloatingText(this.x, this.y - 12, `+${goldAmt} 💰`, '#ffeaa7', true);
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playGemPickup) {
+          window.MedievalSurvivors.sound.playGemPickup();
+        }
+        break;
+      }
+      case 'ether': {
+        const amt = this.value || 1;
+        const gained = player.addEther ? player.addEther(amt, false) : amt;
+        if (game && game.addFloatingText) {
+          game.addFloatingText(this.x, this.y - 14, `+${gained} 🔮 Éter`, '#e0b0ff', true);
+        }
         if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playGemPickup) {
           window.MedievalSurvivors.sound.playGemPickup();
         }

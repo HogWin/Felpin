@@ -3162,6 +3162,34 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       const disc = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({ color: 0x90caf9, transparent: true, opacity: 0.45, side: THREE.DoubleSide }));
       disc.position.y = -5.5;
       root.add(disc);
+    } else if (type === 'ether') {
+      const etherMat = new THREE.MeshBasicMaterial({
+        color: 0xbb86fc,
+        transparent: true,
+        opacity: 0.95
+      });
+      const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(4.0, 0), etherMat);
+      crystal.position.y = 1.5;
+
+      const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const core = new THREE.Mesh(new THREE.OctahedronGeometry(1.8, 0), coreMat);
+      crystal.add(core);
+
+      const wispMat = new THREE.MeshBasicMaterial({ color: 0xe056fd, transparent: true, opacity: 0.85 });
+      const wisp = new THREE.Mesh(new THREE.SphereGeometry(1.2, 6, 6), wispMat);
+      wisp.position.set(3.8, 0, 0);
+      crystal.add(wisp);
+
+      root.add(crystal);
+
+      const etherDisc = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({
+        color: 0x9b59b6,
+        transparent: true,
+        opacity: 0.55,
+        side: THREE.DoubleSide
+      }));
+      etherDisc.position.y = -4;
+      root.add(etherDisc);
     } else {
       const goldMat = materials.gold;
       const pouch = new THREE.Mesh(new THREE.DodecahedronGeometry(4.5, 0), goldMat);

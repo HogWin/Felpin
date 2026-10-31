@@ -1009,9 +1009,9 @@ class UIController {
             chosen.upgrade();
             game.addFloatingText(player.x, player.y - 40, `✨ ${chosen.name} Aprimorada!`, '#f1c40f', true);
           }
-          player.gold = (player.gold || 0) + 100;
-          if (game.saveManager) game.saveManager.addGold(100);
-          game.addFloatingText(player.x, player.y - 20, '+100 💰 Ouro Real', '#ffd700', false);
+          player.gold = (player.gold || 0) + 35;
+          if (game.saveManager) game.saveManager.addGold(35);
+          game.addFloatingText(player.x, player.y - 20, '+35 💰 Ouro Real', '#ffd700', false);
         }
       },
       {

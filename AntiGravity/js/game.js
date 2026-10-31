@@ -577,7 +577,7 @@ class Game {
 
   triggerVictory() {
     this.state = 'VICTORY';
-    const bonusGold = 500;
+    const bonusGold = 150;
     this.player.gold += bonusGold;
     this.saveManager.addGold(this.player.gold);
     if (this.player.addEther) this.player.addEther(30, false);
@@ -712,12 +712,14 @@ class Game {
         // Spawn XP Gem
         this.gems.push(new MedievalSurvivors.XpGem(enemy.x, enemy.y, enemy.xpValue));
 
-        // Gold Loot Chance
+        // Gold Loot Chance (Balance: ganho reduzido de ouro real)
         let goldDrop = 0;
         if (enemy.isBoss) {
-          goldDrop = enemy.bossTier === 3 ? 150 : (enemy.bossTier === 2 ? 80 : 40);
-        } else if (Math.random() < 0.25) {
-          goldDrop = Math.max(1, Math.round((1 + Math.floor(Math.random() * 3)) * (this.player.goldMultiplier || 1)));
+          goldDrop = enemy.bossTier === 3 ? 50 : (enemy.bossTier === 2 ? 30 : 18);
+        } else if (enemy.isChampion) {
+          goldDrop = Math.max(1, Math.round(2 * (this.player.goldMultiplier || 1)));
+        } else if (Math.random() < 0.08) {
+          goldDrop = 1;
         }
 
         if (goldDrop > 0) {
@@ -725,18 +727,27 @@ class Game {
           this.addFloatingText(enemy.x, enemy.y - 12, `+${goldDrop} 💰`, '#ffeaa7', false);
         }
 
-        // Éter Ancestral loot (for class skill tree progression)
-        let etherDrop = 0;
+        // Éter Ancestral: Cristais físicos dropados diretamente no chão dos mobs!
+        let etherCount = 0;
+        let etherVal = 1;
         if (enemy.isBoss) {
-          etherDrop = enemy.bossTier === 3 ? 35 : (enemy.bossTier === 2 ? 22 : 14);
+          etherCount = enemy.bossTier === 3 ? 10 : (enemy.bossTier === 2 ? 6 : 4);
+          etherVal = enemy.bossTier === 3 ? 3 : 2;
         } else if (enemy.isChampion) {
-          etherDrop = 4;
-        } else if (Math.random() < 0.12) {
-          etherDrop = 1;
+          etherCount = 2; // Elites dropam 2 cristais físicos de Éter
+          etherVal = 1;
+        } else if (Math.random() < 0.15) { // 15% de chance de drop nos mobs comuns
+          etherCount = 1;
+          etherVal = 1;
         }
 
-        if (etherDrop > 0 && this.player.addEther) {
-          this.player.addEther(etherDrop, true);
+        if (etherCount > 0) {
+          if (!this.collectibles) this.collectibles = [];
+          for (let ec = 0; ec < etherCount; ec++) {
+            const ox = (Math.random() - 0.5) * (etherCount > 1 ? 26 : 0);
+            const oy = (Math.random() - 0.5) * (etherCount > 1 ? 26 : 0);
+            this.collectibles.push(new window.MedievalSurvivors.CollectibleItem(enemy.x + ox, enemy.y + oy, 'ether', etherVal));
+          }
         }
 
         // Spawn Treasure Chest if Mini-Boss
