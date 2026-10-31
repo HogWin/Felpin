@@ -88,14 +88,14 @@ class ClassRegistry {
       stats: {
         maxHp: 90,
         armor: 0,
-        moveSpeed: 3.8,
+        moveSpeed: 3.25, // Reduzido de 3.8 para 3.25 para equilíbrio tático
         damageMultiplier: 1.05,
         cooldownMultiplier: 0.9,
         areaMultiplier: 1.0,
         pickupRadius: 110,
         hpRegen: 0.1
       },
-      perkDesc: '+25% Vel. Movimento, -10% Cooldown, maior raio de coleta de XP.'
+      perkDesc: '+10% Vel. Movimento, -10% Cooldown, maior raio de coleta de XP.'
     });
 
     // CLASSE 3: Feiticeiro do Fogo Arcano
