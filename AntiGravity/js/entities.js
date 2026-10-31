@@ -924,54 +924,18 @@ class DestructibleObject {
       game.saveManager.checkAchievements('destructible_smashed', null, game);
     }
 
-    // Determine drop (Balanced sustain: 20% meat, 15% magnet, 15% blast, 50% gold)
+    // Spawn physical CollectibleItem drop on the battlefield floor!
     const roll = Math.random();
-    if (roll < 0.20) {
-      // 🍗 Roast Meat / Health Potion (Restores 20% max HP)
-      const healAmount = Math.max(15, Math.round(game.player.maxHp * 0.20));
-      game.player.heal(healAmount);
-      game.addFloatingText(this.x, this.y - 12, `+${healAmount} HP 🍗`, '#2ecc71', true);
-      if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playGemPickup) {
-        window.MedievalSurvivors.sound.playGemPickup();
-      }
-    } else if (roll < 0.35) {
-      // 🧲 Sacred Super Magnet (Vácuo de Almas)
-      if (game.gems) {
-        for (let i = 0, len = game.gems.length; i < len; i++) {
-          game.gems[i].attracted = true;
-          game.gems[i].speed = 650;
-        }
-      }
-      game.addFloatingText(this.x, this.y - 15, `VÁCUO SAGRADO! 🧲`, '#3498db', true);
-      if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playLevelUp) {
-        window.MedievalSurvivors.sound.playLevelUp();
-      }
-    } else if (roll < 0.50) {
-      // 💣 Holy Blast (Purificação dos Invasores)
-      const blastRadius = 240;
-      if (game.enemies) {
-        for (let i = 0, len = game.enemies.length; i < len; i++) {
-          const e = game.enemies[i];
-          if (!e.alive) continue;
-          const dx = e.x - this.x;
-          const dy = e.y - this.y;
-          if (dx * dx + dy * dy <= blastRadius * blastRadius) {
-            e.takeDamage(120, dx / (Math.hypot(dx, dy) || 1), dy / (Math.hypot(dx, dy) || 1), 22);
-          }
-        }
-      }
-      if (game.particles && game.particles.createExplosionWave) {
-        game.particles.createExplosionWave(this.x, this.y, 75, '#f39c12');
-      }
-      game.addFloatingText(this.x, this.y - 15, `EXPLOSÃO SAGRADA! 💣`, '#e67e22', true);
-    } else {
-      // 💰 Gold Pouch (Moedas de Ouro)
-      const goldAmt = Math.round((25 + Math.floor(Math.random() * 35)) * (game.player.goldMultiplier || 1));
-      game.player.gold += goldAmt;
-      game.addFloatingText(this.x, this.y - 12, `+${goldAmt} 💰`, '#ffeaa7', true);
-      if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playGemPickup) {
-        window.MedievalSurvivors.sound.playGemPickup();
-      }
+    let dropType = 'gold';
+    if (roll < 0.25) dropType = 'meat';
+    else if (roll < 0.42) dropType = 'magnet';
+    else if (roll < 0.56) dropType = 'rosary';
+    else if (roll < 0.70) dropType = 'hourglass';
+    else if (roll < 0.82) dropType = 'shield';
+    else dropType = 'gold';
+
+    if (game && game.collectibles) {
+      game.collectibles.push(new window.MedievalSurvivors.CollectibleItem(this.x, this.y, dropType));
     }
   }
 
@@ -1394,6 +1358,140 @@ class ArenaEventManager {
   }
 }
 
+
+// ==========================================
+// COLLECTIBLE FLOOR DROPS (Meat, Gold, Magnet, Rosary, Hourglass, Shield)
+// ==========================================
+class CollectibleItem {
+  constructor(x, y, type = 'gold') {
+    this.x = x;
+    this.y = y;
+    this.type = type;
+    this.radius = 18;
+    this.alive = true;
+    this.floatTimer = Math.random() * Math.PI * 2;
+    this.life = 75.0; // Persists on battlefield for 75 seconds
+    this.attracted = false;
+    this.speed = 0;
+  }
+
+  update(dt, player, game) {
+    if (!this.alive) return;
+    this.floatTimer += dt * 3.5;
+    this.life -= dt;
+    if (this.life <= 0) {
+      this.alive = false;
+      return;
+    }
+
+    const dx = player.x - this.x;
+    const dy = player.y - this.y;
+    const distSq = dx * dx + dy * dy;
+    const pickupDist = 24 + player.radius;
+
+    // Magnet attraction based on player magnet radius
+    const magnetRadius = (player.pickupRadius || 60) * (player.magnetMultiplier || 1.0);
+    if (distSq <= magnetRadius * magnetRadius) {
+      this.attracted = true;
+    }
+
+    if (this.attracted) {
+      const dist = Math.sqrt(distSq) || 1;
+      this.speed = Math.min(520, (this.speed || 180) + 700 * dt);
+      this.x += (dx / dist) * this.speed * dt;
+      this.y += (dy / dist) * this.speed * dt;
+    }
+
+    if (distSq <= pickupDist * pickupDist) {
+      this.collect(player, game);
+    }
+  }
+
+  collect(player, game) {
+    if (!this.alive) return;
+    this.alive = false;
+
+    switch (this.type) {
+      case 'meat': {
+        const heal = Math.max(30, Math.round(player.maxHp * 0.25));
+        player.heal(heal);
+        if (game && game.addFloatingText) game.addFloatingText(this.x, this.y - 12, `+${heal} HP 🍗`, '#2ecc71', true);
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playGemPickup) {
+          window.MedievalSurvivors.sound.playGemPickup();
+        }
+        break;
+      }
+      case 'gold': {
+        const goldAmt = Math.round((35 + Math.floor(Math.random() * 40)) * (player.goldMultiplier || 1));
+        player.gold += goldAmt;
+        if (game && game.addFloatingText) game.addFloatingText(this.x, this.y - 12, `+${goldAmt} 💰`, '#ffeaa7', true);
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playGemPickup) {
+          window.MedievalSurvivors.sound.playGemPickup();
+        }
+        break;
+      }
+      case 'magnet': {
+        if (game && game.gems) {
+          for (let i = 0, len = game.gems.length; i < len; i++) {
+            game.gems[i].attracted = true;
+            game.gems[i].speed = 700;
+          }
+        }
+        if (game && game.addFloatingText) game.addFloatingText(this.x, this.y - 15, `VÁCUO SAGRADO! 🧲`, '#3498db', true);
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playLevelUp) {
+          window.MedievalSurvivors.sound.playLevelUp();
+        }
+        break;
+      }
+      case 'rosary': {
+        if (game && game.enemies) {
+          const cx = player.x, cy = player.y;
+          const wipeRadius = 550;
+          for (let i = game.enemies.length - 1; i >= 0; i--) {
+            const e = game.enemies[i];
+            if (e.alive && !e.isBoss) {
+              if ((e.x - cx) * (e.x - cx) + (e.y - cy) * (e.y - cy) <= wipeRadius * wipeRadius) {
+                e.takeDamage(999, 0, 0, 0);
+              }
+            }
+          }
+        }
+        if (game && game.particles && game.particles.createExplosionWave) {
+          game.particles.createExplosionWave(this.x, this.y, 110, '#f1c40f');
+        }
+        if (game && game.renderer && game.renderer.triggerShake) {
+          game.renderer.triggerShake(10, 0.35);
+        }
+        if (game && game.addFloatingText) game.addFloatingText(this.x, this.y - 18, `BOMBA DO ROSÁRIO! 💣`, '#e67e22', true);
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playThunder) {
+          window.MedievalSurvivors.sound.playThunder();
+        }
+        break;
+      }
+      case 'hourglass': {
+        if (game && game.enemies) {
+          for (let i = 0, len = game.enemies.length; i < len; i++) {
+            game.enemies[i].freezeTimer = 5.0;
+          }
+        }
+        if (game && game.addFloatingText) game.addFloatingText(this.x, this.y - 15, `TEMPO CONGELADO! ⏱️`, '#00d2d3', true);
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playLevelUp) {
+          window.MedievalSurvivors.sound.playLevelUp();
+        }
+        break;
+      }
+      case 'shield': {
+        player.invulnerableTimer = 5.0;
+        if (game && game.addFloatingText) game.addFloatingText(this.x, this.y - 15, `ÉGIDE INVULNERÁVEL! 🛡️`, '#ffd32a', true);
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playLevelUp) {
+          window.MedievalSurvivors.sound.playLevelUp();
+        }
+        break;
+      }
+    }
+  }
+}
+
 window.MedievalSurvivors = window.MedievalSurvivors || {};
 window.MedievalSurvivors.Player = Player;
 window.MedievalSurvivors.AlliedSkeleton = AlliedSkeleton;
@@ -1403,6 +1501,7 @@ window.MedievalSurvivors.FloatingText = FloatingText;
 window.MedievalSurvivors.FloatingTextPool = FloatingTextPool;
 window.MedievalSurvivors.ParticleSystem = ParticleSystem;
 window.MedievalSurvivors.DestructibleObject = DestructibleObject;
+window.MedievalSurvivors.CollectibleItem = CollectibleItem;
 window.MedievalSurvivors.SanctuaryZone = SanctuaryZone;
 window.MedievalSurvivors.CelestialStrike = CelestialStrike;
 window.MedievalSurvivors.ArenaEventManager = ArenaEventManager;

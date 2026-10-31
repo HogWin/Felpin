@@ -19,9 +19,9 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       fogDensity: 0.00065,
       ambientColor: 0x6a627c,
       dirLightColor: 0xc4ceff,
-      dirLightIntensity: 1.25,
+      dirLightIntensity: 0.65,
       groundTones: ['#322b40', '#3d344d', '#282233', '#493e5c'],
-      accentProps: ['pillar', 'broken_pillar', 'brazier', 'arch', 'statue']
+      accentProps: ['pillar', 'broken_pillar', 'brazier', 'tombstone', 'bone_pile', 'crypt_pillar', 'gargoyle_pedestal']
     },
     {
       id: 'necropolis',
@@ -32,9 +32,9 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       fogDensity: 0.0007,
       ambientColor: 0x47635b,
       dirLightColor: 0xa8ded6,
-      dirLightIntensity: 1.20,
+      dirLightIntensity: 0.60,
       groundTones: ['#223834', '#2d4742', '#1b2c29', '#385751'],
-      accentProps: ['tombstone', 'sarcophagus', 'brazier_green', 'bone_pile', 'crypt_pillar']
+      accentProps: ['tombstone', 'sarcophagus', 'brazier_green', 'bone_pile', 'crypt_pillar', 'blood_runes', 'gargoyle_pedestal']
     },
     {
       id: 'forest',
@@ -45,7 +45,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       fogDensity: 0.0007,
       ambientColor: 0x4a634b,
       dirLightColor: 0xc8e8ca,
-      dirLightIntensity: 1.20,
+      dirLightIntensity: 0.60,
       groundTones: ['#263b25', '#334c32', '#1f301e', '#415e40'],
       accentProps: ['dead_tree', 'stone_menhir', 'fence', 'brazier', 'stump']
     },
@@ -58,9 +58,9 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       fogDensity: 0.0007,
       ambientColor: 0x6e3d43,
       dirLightColor: 0xffc4b3,
-      dirLightIntensity: 1.25,
+      dirLightIntensity: 0.65,
       groundTones: ['#3b2327', '#4a2c31', '#2f1c1f', '#59353b'],
-      accentProps: ['spiked_barricade', 'brazier_red', 'pillar', 'broken_pillar', 'iron_maiden']
+      accentProps: ['spiked_barricade', 'brazier_red', 'bone_pile', 'blood_runes', 'crypt_pillar', 'gargoyle_pedestal']
     }
   ];
 
@@ -226,7 +226,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       });
 
       // 4. Randomized Thematic Interior Props scattered throughout the vast square arena
-      const propCount = 75 + Math.floor(rng() * 15);
+      const propCount = 115 + Math.floor(rng() * 20);
       for (let i = 0; i < propCount; i++) {
         const propType = this.currentBiome.accentProps[Math.floor(rng() * this.currentBiome.accentProps.length)];
 
@@ -417,9 +417,66 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
           return this.createFence();
         case 'spiked_barricade':
           return this.createBarricade();
+        case 'bone_pile':
+          return this.createBonePile(rng);
+        case 'crypt_pillar':
+          return this.createCryptPillar();
+        case 'gargoyle_pedestal':
+          return this.createGargoylePedestal(rng);
+        case 'blood_runes':
+          return this.createBloodRunes();
         default:
           return this.createPillar(true);
       }
+    }
+
+
+    createBonePile(rng) {
+      const group = new THREE.Group();
+      const mound = new THREE.Mesh(new THREE.CylinderGeometry(10, 14, 2, 8), this.materials.darkStone);
+      mound.position.y = 1;
+      group.add(mound);
+      for (let i = 0; i < 5; i++) {
+        const skull = new THREE.Mesh(new THREE.DodecahedronGeometry(1.6), this.materials.stone);
+        skull.position.set((rng() - 0.5) * 12, 2.2 + rng() * 1.5, (rng() - 0.5) * 12);
+        group.add(skull);
+      }
+      return group;
+    }
+
+    createCryptPillar() {
+      const group = new THREE.Group();
+      const obelisk = new THREE.Mesh(new THREE.BoxGeometry(6, 30, 6), this.materials.darkStone);
+      obelisk.position.y = 15;
+      group.add(obelisk);
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(5, 8, 4), this.materials.stone);
+      cap.position.y = 34;
+      cap.rotation.y = Math.PI / 4;
+      group.add(cap);
+      return group;
+    }
+
+    createGargoylePedestal(rng) {
+      const group = new THREE.Group();
+      const ped = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 6, 14, 6), this.materials.stone);
+      ped.position.y = 7;
+      group.add(ped);
+      const garg = new THREE.Mesh(new THREE.DodecahedronGeometry(3.6), this.materials.darkStone);
+      garg.position.y = 16.5;
+      group.add(garg);
+      return group;
+    }
+
+    createBloodRunes() {
+      const group = new THREE.Group();
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(6, 13, 16),
+        new THREE.MeshBasicMaterial({ color: 0x8b0000, side: THREE.DoubleSide, transparent: true, opacity: 0.65 })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = 0.35;
+      group.add(ring);
+      return group;
     }
 
     // 1. Ancient Stone Pillar

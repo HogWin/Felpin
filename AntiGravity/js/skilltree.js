@@ -1,5 +1,5 @@
 /**
- * The Fallen Kingdom - Árvore de Habilidades & Talentos Ancestrais (Estilo PoE2)
+ * The Fallen Kingdom - Árvore de Habilidades & Talentos Ancestrais (Constelação de Talentos)
  * Sistema de constelação passiva com nós menores, notáveis e pedras angulares (keystones).
  * Cada talento custa Ouro e concede bônus permanentes e acumulativos.
  */
@@ -640,7 +640,7 @@
       }
       if (!hasAllocatedNeighbor && nodeId !== 'origin') return false;
 
-      // Verifica exigência de número de nós no ramo (estilo Notáveis e Keystones de PoE2)
+      // Verifica exigência de número de nós no ramo (estilo Notáveis e Keystones de Talentos)
       if (node.reqBranchCount && node.reqBranchCount > 0) {
         const branchCount = this.getBranchAllocatedCount(node.branch, allocatedSet);
         if (branchCount < node.reqBranchCount) return false;

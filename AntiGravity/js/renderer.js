@@ -45,15 +45,15 @@ class GameRenderer {
     this.shakeIntensity = 0;
 
     // 3. Dynamic Scene Lighting (Brighter, clearer visibility)
-    this.ambientLight = new THREE.AmbientLight(0x756f85, 1.35);
+    this.ambientLight = new THREE.AmbientLight(0x423850, 0.48);
     this.scene.add(this.ambientLight);
 
-    this.dirLight = new THREE.DirectionalLight(0xcfd8ff, 1.30);
+    this.dirLight = new THREE.DirectionalLight(0xa5b1db, 0.65);
     this.dirLight.position.set(150, 420, 200);
     this.scene.add(this.dirLight);
 
     // Player Torchlight (Wider, warmer, brighter radiant glow)
-    this.playerLight = new THREE.PointLight(0xffd180, 2.2, 360, 1.3);
+    this.playerLight = new THREE.PointLight(0xff9f43, 2.4, 380, 1.3);
     this.playerLight.position.set(0, 22, 0);
     this.scene.add(this.playerLight);
 
@@ -70,7 +70,8 @@ class GameRenderer {
     this.allyMeshMap = new Map();  // ally -> THREE.Group
     this.gemMeshMap = new Map();   // gem -> THREE.Group
     this.chestMeshMap = new Map(); // chest -> THREE.Group
-    this.destructibleMeshMap = new Map(); // destructible -> THREE.Group
+    this.destructibleMeshMap = new Map();
+    this.collectibleMeshMap = new Map(); // destructible -> THREE.Group
     this.sanctuaryMeshMap = new Map(); // sanctuary -> THREE.Group
     this.celestialStrikeMap = new Map(); // celestialStrike -> { telegraphMesh, impactMesh }
     this.damageFlashTimer = 0;
@@ -159,9 +160,9 @@ class GameRenderer {
     this.scene.fog.color.setHex(biome.fogColor);
     this.scene.fog.density = biome.fogDensity;
     this.ambientLight.color.setHex(biome.ambientColor);
-    this.ambientLight.intensity = 1.35;
+    this.ambientLight.intensity = 0.48;
     this.dirLight.color.setHex(biome.dirLightColor);
-    this.dirLight.intensity = Math.max(1.25, biome.dirLightIntensity);
+    this.dirLight.intensity = Math.min(0.70, biome.dirLightIntensity || 0.65);
 
     // Clear old tracked meshes
     this.clearMeshPools();
@@ -252,6 +253,8 @@ class GameRenderer {
       this.disposeMesh(mesh);
     }
     this.destructibleMeshMap.clear();
+    for (const [_, mesh] of this.collectibleMeshMap) this.scene.remove(mesh);
+    this.collectibleMeshMap.clear();
 
     for (let [, mesh] of this.sanctuaryMeshMap) {
       this.scene.remove(mesh);
@@ -988,7 +991,8 @@ class GameRenderer {
             sMesh.position.set(posX, 8, posZ);
             sMesh.rotation.y = -slash.angle + Math.PI / 2;
             const prog = 1 - (slash.duration / (slash.maxDuration || 0.16));
-            const s = (slash.radius / 38) * (0.8 + prog * 0.25);
+            const effRad = slash.radius || slash.reach || 38;
+            const s = (effRad / 38) * (0.8 + prog * 0.25);
             sMesh.scale.set(s, s, s);
 
             const fade = Math.max(0, 1 - prog);

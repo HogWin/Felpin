@@ -1888,15 +1888,20 @@ class PenitentWhipWeapon extends BaseWeapon {
     // Left and Right strikes (or 4 directions if evolved)
     const angles = isEvo ? [0, Math.PI, Math.PI * 0.5, -Math.PI * 0.5] : [0, Math.PI];
 
+    if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playSwordSlash) {
+      window.MedievalSurvivors.sound.playSwordSlash();
+    }
+
     for (let i = 0; i < angles.length; i++) {
       const angle = angles[i];
       const lash = {
         x: player.x,
         y: player.y,
         angle: angle,
+        radius: reach,
         reach: reach,
-        duration: 0.18,
-        maxDuration: 0.18,
+        duration: 0.22,
+        maxDuration: 0.22,
         isEvolved: isEvo,
         player: player
       };

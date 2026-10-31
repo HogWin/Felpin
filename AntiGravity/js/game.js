@@ -86,6 +86,7 @@ class Game {
     this.gems = [];
     this.chests = [];
     this.destructibles = [];
+    this.collectibles = [];
     this.floatingTexts = [];
     this.floatingTextPool = new MedievalSurvivors.FloatingTextPool(160);
     this.frameCount = 0;
@@ -282,6 +283,7 @@ class Game {
     this.gems = [];
     this.chests = [];
     this.destructibles = [];
+    this.collectibles = [];
     this.floatingTexts = [];
     this.floatingTextPool = new MedievalSurvivors.FloatingTextPool(160);
     this.frameCount = 0;
@@ -343,8 +345,9 @@ class Game {
 
   spawnInitialDestructibles() {
     this.destructibles = [];
+    this.collectibles = [];
     const types = ['barrel', 'crate', 'sarcophagus'];
-    const count = 18;
+    const count = 6;
     for (let i = 0; i < count; i++) {
       const type = types[Math.floor(Math.random() * types.length)];
       const ang = Math.random() * Math.PI * 2;
@@ -357,12 +360,13 @@ class Game {
 
   updateDestructibles(dt) {
     if (!this.destructibles) this.destructibles = [];
+    this.collectibles = [];
 
     // Periodic respawn when count is low (Balanced interval of 8.5s, max 8 destructibles)
     this._destructibleTimer = (this._destructibleTimer || 0) + dt;
-    if (this._destructibleTimer >= 8.5) {
+    if (this._destructibleTimer >= 22.0) {
       this._destructibleTimer = 0;
-      if (this.destructibles.length < 8 && this.player) {
+      if (this.destructibles.length < 4 && this.player) {
         const types = ['barrel', 'crate', 'sarcophagus'];
         const type = types[Math.floor(Math.random() * types.length)];
         const ang = Math.random() * Math.PI * 2;
@@ -741,6 +745,17 @@ class Game {
 
     // 6.5. Update Destructible Objects
     this.updateDestructibles(dt);
+
+    // 6.6. Update Floor Collectibles (Meat, Gold, Magnet, Rosary, Hourglass, Shield)
+    if (this.collectibles) {
+      for (let i = this.collectibles.length - 1; i >= 0; i--) {
+        const item = this.collectibles[i];
+        item.update(dt, this.player, this);
+        if (!item.alive) {
+          this.collectibles.splice(i, 1);
+        }
+      }
+    }
 
     // 7. Update Chests
     for (let i = this.chests.length - 1; i >= 0; i--) {

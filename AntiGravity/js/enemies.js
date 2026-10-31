@@ -30,6 +30,7 @@ class BaseEnemy {
     this.knockbackX = 0;
     this.knockbackY = 0;
     this.dropChest = config.dropChest || false;
+    this.freezeTimer = 0;
 
     // Apply active battle modifiers (Hyper Mode & Curse Pact)
     const game = window.MedievalSurvivors && window.MedievalSurvivors.game;
@@ -94,6 +95,10 @@ class BaseEnemy {
   }
 
   update(dt, player, allEnemies, enemyProjectiles) {
+    if (this.freezeTimer > 0) {
+      this.freezeTimer -= dt;
+      return;
+    }
     if (!this.alive) return;
     this.walkCycle += dt * 8;
 

@@ -1197,12 +1197,6 @@ class UIController {
               <button class="btn-primary btn-epic-start" id="btn-start-battle">
                 ⚔️ INICIAR BATALHA REAL
               </button>
-              <button class="btn-primary btn-secondary-hub" id="btn-go-heroes">
-                🛡️ Trocar Classe
-              </button>
-              <button class="btn-primary btn-secondary-hub" id="btn-go-forge">
-                🔨 Forja Real
-              </button>
             </div>
           </div>
         </div>
@@ -1290,13 +1284,7 @@ class UIController {
       this.game.start();
     });
 
-    document.getElementById('btn-go-heroes').addEventListener('click', () => {
-      this.switchMenuTab('heroes');
-    });
 
-    document.getElementById('btn-go-forge').addEventListener('click', () => {
-      this.switchMenuTab('forge');
-    });
   }
 
   // ── TAB: Combatentes ────────────────────────────────────────
@@ -1461,7 +1449,7 @@ class UIController {
         <div class="forge-stat-badge">${def.statPerLevel} por grau</div>
 
         <button class="btn-primary forge-buy-btn ${isMaxed ? 'btn-maxed' : (canAfford ? 'btn-can-buy' : 'btn-disabled')}" data-id="${def.id}">
-          ${isMaxed ? '✅ MÁXIMO FORJADO' : `🔨 Aprimorar (${cost} 💰)`}
+          ${isMaxed ? '✅ MÁXIMO FORJADO' : `🔨 ${cost} 💰`}
         </button>
       `;
 
@@ -1476,7 +1464,7 @@ class UIController {
           } else {
             buyBtn.textContent = '❌ Ouro Insuficiente!';
             setTimeout(() => {
-              buyBtn.textContent = `🔨 Aprimorar (${sm.getUpgradeCost(def.id)} 💰)`;
+              buyBtn.textContent = `🔨 ${sm.getUpgradeCost(def.id)} 💰`;
             }, 1200);
           }
         });
@@ -1486,7 +1474,7 @@ class UIController {
     });
   }
 
-  // ── TAB: Árvore de Habilidades & Talentos PoE2 ────────────────
+  // ── TAB: Árvore de Habilidades & Talentos ────────────────
   renderSkillTreeTab() {
     const sm = this.game.saveManager;
     const engine = window.MedievalSurvivors.skillTreeEngine;
@@ -1516,7 +1504,7 @@ class UIController {
         <div class="skill-tree-header-banner">
           <div class="tree-header-titles">
             <h3>🕸️ CONSTELAÇÃO ANCESTRAL DE VALORIA</h3>
-            <p>Evolua caminhos arcanos no estilo PoE2 com pequenas passivas (+1%, +2 HP), notáveis e pedras angulares lendárias.</p>
+            <p>Evolua caminhos arcanos no estilo constelação com pequenas passivas (+1%, +2 HP), notáveis e pedras angulares lendárias.</p>
           </div>
           <div class="tree-header-actions">
             <div class="tree-pill-stat">
@@ -1542,16 +1530,16 @@ class UIController {
 
         <div class="skill-tree-main-layout">
           <!-- Interactive SVG Viewport -->
-          <div class="poe-tree-viewport" id="poe-tree-viewport">
+          <div class="talent-tree-viewport" id="talent-tree-viewport">
             <!-- Viewport Controls -->
-            <div class="poe-tree-controls">
+            <div class="talent-tree-controls">
               <button class="tree-ctrl-btn" id="btn-zoom-in" title="Aproximar Zoom">➕</button>
               <button class="tree-ctrl-btn" id="btn-zoom-out" title="Afastar Zoom">➖</button>
               <button class="tree-ctrl-btn" id="btn-zoom-reset" title="Centralizar Origem">🎯</button>
             </div>
 
             <!-- SVG Constellation Map -->
-            <svg id="poe-tree-svg" class="poe-tree-svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
+            <svg id="talent-tree-svg" class="talent-tree-svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
               <defs>
                 <filter id="glow-gold" x="-30%" y="-30%" width="160%" height="160%">
                   <feGaussianBlur stdDeviation="4" result="blur" />
@@ -1827,8 +1815,8 @@ class UIController {
     renderInspector(this._skillTreeSelectedNode);
 
     // ── Viewport Drag/Pan & Zoom Logic ────────────────────────
-    const viewport = document.getElementById('poe-tree-viewport');
-    const svg = document.getElementById('poe-tree-svg');
+    const viewport = document.getElementById('talent-tree-viewport');
+    const svg = document.getElementById('talent-tree-svg');
     let isDragging = false;
     let startX = 0, startY = 0;
     let viewBox = { x: 0, y: 0, w: 1000, h: 1000 };
@@ -1838,7 +1826,7 @@ class UIController {
     };
 
     viewport.addEventListener('mousedown', (e) => {
-      if (e.target.closest('.poe-tree-controls') || e.target.closest('.tree-node')) return;
+      if (e.target.closest('.talent-tree-controls') || e.target.closest('.tree-node')) return;
       isDragging = true;
       startX = e.clientX;
       startY = e.clientY;
@@ -2699,7 +2687,7 @@ class UIController {
     const updatesData = [
       {
         version: 'v1.6.0',
-        eraName: 'Era da Constelação PoE2',
+        eraName: 'Era da Constelação Talentos',
         date: '31 de Outubro de 2026',
         isLatest: true,
         summary: 'Chegada da grande Árvore de Talentos interativa estilo Path of Exile 2, sistema de constelação ancestral com 4 ramos e bênçãos supremas (Keystones).',
@@ -2707,7 +2695,7 @@ class UIController {
           {
             type: 'feature',
             badge: 'NOVO',
-            title: 'Árvore de Habilidades & Talentos PoE2',
+            title: 'Árvore de Habilidades & Talentos',
             desc: 'Mais de 40 nós interativos divididos em 4 ramos cardinais (Fortaleza, Carnificina, Agilidade e Arcano). Cada nó custa Ouro e concede aprimoramentos passivos incrementais permanentes (+1% Velocidade, +2 HP, +1.5% Dano, etc.).'
           },
           {
@@ -2843,7 +2831,7 @@ class UIController {
             type: 'feature',
             badge: 'NOVO',
             title: 'Regime Ranqueado Oficial vs Livre',
-            desc: 'Modo competitivo com validação estrita de pontuação no Placar Neon ou modo casual de exploração.'
+            desc: 'Modo competitivo com validação estrita de pontuação no Placar de Líderes ou modo casual de exploração.'
           },
           {
             type: 'feature',
