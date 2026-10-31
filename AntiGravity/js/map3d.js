@@ -34,7 +34,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       dirLightColor: 0x6ca39a,
       dirLightIntensity: 0.30,
       groundTones: ['#0d1715', '#12201d', '#091210', '#172925'],
-      accentProps: ['tombstone', 'sarcophagus', 'brazier_green', 'bone_pile', 'crypt_pillar', 'blood_runes', 'gargoyle_pedestal']
+      accentProps: ['tombstone', 'sarcophagus', 'brazier_green', 'bone_pile', 'crypt_pillar', 'gargoyle_pedestal']
     },
     {
       id: 'forest',
@@ -60,7 +60,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       dirLightColor: 0xffc4b3,
       dirLightIntensity: 0.65,
       groundTones: ['#3b2327', '#4a2c31', '#2f1c1f', '#59353b'],
-      accentProps: ['spiked_barricade', 'brazier_red', 'bone_pile', 'blood_runes', 'crypt_pillar', 'gargoyle_pedestal']
+      accentProps: ['spiked_barricade', 'brazier_red', 'bone_pile', 'crypt_pillar', 'gargoyle_pedestal']
     }
   ];
 
@@ -688,24 +688,22 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     }
 
     createBloodRunes() {
+      // Converted to an ancient dark carved stone relief slab
       const group = new THREE.Group();
-      // Outer demonic runic circle
-      const ringOuter = new THREE.Mesh(
-        new THREE.RingGeometry(8, 14, 24),
-        new THREE.MeshBasicMaterial({ color: 0x990000, side: THREE.DoubleSide, transparent: true, opacity: 0.75, depthWrite: false })
+      const slab = new THREE.Mesh(
+        new THREE.CylinderGeometry(11, 13, 1.2, 8),
+        this.materials.darkGothicStone
       );
-      ringOuter.rotation.x = -Math.PI / 2;
-      ringOuter.position.y = 0.2;
-      group.add(ringOuter);
+      slab.position.y = 0.6;
+      group.add(slab);
 
-      // Inner pentagram/cross star
-      const star = new THREE.Mesh(
-        new THREE.RingGeometry(1, 4.5, 6),
-        new THREE.MeshBasicMaterial({ color: 0xff1744, side: THREE.DoubleSide, transparent: true, opacity: 0.85, depthWrite: false })
+      const trim = new THREE.Mesh(
+        new THREE.RingGeometry(8.5, 11, 8),
+        this.materials.stone
       );
-      star.rotation.x = -Math.PI / 2;
-      star.position.y = 0.25;
-      group.add(star);
+      trim.rotation.x = -Math.PI / 2;
+      trim.position.y = 1.22;
+      group.add(trim);
 
       return group;
     }

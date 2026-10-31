@@ -138,20 +138,21 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     const ringMesh = new THREE.Mesh(ringGeo, ringMat);
     aimGroup.add(ringMesh);
 
-    // 2D Flat directional arrow shape lying flat on the floor (y = 0.08)
+    // 2D Flat directional chevron arrow shape lying flat on the floor (y = 0.08)
     const arrowShape = new THREE.Shape();
-    arrowShape.moveTo(0, 5.0);        // Arrow tip forward
-    arrowShape.lineTo(-3.0, -2.2);    // Left fin
-    arrowShape.lineTo(-1.1, -1.0);    // Left notch
-    arrowShape.lineTo(-1.1, -5.0);    // Left shaft
-    arrowShape.lineTo(1.1, -5.0);     // Right shaft
-    arrowShape.lineTo(1.1, -1.0);     // Right notch
-    arrowShape.lineTo(3.0, -2.2);     // Right fin
+    // Tip pointing forward along +X (at facingAngle = 0)
+    arrowShape.moveTo(25.0, 0);       // Arrow tip forward (+X)
+    arrowShape.lineTo(17.5, -4.0);    // Top fin
+    arrowShape.lineTo(19.0, -1.4);    // Inner notch
+    arrowShape.lineTo(13.5, -1.4);    // Back shaft top
+    arrowShape.lineTo(13.5, 1.4);     // Back shaft bottom
+    arrowShape.lineTo(19.0, 1.4);     // Inner notch
+    arrowShape.lineTo(17.5, 4.0);     // Bottom fin
     arrowShape.closePath();
 
     const arrowGeo = new THREE.ShapeGeometry(arrowShape);
     arrowGeo.rotateX(-Math.PI / 2); // Lay flat on the ground plane (2D)
-    arrowGeo.translate(0, 0.08, 16.5);
+    arrowGeo.translate(0, 0.08, 0);
     const arrowMat = new THREE.MeshBasicMaterial({
       color: 0xf1c40f,
       transparent: true,
@@ -252,7 +253,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       bodyRoot.rotation.y = -player.facingAngle + Math.PI / 2;
 
       // Aim arrow stays on ground pointing at player's facing angle
-      aimGroup.rotation.y = -player.facingAngle + Math.PI / 2;
+      aimGroup.rotation.y = -player.facingAngle;
 
       // Leg swing & arm swing
       if (isMoving) {
@@ -2956,19 +2957,129 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
-  // 13. Penitent Whip Lash Mesh
+  // Floor Collectible Model Generator (Meat, Gold, Magnet, Rosary, Hourglass, Shield)
+  function createFloorCollectibleModel(type = 'gold') {
+    const root = new THREE.Group();
+    const discGeo = new THREE.RingGeometry(2, 9, 16);
+    discGeo.rotateX(-Math.PI / 2);
+
+    if (type === 'meat') {
+      const meatMat = new THREE.MeshStandardMaterial({ color: 0x8d381e, roughness: 0.65 });
+      const boneMat = materials.bone;
+      const roast = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 4.5, 9, 8), meatMat);
+      roast.rotation.z = Math.PI / 3;
+      root.add(roast);
+      const bone = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 14, 6), boneMat);
+      bone.rotation.z = Math.PI / 3;
+      root.add(bone);
+      const disc = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({ color: 0xff7043, transparent: true, opacity: 0.45, side: THREE.DoubleSide }));
+      disc.position.y = -4;
+      root.add(disc);
+    } else if (type === 'magnet') {
+      const redMat = materials.royalRed;
+      const metalMat = materials.steel;
+      const uGroup = new THREE.Group();
+      const leftBar = new THREE.Mesh(new THREE.BoxGeometry(2.5, 7, 2.5), redMat);
+      leftBar.position.x = -3.5;
+      const rightBar = new THREE.Mesh(new THREE.BoxGeometry(2.5, 7, 2.5), redMat);
+      rightBar.position.x = 3.5;
+      const topBar = new THREE.Mesh(new THREE.BoxGeometry(9.5, 2.5, 2.5), redMat);
+      topBar.position.y = 3.5;
+      const tipL = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.2, 2.6), metalMat);
+      tipL.position.set(-3.5, -4, 0);
+      const tipR = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.2, 2.6), metalMat);
+      tipR.position.set(3.5, -4, 0);
+      uGroup.add(leftBar, rightBar, topBar, tipL, tipR);
+      root.add(uGroup);
+      const disc = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({ color: 0x42a5f5, transparent: true, opacity: 0.5, side: THREE.DoubleSide }));
+      disc.position.y = -5;
+      root.add(disc);
+    } else if (type === 'rosary') {
+      const crossMat = materials.gold;
+      const vBar = new THREE.Mesh(new THREE.BoxGeometry(2.2, 10, 2), crossMat);
+      const hBar = new THREE.Mesh(new THREE.BoxGeometry(7, 2.2, 2), crossMat);
+      hBar.position.y = 1.8;
+      const halo = new THREE.Mesh(new THREE.RingGeometry(3.5, 4.8, 16), materials.holyGlow);
+      halo.position.y = 1.8;
+      root.add(vBar, hBar, halo);
+      const disc = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({ color: 0xffea00, transparent: true, opacity: 0.55, side: THREE.DoubleSide }));
+      disc.position.y = -5.5;
+      root.add(disc);
+    } else if (type === 'hourglass') {
+      const frameMat = materials.gold;
+      const glassMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.75 });
+      const topCap = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 1.2, 8), frameMat);
+      topCap.position.y = 5;
+      const botCap = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 1.2, 8), frameMat);
+      botCap.position.y = -5;
+      const topBulb = new THREE.Mesh(new THREE.ConeGeometry(3.2, 5, 8), glassMat);
+      topBulb.position.y = 2.4;
+      topBulb.rotation.x = Math.PI;
+      const botBulb = new THREE.Mesh(new THREE.ConeGeometry(3.2, 5, 8), glassMat);
+      botBulb.position.y = -2.4;
+      root.add(topCap, botCap, topBulb, botBulb);
+      const disc = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.5, side: THREE.DoubleSide }));
+      disc.position.y = -5.5;
+      root.add(disc);
+    } else if (type === 'shield') {
+      const shieldMat = materials.darkSteel;
+      const goldTrim = materials.gold;
+      const sMesh = new THREE.Mesh(new THREE.BoxGeometry(7.5, 9.5, 1.8), shieldMat);
+      const border = new THREE.Mesh(new THREE.BoxGeometry(8.2, 10.2, 1.2), goldTrim);
+      border.position.z = -0.4;
+      const boss = new THREE.Mesh(new THREE.OctahedronGeometry(2.4, 0), goldTrim);
+      boss.position.z = 1.2;
+      root.add(sMesh, border, boss);
+      const disc = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({ color: 0x90caf9, transparent: true, opacity: 0.45, side: THREE.DoubleSide }));
+      disc.position.y = -5.5;
+      root.add(disc);
+    } else {
+      const goldMat = materials.gold;
+      const pouch = new THREE.Mesh(new THREE.DodecahedronGeometry(4.5, 0), goldMat);
+      pouch.position.y = 0.5;
+      const tie = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.8, 6, 12), materials.royalRed);
+      tie.rotation.x = Math.PI / 2;
+      tie.position.y = 3.0;
+      root.add(pouch, tie);
+      const disc = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.5, side: THREE.DoubleSide }));
+      disc.position.y = -4;
+      root.add(disc);
+    }
+
+    return root;
+  }
+
+  // 13. Penitent Whip Lash Mesh (2D sweeping crimson barbed lash wave)
   function createWhipLashMesh(isEvolved) {
     const root = new THREE.Group();
-    const geo = new THREE.RingGeometry(6, 75, 16, 1, -0.2, 0.4);
-    geo.rotateX(-Math.PI / 2);
-    const mat = new THREE.MeshBasicMaterial({
-      color: isEvolved ? 0xff3838 : 0xb33939,
+    const arcHalf = Math.PI * 0.35;
+    const thetaStart = -Math.PI / 2 - arcHalf;
+    const thetaLength = arcHalf * 2;
+
+    const lashGeo = new THREE.RingGeometry(8, isEvolved ? 85 : 65, 32, 1, thetaStart, thetaLength);
+    lashGeo.rotateX(-Math.PI / 2);
+    const lashMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xff2244 : 0xd63031,
       transparent: true,
       opacity: 0.85,
       side: THREE.DoubleSide,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     });
-    root.add(new THREE.Mesh(geo, mat));
+    root.add(new THREE.Mesh(lashGeo, lashMat));
+
+    const edgeGeo = new THREE.RingGeometry(isEvolved ? 78 : 58, isEvolved ? 86 : 66, 32, 1, thetaStart, thetaLength);
+    edgeGeo.rotateX(-Math.PI / 2);
+    const edgeMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xffffff : 0xff7675,
+      transparent: true,
+      opacity: 0.95,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    root.add(new THREE.Mesh(edgeGeo, edgeMat));
+
     return root;
   }
 
@@ -3441,6 +3552,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     createGemModel,
     createChestModel,
     createDestructibleModel,
+    createFloorCollectibleModel,
     createBloodAltarModel,
     createSanctuaryZoneMesh,
     createCelestialStrikeTelegraphMesh,

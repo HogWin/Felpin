@@ -4448,6 +4448,42 @@ body, html {
   box-sizing: border-box !important;
 }
 
+.forge-buy-btn.btn-disabled {
+  background: linear-gradient(135deg, #7a1c1c, #4a0d0d) !important;
+  border: 1px solid #e74c3c !important;
+  color: #ffcccc !important;
+  box-shadow: 0 0 10px rgba(231, 76, 60, 0.3) !important;
+  cursor: not-allowed !important;
+  opacity: 0.9 !important;
+}
+
+.forge-buy-btn.btn-disabled:hover {
+  background: linear-gradient(135deg, #8f2222, #5a1111) !important;
+  border-color: #ff6b6b !important;
+  box-shadow: 0 0 14px rgba(231, 76, 60, 0.5) !important;
+}
+
+.forge-buy-btn.btn-can-buy {
+  background: linear-gradient(135deg, #b8860b, #d4af37, #996515) !important;
+  border: 1px solid #ffd700 !important;
+  color: #1a0f00 !important;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.35) !important;
+  cursor: pointer !important;
+}
+
+.forge-buy-btn.btn-can-buy:hover {
+  filter: brightness(1.15) !important;
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.6) !important;
+}
+
+.forge-buy-btn.btn-maxed {
+  background: linear-gradient(135deg, #1e392a, #13241b) !important;
+  border: 1px solid #2ecc71 !important;
+  color: #a8e6cf !important;
+  cursor: default !important;
+  box-shadow: none !important;
+}
+
 .prep-actions-row #btn-start-battle {
   width: 100% !important;
   padding: 16px 24px !important;

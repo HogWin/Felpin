@@ -1471,7 +1471,7 @@ class UIController {
         <div class="forge-stat-badge">${def.statPerLevel} por grau</div>
 
         <button class="btn-primary forge-buy-btn ${isMaxed ? 'btn-maxed' : (canAfford ? 'btn-can-buy' : 'btn-disabled')}" data-id="${def.id}">
-          ${isMaxed ? '✅ MÁXIMO FORJADO' : `🔨 ${cost} 💰`}
+          ${isMaxed ? '✅ MÁXIMO FORJADO' : `${cost} 💰`}
         </button>
       `;
 
@@ -1486,7 +1486,7 @@ class UIController {
           } else {
             buyBtn.textContent = '❌ Ouro Insuficiente!';
             setTimeout(() => {
-              buyBtn.textContent = `🔨 ${sm.getUpgradeCost(def.id)} 💰`;
+              buyBtn.textContent = `${sm.getUpgradeCost(def.id)} 💰`;
             }, 1200);
           }
         });

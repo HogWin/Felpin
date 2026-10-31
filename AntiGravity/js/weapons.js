@@ -1888,13 +1888,28 @@ class PenitentWhipWeapon extends BaseWeapon {
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const reach = 85 * this.area * player.areaMultiplier;
 
-    // Left and Right strikes (or 4 directions if evolved)
-    const angles = isEvo ? [0, Math.PI, Math.PI * 0.5, -Math.PI * 0.5] : [0, Math.PI];
+    // Use player's aiming / movement direction!
+    const facing = (player.facingAngle !== undefined)
+      ? player.facingAngle
+      : (player.facingDir === 1 ? 0 : Math.PI);
+
+    const totalCount = this.count + (player.bonusProjectiles || 0);
+    const angles = [];
+    if (isEvo || totalCount >= 4) {
+      angles.push(facing, facing + Math.PI, facing + Math.PI * 0.5, facing - Math.PI * 0.5);
+    } else if (totalCount === 3) {
+      angles.push(facing, facing + Math.PI, facing + (Math.random() > 0.5 ? Math.PI * 0.5 : -Math.PI * 0.5));
+    } else if (totalCount === 2) {
+      angles.push(facing, facing + Math.PI);
+    } else {
+      angles.push(facing);
+    }
 
     if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playSwordSlash) {
       window.MedievalSurvivors.sound.playSwordSlash();
     }
 
+    const arcHalf = Math.PI * 0.40;
     for (let i = 0; i < angles.length; i++) {
       const angle = angles[i];
       const lash = {
@@ -1910,19 +1925,23 @@ class PenitentWhipWeapon extends BaseWeapon {
       };
       this.lashEffects.push(lash);
 
-      // Hit detection in straight lash path
-      const endX = player.x + Math.cos(angle) * reach;
-      const endY = player.y + Math.sin(angle) * reach;
-
+      // Hit detection across the wide sweeping lash arc
       for (let j = 0, len = enemies.length; j < len; j++) {
         const e = enemies[j];
         if (!e.alive) continue;
-        const d = distToSegment(e.x, e.y, player.x, player.y, endX, endY);
-        if (d <= 22 + e.radius) {
-          const dealt = e.takeDamage(effectiveDamage, Math.cos(angle) * 12, Math.sin(angle) * 12, 0.1);
-          this.totalDamageDealt += dealt;
-          if (particles && particles.createBloodSparks) {
-            particles.createBloodSparks(e.x, e.y, 7, isEvo ? '#e74c3c' : '#c0392b');
+        const dx = e.x - player.x;
+        const dy = e.y - player.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= reach + e.radius) {
+          const ang = Math.atan2(dy, dx);
+          let diff = Math.abs(ang - angle);
+          while (diff > Math.PI) diff = Math.abs(diff - 2 * Math.PI);
+          if (diff <= arcHalf) {
+            const dealt = e.takeDamage(effectiveDamage, Math.cos(angle) * 12, Math.sin(angle) * 12, 0.1);
+            this.totalDamageDealt += dealt;
+            if (particles && particles.createBloodSparks) {
+              particles.createBloodSparks(e.x, e.y, 7, isEvo ? '#e74c3c' : '#c0392b');
+            }
           }
         }
       }
