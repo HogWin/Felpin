@@ -575,11 +575,15 @@ class SoundEngine {
     osc.stop(t + 0.12);
   }
 
-  // Enemy hit / hurt
+  // Enemy hit / hurt (throttled to 25 hits/sec to prevent audio node buffer exhaustion)
   playEnemyHit() {
     if (this.muted) return;
     this.init();
     if (!this.ctx) return;
+
+    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    if (now - (this._lastEnemyHitTime || 0) < 40) return;
+    this._lastEnemyHitTime = now;
 
     const t = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();

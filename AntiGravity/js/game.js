@@ -373,6 +373,11 @@ class Game {
       }
     }
 
+    // Pre-calculate Holy Aura radius outside destructibles loop to avoid redundant finds
+    const aura = (this.player && this.player.weapons) ? this.player.weapons.find(w => w.id === 'holy_aura' && w.level > 0) : null;
+    const auraR = aura ? (aura.activeRadius || 70) * (this.player.effectiveAreaMultiplier || 1) : 0;
+    const auraRSq = auraR * auraR;
+
     // Check weapon / projectile hits on destructibles
     for (let i = this.destructibles.length - 1; i >= 0; i--) {
       const d = this.destructibles[i];
@@ -393,15 +398,11 @@ class Game {
       }
 
       // Check Holy Aura weapon
-      if (d.alive && this.player) {
-        const aura = this.player.weapons.find(w => w.id === 'holy_aura' && w.level > 0);
-        if (aura) {
-          const dx = this.player.x - d.x;
-          const dy = this.player.y - d.y;
-          const auraR = (aura.activeRadius || 70) * this.player.effectiveAreaMultiplier;
-          if (dx * dx + dy * dy <= auraR * auraR) {
-            d.takeDamage(1, this);
-          }
+      if (d.alive && aura && this.player) {
+        const dx = this.player.x - d.x;
+        const dy = this.player.y - d.y;
+        if (dx * dx + dy * dy <= auraRSq) {
+          d.takeDamage(1, this);
         }
       }
 
@@ -469,7 +470,7 @@ class Game {
 
   // Merges distant, non-attracted XP gems into concentrated clusters when gem count is high
   consolidateGems() {
-    if (this.gems.length <= 130 || !this.player) return;
+    if (this.gems.length <= 75 || !this.player) return;
     const playerX = this.player.x;
     const playerY = this.player.y;
     const minConsolidateDistSq = 320 * 320;
