@@ -580,6 +580,10 @@ class Game {
     const bonusGold = 500;
     this.player.gold += bonusGold;
     this.saveManager.addGold(this.player.gold);
+    if (this.player.addEther) this.player.addEther(30, false);
+    if (this.saveManager.addEther && this.player.ether) {
+      this.saveManager.addEther(this.player.ether);
+    }
 
     const totalDmg = this.player.weapons.reduce((sum, w) => sum + w.totalDamageDealt, 0);
     this.saveManager.recordRun({
@@ -721,6 +725,20 @@ class Game {
           this.addFloatingText(enemy.x, enemy.y - 12, `+${goldDrop} 💰`, '#ffeaa7', false);
         }
 
+        // Éter Ancestral loot (for class skill tree progression)
+        let etherDrop = 0;
+        if (enemy.isBoss) {
+          etherDrop = enemy.bossTier === 3 ? 35 : (enemy.bossTier === 2 ? 22 : 14);
+        } else if (enemy.isChampion) {
+          etherDrop = 4;
+        } else if (Math.random() < 0.12) {
+          etherDrop = 1;
+        }
+
+        if (etherDrop > 0 && this.player.addEther) {
+          this.player.addEther(etherDrop, true);
+        }
+
         // Spawn Treasure Chest if Mini-Boss
         if (enemy.dropChest) {
           this.chests.push(new MedievalSurvivors.TreasureChest(enemy.x, enemy.y, enemy.bossTier));
@@ -792,6 +810,9 @@ class Game {
 
       // Save gold and run to history
       this.saveManager.addGold(this.player.gold);
+      if (this.saveManager.addEther && this.player.ether) {
+        this.saveManager.addEther(this.player.ether);
+      }
       const totalDmg = this.player.weapons.reduce((sum, w) => sum + w.totalDamageDealt, 0);
       const totalSecs = Math.floor(this.gameTime);
       const hrs = Math.floor(totalSecs / 3600);

@@ -13,6 +13,7 @@ class UIController {
     this.timerText = document.getElementById('timer-text');
     this.killsText = document.getElementById('kills-text');
     this.goldText = document.getElementById('gold-text');
+    this.etherText = document.getElementById('ether-text');
     this.hpFill = document.getElementById('hp-fill');
     this.hpText = document.getElementById('hp-text');
     this.weaponSlotsContainer = document.getElementById('weapon-slots');
@@ -417,6 +418,12 @@ class UIController {
     if (this.goldText && this._lastGold !== player.gold) {
       this.goldText.textContent = player.gold;
       this._lastGold = player.gold;
+    }
+
+    // Éter Ancestral (update only on change)
+    if (this.etherText && this._lastEther !== (player.ether || 0)) {
+      this.etherText.textContent = player.ether || 0;
+      this._lastEther = player.ether || 0;
     }
 
     // Equipment Slots (rebuilt only when items or levels mutate)
@@ -966,6 +973,8 @@ class UIController {
 
     const statGold = document.getElementById('stat-gold');
     if (statGold) statGold.textContent = `+${player.gold} 💰`;
+    const statEther = document.getElementById('stat-ether');
+    if (statEther) statEther.textContent = `+${player.ether || 0} 🔮`;
 
     // Weapon DPS breakdown with visual progress bars
     const breakdown = document.getElementById('weapon-breakdown');
@@ -982,6 +991,8 @@ class UIController {
     const goldEl = document.getElementById('victory-gold');
     if (killsEl) killsEl.textContent = player.killCount;
     if (goldEl) goldEl.textContent = `${player.gold} 💰`;
+    const vicEther = document.getElementById('victory-ether');
+    if (vicEther) vicEther.textContent = `+${player.ether || 0} 🔮`;
 
     const victoryBreakdown = document.getElementById('victory-weapon-breakdown');
     this.renderWeaponBreakdown(victoryBreakdown, player, gameTime);
@@ -1016,6 +1027,10 @@ class UIController {
     const el = document.getElementById('menu-gold-val');
     if (el && this.game.saveManager) {
       el.textContent = this.game.saveManager.getGold().toLocaleString();
+    }
+    const etherEl = document.getElementById('menu-ether-val');
+    if (etherEl && this.game.saveManager) {
+      etherEl.textContent = (this.game.saveManager.getEther ? this.game.saveManager.getEther() : 0).toLocaleString();
     }
   }
 
@@ -1527,19 +1542,19 @@ class UIController {
           </div>
           <div class="tree-header-actions">
             <div class="tree-pill-stat">
-              <span>Ouro Disponível:</span>
-              <strong class="text-gold">${sm.getGold().toLocaleString()} 💰</strong>
+              <span>Éter Disponível:</span>
+              <strong style="color: #c084fc;">${(sm.getEther ? sm.getEther() : 0).toLocaleString()} 🔮</strong>
             </div>
             <div class="tree-pill-stat">
               <span>Talentos de ${tree.name}:</span>
               <strong class="text-emerald">${allocatedArray.length} / ${allNodes.length}</strong>
             </div>
             <div class="tree-pill-stat">
-              <span>Investido:</span>
-              <strong>${totalSpent.toLocaleString()} 💰</strong>
+              <span>Éter Investido:</span>
+              <strong style="color: #c084fc;">${totalSpent.toLocaleString()} 🔮</strong>
             </div>
-            <button class="btn-royal btn-refund-gold" id="btn-refund-tree" ${totalSpent <= 0 ? 'disabled' : ''}>
-              🔄 Reembolsar Classe (${totalSpent.toLocaleString()} 💰)
+            <button class="btn-royal btn-refund-gold" id="btn-refund-tree" ${totalSpent <= 0 ? 'disabled' : ''} style="border-color: #9333ea; color: #e9d5ff;">
+              🔄 Reembolsar Classe (${totalSpent.toLocaleString()} 🔮)
             </button>
             <button class="btn-royal btn-tree-summary" id="btn-toggle-tree-summary">
               📜 Bênçãos da Classe
@@ -1646,7 +1661,8 @@ class UIController {
 
       const isAllocated = allocatedSet.has(node.id);
       const canUnlock = engine.canUnlock(node.id, allocatedSet, activeClass);
-      const canAfford = sm.getGold() >= node.cost;
+      const curEther = sm.getEther ? sm.getEther() : 0;
+      const canAfford = curEther >= node.cost;
       const branchInfo = branches[node.branch] || { name: 'Núcleo da Classe', color: tree.color || '#f1c40f', icon: 'spark' };
 
       let tierBadge = '';
@@ -1668,9 +1684,9 @@ class UIController {
       if (node.tier === 'origin' || isAllocated) {
         btnHTML = `<button class="btn-primary btn-talent-action btn-allocated" disabled>✅ TALENTO JÁ ATIVADO</button>`;
       } else if (canUnlock && canAfford) {
-        btnHTML = `<button class="btn-primary btn-talent-action btn-can-buy" id="btn-buy-talent">✨ ATIVAR TALENTO (${node.cost} 💰)</button>`;
+        btnHTML = `<button class="btn-primary btn-talent-action btn-can-buy" id="btn-buy-talent" style="background: linear-gradient(135deg, #7c3aed, #9333ea); border-color: #c084fc;">🔮 ATIVAR TALENTO (${node.cost} 🔮 ÉTER)</button>`;
       } else if (canUnlock && !canAfford) {
-        btnHTML = `<button class="btn-primary btn-talent-action btn-no-gold" disabled>❌ OURO INSUFICIENTE (${node.cost} 💰)</button>`;
+        btnHTML = `<button class="btn-primary btn-talent-action btn-no-gold" disabled>❌ ÉTER INSUFICIENTE (${node.cost} 🔮)</button>`;
       } else {
         btnHTML = `<button class="btn-primary btn-talent-action btn-locked" disabled>🔒 CAMINHO BLOQUEADO</button>`;
       }
@@ -1697,8 +1713,8 @@ class UIController {
           ${reqBranchText}
           ${node.cost > 0 ? `
           <div class="inspect-cost-pill">
-            <span>Custo em Ouro:</span>
-            <strong class="text-gold">${node.cost} 💰</strong>
+            <span>Custo em Éter Ancestral:</span>
+            <strong style="color: #c084fc;">${node.cost} 🔮</strong>
           </div>
           ` : ''}
         </div>
@@ -1963,7 +1979,7 @@ class UIController {
     const refundBtn = document.getElementById('btn-refund-tree');
     if (refundBtn) {
       refundBtn.addEventListener('click', () => {
-        if (confirm(`Deseja reembolsar todos os talentos de ${tree.name} e recuperar ${totalSpent.toLocaleString()} 💰 de Ouro?`)) {
+        if (confirm(`Deseja reembolsar todos os talentos de ${tree.name} e recuperar ${totalSpent.toLocaleString()} 🔮 de Éter Ancestral?`)) {
           const refunded = sm.refundSkillTree(activeClass);
           if (refunded > 0) {
             if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playGemPickup) {

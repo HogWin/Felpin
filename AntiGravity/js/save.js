@@ -15,6 +15,8 @@ class SaveManager {
     return {
       gold: 0,
       totalGoldEarned: 0,
+      ether: 0,
+      totalEtherEarned: 0,
       runsCompleted: 0,
       runsAttempted: 0,
       settings: {
@@ -35,6 +37,7 @@ class SaveManager {
         speed: 0,       // Movement Speed %
         projectiles: 0, // +1 Projectile / Strike Count
         reroll: 0,      // Permanent Reroll charges per run
+        ether_attunement: 0, // Canalização Etérea: +20% Éter ganho por grau
         sword_boost: 0, // Broadsword Base Damage
         bow_boost: 0,   // Crossbow Base Damage
         fire_boost: 0   // Holy Fire Base Damage
@@ -135,6 +138,15 @@ class SaveManager {
         statPerLevel: '+1 Carga de Reroll por Run',
         maxLevel: 5,
         costs: [60, 140, 260, 450, 750]
+      },
+      {
+        id: 'ether_attunement',
+        name: 'Canalização Etérea',
+        icon: '🔮',
+        description: 'Sintoniza o herói com os fluxos astrais, aumentando permanentemente a obtenção de Éter Ancestral durante a batalha.',
+        statPerLevel: '+20% Ganho de Éter por Grau',
+        maxLevel: 5,
+        costs: [90, 190, 360, 680, 1250]
       },
       {
         id: 'sword_boost',
@@ -689,12 +701,12 @@ class SaveManager {
   }
 
 
-  // ── SKILL TREE (CLASS-SPECIFIC) METHODS ─────────────────────
+  // ── SKILL TREE (CLASS-SPECIFIC) METHODS (ÉTER ECONOMY) ──────
   getSkillTreeAllocated(classId = 'knight') {
     if (!this.data.skillTrees || typeof this.data.skillTrees !== 'object') {
       this.data.skillTrees = {};
     }
-    const origId = ${classId}_orig;
+    const origId = classId + '_orig';
     if (!Array.isArray(this.data.skillTrees[classId]) || this.data.skillTrees[classId].length === 0) {
       this.data.skillTrees[classId] = [origId];
     }
@@ -712,11 +724,15 @@ class SaveManager {
     return null;
   }
 
-  getSkillTreeSpentGold(classId = 'knight') {
+  getSkillTreeSpentEther(classId = 'knight') {
     if (window.MedievalSurvivors && window.MedievalSurvivors.skillTreeEngine) {
       return window.MedievalSurvivors.skillTreeEngine.calculateTotalSpentGold(this.getSkillTreeAllocated(classId), classId);
     }
     return 0;
+  }
+
+  getSkillTreeSpentGold(classId = 'knight') {
+    return this.getSkillTreeSpentEther(classId);
   }
 
   canUnlockSkillTreeNode(nodeId, classId = 'knight') {
@@ -733,9 +749,10 @@ class SaveManager {
     const node = engine.getNode(nodeId, classId);
     if (!node) return false;
 
-    if (this.data.gold < node.cost) return false;
+    const curEther = this.getEther();
+    if (curEther < node.cost) return false;
 
-    this.data.gold -= node.cost;
+    this.data.ether = curEther - node.cost;
     const allocated = this.getSkillTreeAllocated(classId);
     if (!allocated.includes(nodeId)) {
       allocated.push(nodeId);
@@ -745,11 +762,11 @@ class SaveManager {
   }
 
   refundSkillTree(classId = 'knight') {
-    const spent = this.getSkillTreeSpentGold(classId);
-    const origId = ${classId}_orig;
+    const spent = this.getSkillTreeSpentEther(classId);
+    const origId = classId + '_orig';
     const allocated = this.getSkillTreeAllocated(classId);
     if (spent <= 0 && (!allocated || allocated.length <= 1)) return 0;
-    this.data.gold += spent;
+    this.data.ether = (this.data.ether || 0) + spent;
     this.data.skillTrees[classId] = [origId];
     this.save();
     return spent;
@@ -803,6 +820,10 @@ class SaveManager {
     player.maxRerolls = player.rerolls;
     player.banishCharges = 2;
     player.bannedIds = new Set();
+
+    // Canalização Etérea (Forja Real)
+    const etherRank = up.ether_attunement || 0;
+    player.etherMultiplier = 1.0 + (etherRank * 0.20);
 
     // Base Weapon Boosts
 

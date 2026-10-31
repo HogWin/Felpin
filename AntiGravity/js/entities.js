@@ -66,6 +66,9 @@ class Player {
     this.alive = true;
     this.killCount = 0;
     this.gold = 0;
+    this.ether = 0;
+    this.etherMultiplier = 1.0;
+    this._etherSurvivalTimer = 0;
 
     // Class perk traits
     this.shadowBurstTimer = 0;
@@ -79,6 +82,16 @@ class Player {
       startingWep.upgrade(); // Starts at level 1
       this.weapons.push(startingWep);
     }
+  }
+
+  addEther(amount = 1, showFloating = true) {
+    const mult = this.etherMultiplier || 1.0;
+    const gained = Math.max(1, Math.round(amount * mult));
+    this.ether = (this.ether || 0) + gained;
+    if (showFloating && this.game) {
+      this.game.addFloatingText(this.x, this.y - 22, `+${gained} 🔮`, '#e0b0ff', false);
+    }
+    return gained;
   }
 
   get bonusProjectiles() {
@@ -937,6 +950,10 @@ class DestructibleObject {
     if (game && game.collectibles) {
       game.collectibles.push(new window.MedievalSurvivors.CollectibleItem(this.x, this.y, dropType));
     }
+
+    if (Math.random() < 0.32 && game.player && game.player.addEther) {
+      game.player.addEther(2, true);
+    }
   }
 
   update(dt) {
@@ -1065,6 +1082,10 @@ class SanctuaryZone {
       if (!game.saveManager.data.stats) game.saveManager.data.stats = {};
       game.saveManager.data.stats.totalSanctuariesConsecrated = (game.saveManager.data.stats.totalSanctuariesConsecrated || 0) + 1;
       game.saveManager.checkAchievements('sanctuary_consecrated', null, game);
+    }
+
+    if (game.player && game.player.addEther) {
+      game.player.addEther(15, true);
     }
   }
 }

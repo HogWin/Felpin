@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Fallen Kingdom</title>
-  <link rel="stylesheet" href="css/style.css?v=34">
+  <link rel="stylesheet" href="css/style.css?v=35">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22><text y=%2226%22 font-size=%2228%22>⚔️</text></svg>">
 </head>
 <body>
@@ -49,6 +49,10 @@
             <div class="stat-item" title="Ouro Coletado nesta Partida">
               <span class="icon"><svg viewBox="0 0 64 64" class="gothic-svg" style="width:1.15em; height:1.15em;"><circle cx="32" cy="32" r="24" fill="#f1c40f" stroke="#b7791f" stroke-width="3"/><circle cx="32" cy="32" r="19" fill="#f39c12" stroke="#d4af37" stroke-width="1.5" stroke-dasharray="4 2"/><polygon points="32,18 40,24 38,38 32,44 26,38 24,24" fill="#ffffff" opacity="0.9"/></svg></span>
               <span id="gold-text">0</span>
+            </div>
+            <div class="stat-item" title="Éter Ancestral Coletado nesta Partida" style="border-left: 1px solid rgba(155, 89, 182, 0.4); padding-left: 8px;">
+              <span class="icon">🔮</span>
+              <span id="ether-text" style="color: #e0b0ff; text-shadow: 0 0 8px rgba(155, 89, 182, 0.6);">0</span>
             </div>
           </div>
 
@@ -280,6 +284,10 @@
             <span class="title">💰 Ouro Pilhado</span>
             <span class="val text-gold" id="stat-gold">+0 💰</span>
           </div>
+          <div class="stat-box">
+            <span class="title">🔮 Éter Coletado</span>
+            <span class="val text-ether" id="stat-ether" style="color: #e0b0ff;">+0 🔮</span>
+          </div>
         </div>
 
         <div class="breakdown-card">
@@ -472,6 +480,13 @@
                 <span class="coin-icon">💰</span>
               </div>
             </div>
+            <div class="gold-vault-pill ether-vault-pill" style="border-color: rgba(155, 89, 182, 0.45); background: radial-gradient(circle, rgba(74, 25, 99, 0.45), rgba(16, 7, 24, 0.85));">
+              <span class="vault-label" style="color: #d1b8f1;">Éter Ancestral</span>
+              <div class="vault-amount" style="color: #e0b0ff; text-shadow: 0 0 10px rgba(186, 85, 211, 0.6);">
+                <span id="menu-ether-val">0</span>
+                <span class="coin-icon">🔮</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -535,22 +550,22 @@
   </div>
 
   <!-- 3D Engine & Game Scripts -->
-  <script src="js/three.min.js?v=34"></script>
-  <script src="js/audio.js?v=34"></script>
-  <script src="js/icons.js?v=34"></script>
-  <script src="js/save.js?v=34"></script>
-  <script src="js/classes.js?v=34"></script>
-  <script src="js/passives.js?v=34"></script>
-  <script src="js/weapons.js?v=34"></script>
-  <script src="js/synergies.js?v=34"></script>
-  <script src="js/entities.js?v=34"></script>
-  <script src="js/enemies.js?v=34"></script>
-  <script src="js/models3d.js?v=34"></script>
-  <script src="js/map3d.js?v=34"></script>
-  <script src="js/skilltree.js?v=34"></script>
-  <script src="js/renderer.js?v=34"></script>
-  <script src="js/ui.js?v=34"></script>
-  <script src="js/game.js?v=34"></script>
+  <script src="js/three.min.js?v=35"></script>
+  <script src="js/audio.js?v=35"></script>
+  <script src="js/icons.js?v=35"></script>
+  <script src="js/save.js?v=35"></script>
+  <script src="js/classes.js?v=35"></script>
+  <script src="js/passives.js?v=35"></script>
+  <script src="js/weapons.js?v=35"></script>
+  <script src="js/synergies.js?v=35"></script>
+  <script src="js/entities.js?v=35"></script>
+  <script src="js/enemies.js?v=35"></script>
+  <script src="js/models3d.js?v=35"></script>
+  <script src="js/map3d.js?v=35"></script>
+  <script src="js/skilltree.js?v=35"></script>
+  <script src="js/renderer.js?v=35"></script>
+  <script src="js/ui.js?v=35"></script>
+  <script src="js/game.js?v=35"></script>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
