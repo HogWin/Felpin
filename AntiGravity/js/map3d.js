@@ -114,7 +114,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       };
     }
 
-    // Procedural Gothic Flagstone Floor Texture Generator
+    // Procedural Gothic Cathedral Flagstone Floor Texture Generator
     createProceduralGroundTexture(biome) {
       const canvas = document.createElement('canvas');
       canvas.width = 512;
@@ -124,11 +124,11 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         ? biome.groundTones
         : ['#221d2b', '#2c2538', '#191520', '#342c42'];
 
-      // Fill base mortar tone
-      ctx.fillStyle = tones[2] || '#191520';
+      // Deep dark base mortar fill
+      ctx.fillStyle = tones[2] || '#15111c';
       ctx.fillRect(0, 0, 512, 512);
 
-      // Draw 8x8 staggered medieval flagstone grid
+      // Staggered medieval cathedral flagstone courses
       const rows = 8;
       const cols = 8;
       const tileW = 512 / cols;
@@ -137,23 +137,28 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       for (let r = 0; r < rows; r++) {
         const offsetX = (r % 2 === 1) ? tileW * 0.5 : 0;
         for (let c = -1; c <= cols; c++) {
-          const x = c * tileW + offsetX + 2;
-          const y = r * tileH + 2;
-          const w = tileW - 4;
-          const h = tileH - 4;
+          const x = c * tileW + offsetX + 2.5;
+          const y = r * tileH + 2.5;
+          const w = tileW - 5;
+          const h = tileH - 5;
 
-          const toneIndex = Math.abs(c * 7 + r * 13) % tones.length;
+          const toneIndex = Math.abs(c * 11 + r * 17) % tones.length;
           ctx.fillStyle = tones[toneIndex];
           ctx.fillRect(x, y, w, h);
 
-          // Subtle top/left bevel highlight
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-          ctx.lineWidth = 1.5;
+          // Subtle weathered stone grain texture
+          const innerTone = tones[(toneIndex + 1) % tones.length];
+          ctx.fillStyle = innerTone;
+          ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+
+          // Top/Left stone bevel highlight
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.055)';
+          ctx.lineWidth = 1.8;
           ctx.strokeRect(x, y, w, h);
 
           // Deep dark bottom/right shadow mortar line
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
-          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.65)';
+          ctx.lineWidth = 3.0;
           ctx.beginPath();
           ctx.moveTo(x + w, y);
           ctx.lineTo(x + w, y + h);
@@ -162,10 +167,17 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         }
       }
 
-      // Vignette effect for gothic ambient depth
-      const vignette = ctx.createRadialGradient(256, 256, 120, 256, 256, 256);
+      // Cathedral Quadrant Cross watermarks across the 512x512 tile
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.025)';
+      ctx.lineWidth = 2.0;
+      ctx.beginPath();
+      ctx.arc(256, 256, 140, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Atmospheric Vignette for deep medieval gothic depth
+      const vignette = ctx.createRadialGradient(256, 256, 100, 256, 256, 256);
       vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      vignette.addColorStop(1, 'rgba(0, 0, 0, 0.22)');
+      vignette.addColorStop(1, 'rgba(0, 0, 0, 0.32)');
       ctx.fillStyle = vignette;
       ctx.fillRect(0, 0, 512, 512);
 
@@ -839,13 +851,30 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         lightHex = 0xff3322;
       }
 
+      // Glowing Hot Embers Bed Layer
+      const emberBed = new THREE.Mesh(
+        new THREE.CylinderGeometry(7.5, 5.0, 1.5, 8),
+        new THREE.MeshBasicMaterial({ color: lightHex, transparent: true, opacity: 0.85 })
+      );
+      emberBed.position.y = 16.5;
+      group.add(emberBed);
+
+      // Two Forged Iron Ring Handles on Cauldron Sides
+      const ringHandleGeo = new THREE.TorusGeometry(2.4, 0.6, 6, 12);
+      for (let s of [-9.8, 9.8]) {
+        const handle = new THREE.Mesh(ringHandleGeo, ironMat);
+        handle.position.set(s, 15, 0);
+        handle.rotation.y = Math.PI / 2;
+        group.add(handle);
+      }
+
       // Volumetric Core Flame + Outer Translucent Flame
-      const flameCore = new THREE.Mesh(new THREE.ConeGeometry(3.5, 7.5, 6), fireMat);
-      flameCore.position.y = 18.5;
+      const flameCore = new THREE.Mesh(new THREE.ConeGeometry(3.6, 8.5, 6), fireMat);
+      flameCore.position.y = 19.5;
       group.add(flameCore);
 
-      const flameOuter = new THREE.Mesh(new THREE.ConeGeometry(5.2, 9.5, 6), fireMat);
-      flameOuter.position.y = 19;
+      const flameOuter = new THREE.Mesh(new THREE.ConeGeometry(5.6, 11.5, 6), fireMat);
+      flameOuter.position.y = 20;
       flameOuter.rotation.y = 0.5;
       group.add(flameOuter);
 
@@ -908,52 +937,94 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       return group;
     }
 
-    // 4. Imperial Knight-King Crypt Sarcophagus
+    // 4. Imperial Knight-King Crypt Sarcophagus with Effigy & Heraldry
     createSarcophagus() {
       const group = new THREE.Group();
       const stoneMat = this.materials.darkGothicStone;
       const trimMat = this.materials.stone;
       const goldMat = this.materials.gildedTrim;
+      const ironMat = this.materials.darkIron;
 
-      // Stepped Foundation Plinth
-      const base = new THREE.Mesh(new THREE.BoxGeometry(16, 3, 32), stoneMat);
-      base.position.y = 1.5;
+      // 1. Tier 1 Flared Granite Footing
+      const footing = new THREE.Mesh(new THREE.BoxGeometry(18, 2.5, 34), stoneMat);
+      footing.position.y = 1.25;
+      group.add(footing);
+
+      // 2. Stepped Plinth Base
+      const base = new THREE.Mesh(new THREE.BoxGeometry(16, 2.5, 31.5), trimMat);
+      base.position.y = 3.75;
       group.add(base);
 
-      // Casket Vault Body with Side Pillars
-      const casket = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 29), trimMat);
-      casket.position.y = 7;
+      // 4 Heavy Forged Iron Corner Clamps
+      const clampGeo = new THREE.BoxGeometry(2.2, 7.5, 2.2);
+      const corners = [[-7.5, -15], [7.5, -15], [-7.5, 15], [7.5, 15]];
+      corners.forEach(([cx, cz]) => {
+        const clamp = new THREE.Mesh(clampGeo, ironMat);
+        clamp.position.set(cx, 7.5, cz);
+        group.add(clamp);
+      });
+
+      // 3. Casket Vault Body
+      const casket = new THREE.Mesh(new THREE.BoxGeometry(14, 7.5, 29), trimMat);
+      casket.position.y = 7.5;
       group.add(casket);
 
-      // Side Blind Arcades
-      const sideArcade = new THREE.Mesh(new THREE.BoxGeometry(14.5, 5, 24), stoneMat);
-      sideArcade.position.y = 7;
+      // 4 Gothic Blind Arcades on Casket Sides
+      const sideArcade = new THREE.Mesh(new THREE.BoxGeometry(14.6, 4.8, 24), stoneMat);
+      sideArcade.position.y = 7.5;
       group.add(sideArcade);
 
-      // Sculpted Beveled Lid
-      const lid = new THREE.Mesh(new THREE.BoxGeometry(15.5, 3.5, 30.5), stoneMat);
-      lid.position.y = 12.5;
+      // 4. Heavy Carved Sarcophagus Lid with Moldings
+      const lid = new THREE.Mesh(new THREE.BoxGeometry(15.8, 3.2, 31), stoneMat);
+      lid.position.y = 12.8;
       group.add(lid);
 
-      // Knight Effigy Resting on Lid
-      // Crusader Great Helm headpiece
-      const helm = new THREE.Mesh(new THREE.BoxGeometry(4.8, 3.6, 5.2), goldMat);
-      helm.position.set(0, 15, -10);
+      // Gilded Trim Inlay Around Lid Rim
+      const lidTrim = new THREE.Mesh(new THREE.BoxGeometry(16.2, 1.2, 31.4), goldMat);
+      lidTrim.position.y = 13.8;
+      group.add(lidTrim);
+
+      // 5. Knight-King Reclining Effigy Sculpted in High Relief
+      // Crusader Great Helm headpiece with golden crown band
+      const helm = new THREE.Mesh(new THREE.BoxGeometry(5.0, 3.8, 5.5), ironMat);
+      helm.position.set(0, 15.6, -10.5);
       group.add(helm);
 
-      // Stone Longsword resting along body
-      const swordBlade = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 18), goldMat);
-      swordBlade.position.set(0, 15, 1);
+      const crownBand = new THREE.Mesh(new THREE.BoxGeometry(5.4, 1.2, 5.8), goldMat);
+      crownBand.position.set(0, 16.5, -10.5);
+      group.add(crownBand);
+
+      // Cuirass Breastplate Torso
+      const chest = new THREE.Mesh(new THREE.BoxGeometry(6.2, 2.4, 8.5), trimMat);
+      chest.position.set(0, 15.2, -3.5);
+      group.add(chest);
+
+      // Crossed Gauntlets holding Longsword
+      const gauntlets = new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.2, 2.6), ironMat);
+      gauntlets.position.set(0, 15.5, -2);
+      group.add(gauntlets);
+
+      // Stone Longsword in Repose
+      const swordBlade = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 17), goldMat);
+      swordBlade.position.set(0, 15.6, 2.5);
       group.add(swordBlade);
 
-      const crossguard = new THREE.Mesh(new THREE.BoxGeometry(7, 1.2, 1.6), goldMat);
-      crossguard.position.set(0, 15, -6);
+      const crossguard = new THREE.Mesh(new THREE.BoxGeometry(7.5, 1.2, 1.6), goldMat);
+      crossguard.position.set(0, 15.6, -5.5);
       group.add(crossguard);
 
-      // Heraldic Shield at feet
-      const shield = new THREE.Mesh(new THREE.BoxGeometry(6.5, 1.8, 8), stoneMat);
-      shield.position.set(0, 15, 10);
+      const pommel = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 1.2, 6), goldMat);
+      pommel.position.set(0, 15.6, -7.0);
+      group.add(pommel);
+
+      // Heraldic Kite Shield with Lion Rampant Crest at feet
+      const shield = new THREE.Mesh(new THREE.BoxGeometry(7.2, 2.0, 8.5), ironMat);
+      shield.position.set(0, 15.2, 10.5);
       group.add(shield);
+
+      const shieldBoss = new THREE.Mesh(new THREE.ConeGeometry(1.6, 1.8, 4), goldMat);
+      shieldBoss.position.set(0, 16.5, 10.5);
+      group.add(shieldBoss);
 
       return group;
     }
@@ -1056,6 +1127,17 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         tip.rotation.x = 0.85;
         group.add(tip);
       }
+
+      // Heavy Iron War Trophy Shield Mounted on Front
+      const trophyShield = new THREE.Mesh(new THREE.BoxGeometry(6.5, 8.5, 1.2), ironMat);
+      trophyShield.position.set(0, 5.5, 3.2);
+      trophyShield.rotation.x = 0.15;
+      group.add(trophyShield);
+
+      const trophyBoss = new THREE.Mesh(new THREE.ConeGeometry(1.8, 2.0, 6), this.materials.gildedTrim);
+      trophyBoss.position.set(0, 5.5, 4.2);
+      trophyBoss.rotation.x = Math.PI / 2;
+      group.add(trophyBoss);
 
       return group;
     }
