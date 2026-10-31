@@ -720,3 +720,4 @@
   window.MedievalSurvivors.SKILL_TREE_NODES = SKILL_TREE_NODES;
   window.MedievalSurvivors.SKILL_TREE_BRANCHES = BRANCH_DEFS;
 })();
+

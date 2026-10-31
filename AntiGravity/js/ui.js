@@ -1034,6 +1034,7 @@ class UIController {
       case 'achievements': this.renderAchievementsTab(); break;
       case 'leaderboard':  this.renderLeaderboardTab();  break;
       case 'history':   this.renderHistoryTab();   break;
+      case 'updates':   this.renderUpdatesTab();   break;
       case 'settings':  this.renderSettingsTab();  break;
       default:          this.renderPlayTab();
     }
@@ -2690,6 +2691,309 @@ class UIController {
       }
     });
   }
+
+  // ── TAB: Atualizações & Crônicas de Versão ───────────────────
+  renderUpdatesTab() {
+    this._currentUpdatesFilter = this._currentUpdatesFilter || 'all';
+
+    const updatesData = [
+      {
+        version: 'v1.6.0',
+        eraName: 'Era da Constelação PoE2',
+        date: '31 de Outubro de 2026',
+        isLatest: true,
+        summary: 'Chegada da grande Árvore de Talentos interativa estilo Path of Exile 2, sistema de constelação ancestral com 4 ramos e bênçãos supremas (Keystones).',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Árvore de Habilidades & Talentos PoE2',
+            desc: 'Mais de 40 nós interativos divididos em 4 ramos cardinais (Fortaleza, Carnificina, Agilidade e Arcano). Cada nó custa Ouro e concede aprimoramentos passivos incrementais permanentes (+1% Velocidade, +2 HP, +1.5% Dano, etc.).'
+          },
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Pedras Angulares (Keystones Supremos)',
+            desc: '4 grandes habilidades de topo de ramo: <strong>Colosso Indomável</strong> (converte 50% da armadura em regeneração contínua de vida), <strong>Avatar da Ruína</strong> (golpes críticos detonam ondas de choque sísmicas em 360°), <strong>Chuva de Estilhaços</strong> (+1 projétil/golpe em todas as armas) e <strong>Singularidade Cósmica</strong> (gemas de XP geram centelhas cósmicas com dano e bônus de ouro).'
+          },
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Nódulos Notáveis com Pré-requisitos',
+            desc: 'Talentos intermediários que exigem nós alocados no ramo correspondente (ex: Baluarte Inabalável, Carniceiro de Valoria, Vento das Sombras e Alquimia dos Sábios).'
+          },
+          {
+            type: 'improvement',
+            badge: 'MELHORIA',
+            title: 'Reembolso Total Livre (Respec 100%)',
+            desc: 'Troque e experimente especializações quando desejar com o botão de reembolso total gratuito, recuperando 100% de todo o ouro investido na árvore.'
+          },
+          {
+            type: 'visual',
+            badge: 'VISUAL',
+            title: 'Mapa Vetorial Tátil & Painel Inspetor',
+            desc: 'Navegação com Arrastar/Pan e Zoom no mapa celeste, conexões brilhantes e gaveta lateral de inspeção detalhada com som ambiente.'
+          }
+        ]
+      },
+      {
+        version: 'v1.5.0',
+        eraName: 'Ritos Carmesins & Noite das Catacumbas',
+        date: 'Outubro de 2026',
+        isLatest: false,
+        summary: 'Pactos nos Altares de Sangue, Desafio Diário mutável e atmosfera visual dinâmica com ciclo de luz e sombra.',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Altares de Sangue (Pactos Carmesins)',
+            desc: 'Altares misteriosos despontam nas profundezas aos 2:45, 5:45 e 8:30. Sacrifique 35% de sua vida atual em troca de Forja Instantânea, Cataclisma Sanguíneo ou Poder Ofensivo Permanente.'
+          },
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Desafio Diário & Sementes Rotativas',
+            desc: 'Expedição especial com modificadores mutáveis a cada 24 horas e bonificação expressiva de +500 Ouro para os combatentes que triunfarem.'
+          },
+          {
+            type: 'visual',
+            badge: 'VISUAL',
+            title: 'Ciclo Dinâmico de Luz e Sombra',
+            desc: 'A catacumba escurece progressivamente ao longo dos 10 minutos de sobrevivência, a tocha do herói ganha tremulação de calor vivo e vinhetas dramáticas.'
+          }
+        ]
+      },
+      {
+        version: 'v1.4.0',
+        eraName: 'Heráldica Vetorial & Otimizações Extremas',
+        date: 'Outubro de 2026',
+        isLatest: false,
+        summary: 'Remoção de emojis e introdução de mais de 80 símbolos vetoriais SVG góticos exclusivos, com otimização massiva de áudio e física.',
+        categories: [
+          {
+            type: 'visual',
+            badge: 'VISUAL',
+            title: 'Motor de Ícones Vetoriais SVG Únicos',
+            desc: 'Substituição completa de todos os emojis genéricos de sistema por ícones vetoriais artesanais desenhados especificamente para as 20 armas, 9 classes, 9 passivas e 12 inimigos.'
+          },
+          {
+            type: 'performance',
+            badge: 'PERFORMANCE',
+            title: 'Pente Fino no WebAudio & Colisão',
+            desc: 'Throttling inteligente de golpes para evitar estalos sonoros em multidões e agrupamento dinâmico de gemas de alma distantes mantendo 60 FPS estáveis.'
+          }
+        ]
+      },
+      {
+        version: 'v1.3.0',
+        eraName: 'Forja Mítica & Sinergias Supremas',
+        date: 'Outubro de 2026',
+        isLatest: false,
+        summary: 'Grimório com 30 combinações de armas e passivas máximas, além da Forja Ancestral clássica.',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Grimório de Sinergias (30 Evoluções)',
+            desc: '10 Fusões Supremas de Armas no Nível 8 e 20 Ascensões Divinas de Arma + Passiva correspondente.'
+          },
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Forja Ancestral dos Campeões',
+            desc: 'Upgrades clássicos com ouro para Vitalidade, Armadura, Dano, Área, Sorte, Velocidade, Projéteis e Rerolls.'
+          }
+        ]
+      },
+      {
+        version: 'v1.2.0',
+        eraName: 'Portões de Valoria & Nuvem Neon Lakebase',
+        date: 'Outubro de 2026',
+        isLatest: false,
+        summary: 'Integração completa com banco de dados Neon Postgres na nuvem, autenticação segura e ranking global.',
+        categories: [
+          {
+            type: 'online',
+            badge: 'ONLINE',
+            title: 'Autenticação & Saves em Nuvem Neon',
+            desc: 'Criação de contas seguras com criptografia scrypt e sincronização contínua de progresso com Lakebase Postgres.'
+          },
+          {
+            type: 'online',
+            badge: 'ONLINE',
+            title: 'Placar de Líderes Global',
+            desc: 'Ranking em tempo real com abates, sobrevivência, modo hiper e pontuação ranqueada.'
+          },
+          {
+            type: 'improvement',
+            badge: 'MELHORIA',
+            title: 'Modo Visitante 100% Offline',
+            desc: 'Tolerância total a falhas de rede — o jogo pode ser desfrutado integralmente offline com save no localStorage.'
+          }
+        ]
+      },
+      {
+        version: 'v1.1.0',
+        eraName: 'Regime Ranqueado Oficial & Modo Hiper',
+        date: 'Outubro de 2026',
+        isLatest: false,
+        summary: 'Regime de expedições ranqueadas, contratos de maldição e Modo Hiper acelerado.',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Regime Ranqueado Oficial vs Livre',
+            desc: 'Modo competitivo com validação estrita de pontuação no Placar Neon ou modo casual de exploração.'
+          },
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Contratos de Maldição (Graus 1 a 5) & Modo Hiper',
+            desc: 'Multiplicadores hardcore de velocidade e perigo com bonificações exponenciais de ouro e renome.'
+          }
+        ]
+      }
+    ];
+
+    const currentFilter = this._currentUpdatesFilter;
+
+    this.menuTabContent.innerHTML = `
+      <div class="updates-tab-wrap">
+        <div class="updates-header-banner">
+          <div class="updates-header-titles">
+            <div class="updates-title-badge">📜 DECRETOS REAIS & HISTÓRICO DE VALORIA</div>
+            <h3>CRÔNICAS DE ATUALIZAÇÕES & EXPANSÕES</h3>
+            <p>Acompanhe a evolução de Valoria — novas mecânicas, balanceamentos, classes e melhorias contínuas forjadas no reino.</p>
+          </div>
+          <div class="updates-meta-pills">
+            <div class="update-meta-pill">
+              <span>Versão Atual:</span>
+              <strong class="text-gold">v1.6.0 (Constelação)</strong>
+            </div>
+            <div class="update-meta-pill">
+              <span>Serviços:</span>
+              <strong class="text-emerald">Neon Lakebase 🟢</strong>
+            </div>
+            <div class="update-meta-pill">
+              <span>Publicações:</span>
+              <strong>${updatesData.length} Versões</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="updates-filter-pills">
+          <button class="filter-pill ${currentFilter === 'all' ? 'active' : ''}" data-filter="all">📜 Todas as Atualizações (${updatesData.length})</button>
+          <button class="filter-pill ${currentFilter === 'feature' ? 'active' : ''}" data-filter="feature">✨ Novas Mecânicas</button>
+          <button class="filter-pill ${currentFilter === 'improvement' ? 'active' : ''}" data-filter="improvement">⚡ Melhorias & Balanceamento</button>
+        </div>
+
+        <div class="updates-timeline" id="updates-timeline-cards"></div>
+
+        <!-- Roadmap & Next Horizons Box -->
+        <div class="update-roadmap-box">
+          <div class="roadmap-header">
+            <span class="roadmap-icon">🔮</span>
+            <div>
+              <h4 class="roadmap-title">HORIZONTES FUTUROS DE VALORIA</h4>
+              <p class="roadmap-sub">Prévia dos próximos decretos e expansões em desenvolvimento pelos mestres forjadores:</p>
+            </div>
+          </div>
+          <div class="roadmap-grid">
+            <div class="roadmap-item">
+              <span class="rm-tag">EM BREVE</span>
+              <strong>Árvore de Especializações de Classes</strong>
+              <p>Habilidades ativas exclusivas e talentos específicos para Cavaleiro, Necromante, Maga e demais combatentes.</p>
+            </div>
+            <div class="roadmap-item">
+              <span class="rm-tag">EM BREVE</span>
+              <strong>Novos Chefes das Profundezas</strong>
+              <p>Senhores das Catacumbas com padrões de ataque multifásicos e ataques de área devastadores.</p>
+            </div>
+            <div class="roadmap-item">
+              <span class="rm-tag">EM DESENVOLVIMENTO</span>
+              <strong>Modo Abissal Sem Fim</strong>
+              <p>Sobrevivência infinita com escalonamento de hordas e espólios de ouro colossais.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Filter Buttons logic
+    const filterBtns = this.menuTabContent.querySelectorAll('.updates-filter-pills .filter-pill');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        this._currentUpdatesFilter = btn.getAttribute('data-filter');
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playWoodHit) {
+          window.MedievalSurvivors.sound.playWoodHit();
+        }
+        renderTimeline();
+      });
+    });
+
+    // Render Timeline cards based on filter
+    const container = document.getElementById('updates-timeline-cards');
+    const renderTimeline = () => {
+      container.innerHTML = '';
+      const filter = this._currentUpdatesFilter;
+
+      updatesData.forEach(release => {
+        let filteredCats = release.categories;
+        if (filter === 'feature') {
+          filteredCats = release.categories.filter(c => c.type === 'feature');
+        } else if (filter === 'improvement') {
+          filteredCats = release.categories.filter(c => c.type === 'improvement' || c.type === 'performance' || c.type === 'visual');
+        }
+
+        if (filteredCats.length === 0) return;
+
+        const card = document.createElement('div');
+        card.className = `update-release-card ${release.isLatest ? 'latest-release-card' : ''}`;
+
+        let itemsHtml = filteredCats.map(item => {
+          let badgeClass = 'badge-update-novo';
+          if (item.type === 'improvement') badgeClass = 'badge-update-melhoria';
+          else if (item.type === 'visual') badgeClass = 'badge-update-visual';
+          else if (item.type === 'performance') badgeClass = 'badge-update-perf';
+          else if (item.type === 'online') badgeClass = 'badge-update-online';
+
+          return `
+            <div class="update-item-row">
+              <div class="update-item-badge-wrap">
+                <span class="update-tag ${badgeClass}">${item.badge}</span>
+              </div>
+              <div class="update-item-text">
+                <h5 class="update-item-title">${item.title}</h5>
+                <p class="update-item-desc">${item.desc}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        card.innerHTML = `
+          <div class="update-release-header">
+            <div class="release-tag-group">
+              <span class="version-badge ${release.isLatest ? 'badge-gold' : ''}">${release.version}</span>
+              <h4 class="release-era-title">${release.eraName}</h4>
+              ${release.isLatest ? '<span class="status-pill-latest">✨ VERSÃO ATUAL</span>' : ''}
+            </div>
+            <div class="release-date-pill">📅 ${release.date}</div>
+          </div>
+          <p class="release-summary">${release.summary}</p>
+          <div class="update-items-list">
+            ${itemsHtml}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    };
+
+    renderTimeline();
+  }
+
 
   // ──────────────────────────────────────────────────────────────
   //  HIDE ALL MODALS

@@ -897,6 +897,18 @@
         <path d="M32,4 Q32,32 4,32 Q32,32 32,60 Q32,32 60,32 Q32,32 32,4 Z" fill="#f1c40f" stroke="#ffffff" stroke-width="1.5"/>
         <circle cx="32" cy="32" r="5" fill="#ffffff"/>
       </svg>
+    `,
+
+    hud_updates: `
+      <svg viewBox="0 0 64 64" class="gothic-svg icon-updates" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14,10 C14,6 18,6 24,6 L48,6 C52,6 54,8 54,12 L54,48 C54,54 50,56 44,56 L18,56 C14,56 12,52 12,48 L12,12 C12,10 13,10 14,10 Z" fill="#241c12" stroke="#d4af37" stroke-width="2"/>
+        <line x1="20" y1="15" x2="44" y2="15" stroke="#f1c40f" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="20" y1="23" x2="40" y2="23" stroke="#d4af37" stroke-width="2" stroke-linecap="round"/>
+        <line x1="20" y1="31" x2="42" y2="31" stroke="#d4af37" stroke-width="2" stroke-linecap="round"/>
+        <line x1="20" y1="39" x2="32" y2="39" stroke="#d4af37" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="44" cy="45" r="7" fill="#b33939" stroke="#ff5252" stroke-width="1.5"/>
+        <polygon points="44,41 45.5,44 48.5,45 45.5,46 44,49 42.5,46 39.5,45 42.5,44" fill="#f1c40f"/>
+      </svg>
     `
   };
 
@@ -1038,7 +1050,10 @@
     'skill_tree': 'hud_tree',
     'keystone': 'hud_keystone',
     'notable': 'hud_notable',
-    'spark': 'hud_spark'
+    'spark': 'hud_spark',
+    'updates': 'hud_updates',
+    'patch_notes': 'hud_updates',
+    'changelog': 'hud_updates'
   };
 
   const MedievalIcons = {

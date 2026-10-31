@@ -3948,3 +3948,303 @@ body, html {
     height: 480px;
   }
 }
+
+/* ==================== TAB: ATUALIZAÇÕES & CRÔNICAS DE VERSÃO ==================== */
+.updates-tab-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.updates-header-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: radial-gradient(ellipse at center, rgba(35, 24, 48, 0.95), rgba(14, 9, 20, 0.95));
+  border: 1.5px solid rgba(241, 196, 15, 0.4);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 0 25px rgba(241, 196, 15, 0.15);
+}
+
+.updates-title-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #f1c40f;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.updates-header-titles h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.35rem;
+  color: #f7d774;
+  letter-spacing: 1.5px;
+  margin: 0 0 4px 0;
+}
+
+.updates-header-titles p {
+  color: #c7b9ab;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.updates-meta-pills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.update-meta-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 7, 18, 0.7);
+  border: 1px solid rgba(241, 196, 15, 0.3);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  color: #c7b9ab;
+}
+
+.updates-filter-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.updates-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.update-release-card {
+  background: radial-gradient(ellipse at 50% 0%, #1e182e 0%, #120d1c 60%, #0a0710 100%);
+  border: 1.5px solid rgba(226, 177, 60, 0.3);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  transition: all 0.25s ease;
+}
+
+.update-release-card:hover {
+  border-color: rgba(241, 196, 15, 0.6);
+  transform: translateY(-2px);
+}
+
+.latest-release-card {
+  border-color: #f1c40f !important;
+  box-shadow: 0 0 25px rgba(241, 196, 15, 0.25), inset 0 0 20px rgba(241, 196, 15, 0.05) !important;
+}
+
+.update-release-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.release-tag-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.version-badge {
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  font-size: 0.88rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.version-badge.badge-gold {
+  background: linear-gradient(180deg, #f1c40f 0%, #d4af37 100%) !important;
+  color: #1a0f00 !important;
+  border-color: #fff1b8 !important;
+  box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+}
+
+.release-era-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.15rem;
+  color: #fff9ea;
+  margin: 0;
+}
+
+.status-pill-latest {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(46, 204, 113, 0.2);
+  border: 1px solid #2ecc71;
+  color: #2ecc71;
+  letter-spacing: 0.5px;
+}
+
+.release-date-pill {
+  font-size: 0.8rem;
+  color: #c7b9ab;
+}
+
+.release-summary {
+  font-size: 0.88rem;
+  color: #f0c05a;
+  margin: 0 0 14px 0;
+  line-height: 1.4;
+}
+
+.update-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.update-item-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.update-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  min-width: 62px;
+  text-align: center;
+}
+
+.badge-update-novo {
+  background: rgba(46, 204, 113, 0.2);
+  border: 1px solid #2ecc71;
+  color: #2ecc71;
+}
+
+.badge-update-melhoria {
+  background: rgba(52, 152, 219, 0.2);
+  border: 1px solid #3498db;
+  color: #3498db;
+}
+
+.badge-update-visual {
+  background: rgba(155, 89, 182, 0.25);
+  border: 1px solid #9b59b6;
+  color: #e056fd;
+}
+
+.badge-update-perf {
+  background: rgba(230, 126, 34, 0.2);
+  border: 1px solid #e67e22;
+  color: #f39c12;
+}
+
+.badge-update-online {
+  background: rgba(26, 188, 156, 0.2);
+  border: 1px solid #1abc9c;
+  color: #1abc9c;
+}
+
+.update-item-title {
+  font-size: 0.92rem;
+  font-weight: bold;
+  color: #fff9ea;
+  margin: 0 0 3px 0;
+}
+
+.update-item-desc {
+  font-size: 0.82rem;
+  color: #c7b9ab;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Roadmap Box */
+.update-roadmap-box {
+  background: radial-gradient(ellipse at 50% 0%, #1a1226 0%, #0d0914 100%);
+  border: 1.5px solid rgba(241, 196, 15, 0.3);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-top: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.roadmap-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.roadmap-icon {
+  font-size: 2rem;
+}
+
+.roadmap-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  color: #f7d774;
+  margin: 0 0 3px 0;
+}
+
+.roadmap-sub {
+  font-size: 0.82rem;
+  color: #c7b9ab;
+  margin: 0;
+}
+
+.roadmap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.roadmap-item {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.rm-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(241, 196, 15, 0.15);
+  border: 1px solid #f1c40f;
+  color: #f1c40f;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.roadmap-item strong {
+  display: block;
+  color: #fff;
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+}
+
+.roadmap-item p {
+  font-size: 0.78rem;
+  color: #aaa;
+  margin: 0;
+  line-height: 1.35;
+}
