@@ -2781,21 +2781,132 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
   function createSpectralOrbMesh(isEvolved) {
     const root = new THREE.Group();
-    const coreMat = isEvolved ? materials.glowingCyan : materials.glowingViolet;
-    const core = new THREE.Mesh(new THREE.SphereGeometry(6.2, 12, 12), coreMat);
-    core.position.y = 8;
-    root.add(core);
 
-    // Ethereal outer pulsating halo (ampliado para alta visibilidade)
-    const haloMat = new THREE.MeshBasicMaterial({
+    // Group for all animated floating elements
+    const orbGroup = new THREE.Group();
+    orbGroup.position.y = 8;
+    root.add(orbGroup);
+
+    // 1. Núcleo de Alma Pulsante (Luminous Soul Core)
+    const coreMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x00f2fe : 0xd288ff,
+      transparent: true,
+      opacity: 0.95
+    });
+    const core = new THREE.Mesh(new THREE.SphereGeometry(4.8, 14, 14), coreMat);
+    orbGroup.add(core);
+
+    // 2. Concha Etérea de Cristal Fantasmagórico (Ethereal Outer Shell)
+    const shellMat = new THREE.MeshBasicMaterial({
       color: isEvolved ? 0x00e5ff : 0xbb86fc,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.42,
       wireframe: true
     });
-    const halo = new THREE.Mesh(new THREE.SphereGeometry(8.8, 10, 10), haloMat);
-    halo.position.y = 8;
-    root.add(halo);
+    const shell = new THREE.Mesh(new THREE.DodecahedronGeometry(6.6, 1), shellMat);
+    orbGroup.add(shell);
+
+    // 3. Anéis Giroscópicos Rúnicos de Almas (Gyroscopic Orbiting Runic Rings)
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x70a1ff : 0xbe2edd,
+      transparent: true,
+      opacity: 0.65
+    });
+    const ring1 = new THREE.Mesh(new THREE.TorusGeometry(8.2, 0.4, 6, 24), ringMat);
+    orbGroup.add(ring1);
+
+    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(8.8, 0.35, 6, 24), ringMat);
+    ring2.rotation.x = Math.PI / 2;
+    orbGroup.add(ring2);
+
+    // 4. Espíritos/Wisps Orbitais Dançantes (3 a 4 Satélites de Almas)
+    const wispCount = isEvolved ? 4 : 3;
+    const wisps = [];
+    const wispMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xffffff : 0xff79cd,
+      transparent: true,
+      opacity: 0.90
+    });
+    const wispGeo = new THREE.SphereGeometry(1.6, 8, 8);
+
+    for (let w = 0; w < wispCount; w++) {
+      const wMesh = new THREE.Mesh(wispGeo, wispMat);
+      orbGroup.add(wMesh);
+      wisps.push(wMesh);
+    }
+
+    // 5. Rastro de Cometa Fantasmagórico (Ghostly Ectoplasm Trail)
+    const trailCount = 3;
+    const trails = [];
+    const trailMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0x00d2d3 : 0x8854d0,
+      transparent: true,
+      opacity: 0.35
+    });
+
+    for (let t = 0; t < trailCount; t++) {
+      const tRad = 3.6 * (1 - t * 0.25);
+      const tMesh = new THREE.Mesh(new THREE.SphereGeometry(tRad, 8, 8), trailMat);
+      root.add(tMesh);
+      trails.push(tMesh);
+    }
+
+    let animTime = Math.random() * 10;
+
+    // Procedural Animation Loop
+    root.updateVisuals = function(dt, projectile) {
+      animTime += dt;
+
+      // Vertical sinusoidal ghost bobbing
+      orbGroup.position.y = 8 + Math.sin(animTime * 7.5) * 2.2;
+
+      // Core pulsating breathing
+      const pulse = 1.0 + Math.sin(animTime * 9.0) * 0.18;
+      core.scale.set(pulse, pulse, pulse);
+
+      // Ethereal shell counter-rotation
+      shell.rotation.y -= dt * 3.2;
+      shell.rotation.x += dt * 2.1;
+
+      // Gyroscopic rings spinning
+      ring1.rotation.x += dt * 4.5;
+      ring1.rotation.y += dt * 3.0;
+      ring2.rotation.z += dt * 4.0;
+      ring2.rotation.y -= dt * 2.5;
+
+      // Orbiting soul wisps
+      for (let i = 0; i < wisps.length; i++) {
+        const offset = (i / wisps.length) * Math.PI * 2;
+        const wSpeed = 5.2 + i * 0.4;
+        const orbitR = 10.5 + Math.sin(animTime * 4 + i) * 1.5;
+        const wAngle = animTime * wSpeed + offset;
+        const wY = Math.sin(animTime * 5 + offset) * 4.5;
+        wisps[i].position.set(
+          Math.cos(wAngle) * orbitR,
+          wY,
+          Math.sin(wAngle) * orbitR
+        );
+        const wPulse = 0.85 + Math.sin(animTime * 12 + i) * 0.25;
+        wisps[i].scale.set(wPulse, wPulse, wPulse);
+      }
+
+      // Trailing comet segments behind projectile movement vector
+      const moveAngle = projectile && projectile.angle !== undefined ? projectile.angle : 0;
+      const cosA = Math.cos(moveAngle);
+      const sinA = Math.sin(moveAngle);
+
+      for (let t = 0; t < trails.length; t++) {
+        const distBack = (t + 1) * 7.5;
+        const wobble = Math.sin(animTime * 14 - t * 0.8) * 2.0;
+        trails[t].position.set(
+          -cosA * distBack - sinA * wobble,
+          8 + Math.sin(animTime * 7.5 - t * 0.5) * 1.8,
+          -sinA * distBack + cosA * wobble
+        );
+        const trailFade = Math.max(0.05, 0.45 - t * 0.12);
+        trails[t].material.opacity = trailFade;
+      }
+    };
 
     return root;
   }

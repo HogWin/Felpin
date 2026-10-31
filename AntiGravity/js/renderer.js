@@ -1011,6 +1011,10 @@ class GameRenderer {
       const h = p.renderHeight !== undefined ? p.renderHeight : (p.isVortex ? 0.3 : (p.isThunder ? 0 : 10));
       pMesh.position.set(p.x, h, p.y);
 
+      if (pMesh.updateVisuals) {
+        pMesh.updateVisuals(dt, p);
+      }
+
       // 3D Realistic Weapon Orientation & Spinning
       if (p.isFlail) {
         pMesh.rotation.y += dt * 6;

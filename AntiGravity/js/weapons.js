@@ -1225,6 +1225,12 @@ class SpectralOrb {
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
 
+    // Ethereal soul sparks trail
+    if (particles && Math.random() < 0.40) {
+      const sparkCol = this.isEvolved ? (Math.random() > 0.5 ? '#00e5ff' : '#70a1ff') : (Math.random() > 0.5 ? '#bb86fc' : '#e056fd');
+      particles.createSpark(this.x + (Math.random() - 0.5) * 8, this.y + (Math.random() - 0.5) * 8, sparkCol);
+    }
+
     // Hit detection
     for (let i = 0, len = enemies.length; i < len; i++) {
       const enemy = enemies[i];
