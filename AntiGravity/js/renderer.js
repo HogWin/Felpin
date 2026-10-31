@@ -886,16 +886,18 @@ class GameRenderer {
   updateProjectiles(game, dt) {
     this._activeProjectiles.clear();
 
-    // 1. Holy Aura Weapon
+    // 1. Holy Aura Weapon (2D Ground Area of Effect)
     const auraWep = game.player.weapons.find(w => w.id === 'holy_aura');
     if (auraWep && auraWep.level > 0) {
+      const radius = auraWep.activeRadius || (80 * (auraWep.area || 1.0) * (game.player.areaMultiplier || 1.0));
+      auraWep.activeRadius = radius;
       if (!this.holyAuraMesh) {
-        this.holyAuraMesh = window.MedievalSurvivors.models3d.createHolyAuraRingMesh(auraWep.activeRadius || 70, auraWep.level >= 8);
+        this.holyAuraMesh = window.MedievalSurvivors.models3d.createHolyAuraRingMesh(radius, auraWep.level >= 8);
         this.scene.add(this.holyAuraMesh);
       }
-      this.holyAuraMesh.position.set(game.player.x, 0, game.player.y);
+      this.holyAuraMesh.position.set(game.player.x, 0.08, game.player.y);
       if (this.holyAuraMesh.updateVisuals) {
-        this.holyAuraMesh.updateVisuals(dt, auraWep.activeRadius);
+        this.holyAuraMesh.updateVisuals(dt, radius, auraWep.pulseAnim || 0);
       }
     } else if (this.holyAuraMesh) {
       this.scene.remove(this.holyAuraMesh);

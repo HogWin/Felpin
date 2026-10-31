@@ -833,6 +833,9 @@ class HolyAuraWeapon extends BaseWeapon {
 
   update(dt, player, enemies, projectiles, particles) {
     super.update(dt, player, enemies, projectiles, particles);
+    if (player) {
+      this.activeRadius = 80 * (this.area || 1.0) * (player.areaMultiplier || 1.0);
+    }
     if (this.pulseAnim > 0) {
       this.pulseAnim -= dt * 2.5;
     }

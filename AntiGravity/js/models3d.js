@@ -2148,7 +2148,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     root.add(aura);
 
     root.updateVisuals = function(dt) {
-      aura.rotation.z += dt * 1.5;
+      aura.rotation.y += dt * 1.5;
       const pulse = 1 + Math.sin(Date.now() / 200) * 0.15;
       aura.scale.set(pulse, pulse, 1);
     };
@@ -2326,7 +2326,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       const bob = Math.sin(Date.now() * 0.005) * 2.5;
       orb.position.y = 30 + bob;
 
-      groundRune.rotation.z += dt * 0.5;
+      groundRune.rotation.y += dt * 0.5;
       const pulse = 1.0 + Math.sin(Date.now() * 0.007) * 0.08;
       groundRune.scale.set(pulse, pulse, 1);
     };
@@ -2512,7 +2512,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     flames.push({ mesh: centerFlame, phase: 0 });
 
     root.updateVisuals = function(dt) {
-      ring.rotation.z += dt * 1.5;
+      ring.rotation.y += dt * 1.5;
       const time = Date.now() / 100;
       core.scale.setScalar(0.9 + Math.sin(time) * 0.18);
 
@@ -2529,63 +2529,85 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
   function createHolyAuraRingMesh(radius, isEvolved) {
     const root = new THREE.Group();
-    const r = radius || 70;
+    const r = radius || 80;
 
-    // Glowing holy seal disc on ground
-    const discGeo = new THREE.RingGeometry(r * 0.85, r, 32);
+    // 1. Soft 2D Area of Effect Disc (flat on the ground plane)
+    const discGeo = new THREE.CircleGeometry(r, 48);
     discGeo.rotateX(-Math.PI / 2);
+    const discColor = isEvolved ? 0xffd700 : 0x4aa3df;
     const discMat = new THREE.MeshBasicMaterial({
-      color: isEvolved ? 0xffd700 : 0xf1c40f,
+      color: discColor,
       transparent: true,
-      opacity: 0.6,
-      side: THREE.DoubleSide
+      opacity: 0.12,
+      side: THREE.DoubleSide,
+      depthWrite: false
     });
     const disc = new THREE.Mesh(discGeo, discMat);
-    disc.position.y = 0.6;
+    disc.position.y = 0.05;
     root.add(disc);
 
-    // Inner rotating runes
-    const innerGeo = new THREE.RingGeometry(r * 0.4, r * 0.5, 20);
-    innerGeo.rotateX(-Math.PI / 2);
-    const inner = new THREE.Mesh(innerGeo, new THREE.MeshBasicMaterial({
-      color: 0xffea79,
+    // 2. Outer 2D Area Boundary Ring (crisp 2D damage perimeter)
+    const outerGeo = new THREE.RingGeometry(r * 0.965, r, 64);
+    outerGeo.rotateX(-Math.PI / 2);
+    const outerColor = isEvolved ? 0xffea79 : 0x70c5ff;
+    const outerMat = new THREE.MeshBasicMaterial({
+      color: outerColor,
       transparent: true,
-      opacity: 0.45,
-      side: THREE.DoubleSide
-    }));
-    inner.position.y = 0.7;
+      opacity: 0.65,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const outer = new THREE.Mesh(outerGeo, outerMat);
+    outer.position.y = 0.07;
+    root.add(outer);
+
+    // 3. Inner 2D Concentric Rune Ring
+    const innerGeo = new THREE.RingGeometry(r * 0.48, r * 0.52, 40);
+    innerGeo.rotateX(-Math.PI / 2);
+    const innerColor = isEvolved ? 0xffd700 : 0xa0e0ff;
+    const innerMat = new THREE.MeshBasicMaterial({
+      color: innerColor,
+      transparent: true,
+      opacity: 0.35,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const inner = new THREE.Mesh(innerGeo, innerMat);
+    inner.position.y = 0.08;
     root.add(inner);
 
-    // 4 Orbiting 3D Sacred Light Crystals around the hero
-    const crystalsGroup = new THREE.Group();
-    root.add(crystalsGroup);
-    const crystals = [];
-    const crystalGeo = new THREE.OctahedronGeometry(3.5, 0);
-    const crystalMat = new THREE.MeshBasicMaterial({ color: isEvolved ? 0xffffff : 0xffea79 });
+    // 4. Dynamic 2D Pulse Shockwave Ring (expands flat on ground when damage pulses)
+    const pulseGeo = new THREE.RingGeometry(r * 0.92, r, 54);
+    pulseGeo.rotateX(-Math.PI / 2);
+    const pulseMat = new THREE.MeshBasicMaterial({
+      color: isEvolved ? 0xffffff : 0xe0f7fa,
+      transparent: true,
+      opacity: 0.0,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const pulse = new THREE.Mesh(pulseGeo, pulseMat);
+    pulse.position.y = 0.09;
+    root.add(pulse);
 
-    const crystalCount = isEvolved ? 6 : 4;
-    for (let i = 0; i < crystalCount; i++) {
-      const cMesh = new THREE.Mesh(crystalGeo, crystalMat);
-      crystalsGroup.add(cMesh);
-      crystals.push(cMesh);
-    }
-
-    root.updateVisuals = function(dt, currentRadius) {
+    root.updateVisuals = function(dt, currentRadius, pulseAnim = 0) {
       const curR = currentRadius || r;
       const scale = curR / r;
-      disc.scale.set(scale, scale, scale);
-      inner.scale.set(scale, scale, scale);
-      disc.rotation.z += dt * 1.2;
-      inner.rotation.z -= dt * 2.0;
+      disc.scale.set(scale, 1, scale);
+      outer.scale.set(scale, 1, scale);
+      inner.scale.set(scale, 1, scale);
 
-      // Orbiting 3D sacred crystals
-      crystalsGroup.rotation.y += dt * 2.4;
-      const orbitR = curR * 0.72;
-      for (let i = 0; i < crystals.length; i++) {
-        const ang = (i / crystals.length) * Math.PI * 2;
-        crystals[i].position.set(Math.cos(ang) * orbitR, 14 + Math.sin(Date.now() / 200 + i) * 2, Math.sin(ang) * orbitR);
-        crystals[i].rotation.x += dt * 3;
-        crystals[i].rotation.y += dt * 3;
+      // Rotate strictly in the 2D horizontal ground plane (around Y axis only)
+      outer.rotation.y += dt * 0.35;
+      inner.rotation.y -= dt * 0.65;
+
+      // 2D Attack Shockwave Pulse
+      if (pulseAnim > 0) {
+        pulse.material.opacity = Math.max(0, Math.min(0.9, pulseAnim * 0.9));
+        const pWave = 0.88 + (1 - pulseAnim) * 0.12;
+        pulse.scale.set(scale * pWave, 1, scale * pWave);
+      } else {
+        pulse.material.opacity = 0;
       }
     };
 
@@ -2855,7 +2877,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         b.scale.set(scale, scale, scale);
         b.position.y = b._baseY + Math.max(0, cycle) * 3.0;
       }
-      border.rotation.z += dt * 0.6;
+      border.rotation.y += dt * 0.6;
     };
 
     return root;
