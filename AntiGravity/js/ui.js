@@ -50,7 +50,9 @@ class UIController {
     if (this.btnRefuseBloodPact) {
       this.btnRefuseBloodPact.addEventListener('click', () => {
         if (this.bloodAltarModal) this.bloodAltarModal.classList.remove('active');
-        if (this.game && this.game.state === 'PAUSED') {
+        if (this.game && this.game.resume) {
+          this.game.resume();
+        } else if (this.game) {
           this.game.state = 'PLAYING';
         }
       });
@@ -1067,9 +1069,11 @@ class UIController {
           altar.alive = false;
         }
 
-        setTimeout(() => {
+        if (game && game.resume) {
+          game.resume();
+        } else if (game) {
           game.state = 'PLAYING';
-        }, 80);
+        }
       };
 
       this.bloodPactCards.appendChild(card);

@@ -3070,11 +3070,11 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   // 13. Penitent Whip Lash Mesh (2D sweeping crimson barbed lash wave)
   function createWhipLashMesh(isEvolved) {
     const root = new THREE.Group();
-    const arcHalf = Math.PI * 0.35;
+    const arcHalf = Math.PI * 0.22;
     const thetaStart = -Math.PI / 2 - arcHalf;
     const thetaLength = arcHalf * 2;
 
-    const lashGeo = new THREE.RingGeometry(8, isEvolved ? 85 : 65, 32, 1, thetaStart, thetaLength);
+    const lashGeo = new THREE.RingGeometry(6, 38, 24, 1, thetaStart, thetaLength);
     lashGeo.rotateX(-Math.PI / 2);
     const lashMat = new THREE.MeshBasicMaterial({
       color: isEvolved ? 0xff2244 : 0xd63031,
@@ -3086,7 +3086,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     });
     root.add(new THREE.Mesh(lashGeo, lashMat));
 
-    const edgeGeo = new THREE.RingGeometry(isEvolved ? 78 : 58, isEvolved ? 86 : 66, 32, 1, thetaStart, thetaLength);
+    const edgeGeo = new THREE.RingGeometry(33, 39, 24, 1, thetaStart, thetaLength);
     edgeGeo.rotateX(-Math.PI / 2);
     const edgeMat = new THREE.MeshBasicMaterial({
       color: isEvolved ? 0xffffff : 0xff7675,

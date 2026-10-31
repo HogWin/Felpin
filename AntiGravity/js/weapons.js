@@ -1886,7 +1886,7 @@ class PenitentWhipWeapon extends BaseWeapon {
   attack(player, enemies, projectiles, particles) {
     const isEvo = this.level >= this.maxLevel;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-    const reach = 85 * this.area * player.areaMultiplier;
+    const reach = 48 * this.area * player.areaMultiplier;
 
     // Use player's aiming / movement direction!
     const facing = (player.facingAngle !== undefined)
@@ -1909,7 +1909,7 @@ class PenitentWhipWeapon extends BaseWeapon {
       window.MedievalSurvivors.sound.playSwordSlash();
     }
 
-    const arcHalf = Math.PI * 0.40;
+    const arcHalf = Math.PI * 0.22;
     for (let i = 0; i < angles.length; i++) {
       const angle = angles[i];
       const lash = {
