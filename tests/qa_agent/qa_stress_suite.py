@@ -52,7 +52,7 @@ class QATestAgent:
         print("=" * 70)
 
         self.server.start()
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         with sync_playwright() as p:
             browser = p.chromium.launch(channel='chrome', headless=self.headless)
@@ -123,9 +123,10 @@ class QATestAgent:
 
     def test_page_load(self, page):
         t0 = time.time()
-        page.goto(self.url, wait_until='domcontentloaded')
-        page.wait_for_selector('#game-container', timeout=5000)
-        page.wait_for_selector('#auth-modal', timeout=5000)
+        page.goto(self.url, wait_until='networkidle')
+        page.wait_for_selector('#game-container', timeout=8000)
+        page.wait_for_selector('#auth-modal', timeout=8000)
+        page.wait_for_function("() => window.MedievalSurvivors && window.MedievalSurvivors.game", timeout=8000)
 
         # Check if 3D Canvas and 2D Overlay exist
         canvas3d = page.query_selector('#game-canvas')
