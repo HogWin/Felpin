@@ -145,6 +145,14 @@ class Game {
       this.keys[e.code] = false;
     });
 
+    // Desativa o menu de contexto nativo do navegador durante a run e sobre o canvas (evita menus de 'papel de parede' / salvar imagem)
+    window.addEventListener('contextmenu', (e) => {
+      if (this.state === 'PLAYING' || this.state === 'PAUSED' || (e.target && (e.target.id === 'game-canvas' || e.target.id === 'overlay-canvas' || e.target.closest('#game-container')))) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
     // Start background music / audio context on first user interaction
     const initAudio = () => {
       window.MedievalSurvivors.sound.init();
