@@ -384,7 +384,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
     attack(player, enemies, projectiles, particles) {
       const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-      const reach = 95 * this.area * player.areaMultiplier;
+      const reach = 68 * this.area * player.areaMultiplier;
       const angle = player.facingAngle !== undefined ? player.facingAngle : 0;
 
       // Colossal Frontal Arc Slash
@@ -617,7 +617,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
     attack(player, enemies, projectiles, particles) {
       const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-      const poolRadius = 55 * this.area * player.areaMultiplier;
+      const poolRadius = 38 * this.area * player.areaMultiplier;
 
       // Drop 2 large purgatory magma pools
       for (let i = 0; i < 2; i++) {
@@ -956,7 +956,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       projectiles.push(new SupremeSoulSingularityVortex({
         x: randTarget.x,
         y: randTarget.y,
-        radius: 80 * this.area * player.areaMultiplier,
+        radius: 50 * this.area * player.areaMultiplier,
         damage: effectiveDamage,
         weapon: this
       }));
@@ -1051,7 +1051,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
     attack(player, enemies, projectiles, particles) {
       const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-      const reach = 80 * this.area * player.areaMultiplier;
+      const reach = 58 * this.area * player.areaMultiplier;
 
       // 8-directional blood lashes
       for (let a = 0; a < 8; a++) {
@@ -1129,7 +1129,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
     attack(player, enemies, projectiles, particles) {
       const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-      const reach = 105 * this.area * player.areaMultiplier;
+      const reach = 72 * this.area * player.areaMultiplier;
       const angle = player.facingAngle !== undefined ? player.facingAngle : 0;
 
       // Colossal dark slash wave
@@ -1165,7 +1165,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         projectiles.push(new ThunderStrike({
           x: strikeX,
           y: strikeY,
-          radius: 45 * this.area * player.areaMultiplier,
+          radius: 32 * this.area * player.areaMultiplier,
           damage: Math.round(effectiveDamage * 0.65),
           isEvolved: true,
           weapon: this
@@ -1236,7 +1236,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         targetX: player.x + (Math.random() - 0.5) * 60,
         targetY: player.y + (Math.random() - 0.5) * 60,
         damage: Math.round(effectiveDamage * 1.2),
-        poolRadius: 48 * this.area * player.areaMultiplier,
+        poolRadius: 34 * this.area * player.areaMultiplier,
         duration: 5.0,
         isEvolved: true,
         weapon: this

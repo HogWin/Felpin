@@ -100,7 +100,7 @@ class SaveManager {
         name: 'Alcance de Mestre',
         icon: '🚩',
         description: 'Estende a área de impacto, corte de espadas e raio de explosões.',
-        statPerLevel: '+10% Área de Efeito',
+        statPerLevel: '+5% Área de Efeito',
         maxLevel: 5,
         costs: [180, 400, 820, 1600, 3000]
       },
@@ -810,9 +810,9 @@ class SaveManager {
       player.baseDamageMultiplier += up.strength * 0.08;
     }
 
-    // Weapon Area
+    // Weapon Area (suave e controlado para manter visibilidade)
     if (up.area > 0) {
-      player.baseAreaMultiplier += up.area * 0.10;
+      player.baseAreaMultiplier += up.area * 0.05;
     }
 
     // Luck / Crit / Gold

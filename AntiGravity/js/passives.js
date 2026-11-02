@@ -148,13 +148,13 @@ class PassiveRegistry {
       name: 'Estandarte de Alcance',
       icon: '🚩',
       maxLevel: 5,
-      description: 'Estende o raio de alcance, tamanho das lâminas e explosões de todas as armas.',
-      getStatDesc: (lvl) => `Área de efeito: +${lvl * 15}%.`,
+      description: 'Estende moderadamente o raio de alcance, tamanho das lâminas e explosões de todas as armas.',
+      getStatDesc: (lvl) => `Área de efeito: +${lvl * 8}%.`,
       getNextLevelDiff: (currentLvl) => {
-        return `Área de Efeito: +${currentLvl * 15}% ➔ +${(currentLvl + 1) * 15}%`;
+        return `Área de Efeito: +${currentLvl * 8}% ➔ +${(currentLvl + 1) * 8}%`;
       },
       apply: (player, lvl) => {
-        player.bonusAreaMultiplier = lvl * 0.15;
+        player.bonusAreaMultiplier = lvl * 0.08;
       }
     });
 

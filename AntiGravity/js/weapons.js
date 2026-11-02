@@ -151,13 +151,13 @@ class BroadswordWeapon extends BaseWeapon {
       count: 1,
       levelsConfig: [
         { damage: 32, cooldown: 1.25, area: 1.0, count: 1, description: 'Lâmina de aço temperado com corte amplo.' },
-        { damage: 45, area: 1.2, description: 'Dano: 32 ➔ 45 | +20% Raio de Golpe' },
+        { damage: 45, area: 1.08, description: 'Dano: 32 ➔ 45 | +8% Raio de Golpe' },
         { count: 2, cooldown: 1.1, description: 'Golpe Duplo! Corta para frente e para trás | Recarga: 1.1s' },
-        { damage: 65, area: 1.4, description: 'Dano: 45 ➔ 65 | +20% Raio de Golpe' },
+        { damage: 65, area: 1.15, description: 'Dano: 45 ➔ 65 | +15% Raio de Golpe' },
         { count: 3, cooldown: 0.95, description: 'Golpe Triplo em leque! | Recarga: 0.95s' },
-        { damage: 95, area: 1.6, description: 'Dano: 65 ➔ 95 | Lâmina Gigante' },
+        { damage: 95, area: 1.22, description: 'Dano: 65 ➔ 95 | +22% Raio de Golpe' },
         { count: 4, cooldown: 0.8, description: 'Golpe Quádruplo 360° | Recarga: 0.8s' },
-        { damage: 150, area: 1.9, cooldown: 0.65, description: 'EVOLUÇÃO: Lâmina do Monarca Sagrado (Dano 150, 360° contínuo)' }
+        { damage: 150, area: 1.30, cooldown: 0.65, description: 'EVOLUÇÃO: Lâmina do Monarca Sagrado (Dano 150, 360° contínuo)' }
       ]
     });
     this.slashEffects = [];
@@ -419,12 +419,12 @@ class HolyFireWeapon extends BaseWeapon {
       levelsConfig: [
         { damage: 16, cooldown: 2.8, count: 1, area: 1.0, description: '1 poça de chamas ardentes por 3.5s.' },
         { count: 2, damage: 22, description: '2 Frascos por arremesso | Dano: 22' },
-        { area: 1.3, description: '+30% Tamanho da Poça de Chamas' },
+        { area: 1.12, description: '+12% Tamanho da Poça de Chamas' },
         { count: 3, damage: 32, description: '3 Frascos Arremessados | Dano: 32' },
         { cooldown: 2.1, description: 'Recarga Acelerada: 2.8s ➔ 2.1s' },
-        { count: 4, area: 1.6, description: '4 Frascos em dispersão | +30% Área' },
+        { count: 4, area: 1.22, description: '4 Frascos em dispersão | +22% Área' },
         { damage: 50, cooldown: 1.6, description: 'Dano: 32 ➔ 50 | Recarga: 1.6s' },
-        { damage: 85, count: 6, area: 2.0, description: 'EVOLUÇÃO: Tempestade de Fogo Divina (6 crateras flamejantes gigantes)' }
+        { damage: 85, count: 6, area: 1.12, description: 'EVOLUÇÃO: Tempestade de Fogo Divina (6 crateras flamejantes concentradas)' }
       ]
     });
   }
@@ -598,7 +598,7 @@ class WhirlingAxesWeapon extends BaseWeapon {
         { count: 3, damage: 50, description: '3 Machados simultâneos | Dano: 50' },
         { cooldown: 1.4, description: 'Recarga Reduzida: 1.8s ➔ 1.4s' },
         { count: 4, damage: 68, description: '4 Machados | Dano: 68' },
-        { area: 1.35, description: '+35% Tamanho dos Machados' },
+        { area: 1.15, description: '+15% Tamanho dos Machados' },
         { count: 5, damage: 92, description: '5 Machados em vórtice | Dano: 92' },
         { cooldown: 1.0, count: 6, description: '6 Machados | Recarga: 1.0s' },
         { damage: 160, count: 8, cooldown: 0.8, description: 'EVOLUÇÃO: Turbilhão de Aço Carmesim (8 machados gigantes devastadores)' }
@@ -793,13 +793,13 @@ class HolyAuraWeapon extends BaseWeapon {
       area: 1.0,
       levelsConfig: [
         { damage: 14, cooldown: 0.6, area: 1.0, description: 'Aura de pulsação sagrada a cada 0.6s.' },
-        { damage: 20, area: 1.2, description: 'Dano: 14 ➔ 20 | +20% Raio da Aura' },
+        { damage: 20, area: 1.08, description: 'Dano: 14 ➔ 20 | +8% Raio da Aura' },
         { cooldown: 0.48, description: 'Pulso Mais Rápido: 0.6s ➔ 0.48s' },
-        { damage: 32, area: 1.45, description: 'Dano: 20 ➔ 32 | +25% Raio' },
+        { damage: 32, area: 1.16, description: 'Dano: 20 ➔ 32 | +16% Raio' },
         { cooldown: 0.38, description: 'Pulso Mais Rápido: 0.48s ➔ 0.38s' },
-        { damage: 48, area: 1.7, description: 'Dano: 32 ➔ 48 | Expansão Gigante' },
+        { damage: 48, area: 1.25, description: 'Dano: 32 ➔ 48 | Expansão Concentrada' },
         { damage: 70, cooldown: 0.28, description: 'Dano: 48 ➔ 70 | Pulso a cada 0.28s' },
-        { damage: 110, area: 2.2, cooldown: 0.22, description: 'EVOLUÇÃO: Santuário Imperial (Raio colossal, dano fulminante)' }
+        { damage: 110, area: 1.35, cooldown: 0.22, description: 'EVOLUÇÃO: Santuário Imperial (Raio refinado, dano fulminante)' }
       ]
     });
     this.pulseAnim = 0;
@@ -810,7 +810,7 @@ class HolyAuraWeapon extends BaseWeapon {
     this.pulseAnim = 1.0;
 
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-    const radius = 52 * this.area * player.areaMultiplier;
+    const radius = Math.min(135, 38 * (this.area || 1.0) * (player.areaMultiplier || 1.0));
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const enemy = enemies[i];
@@ -853,7 +853,7 @@ class HolyAuraWeapon extends BaseWeapon {
   update(dt, player, enemies, projectiles, particles) {
     super.update(dt, player, enemies, projectiles, particles);
     if (player) {
-      this.activeRadius = 52 * (this.area || 1.0) * (player.areaMultiplier || 1.0);
+      this.activeRadius = Math.min(135, 38 * (this.area || 1.0) * (player.areaMultiplier || 1.0));
     }
     if (this.pulseAnim > 0) {
       this.pulseAnim -= dt * 2.5;
@@ -862,7 +862,7 @@ class HolyAuraWeapon extends BaseWeapon {
 
   renderUnder(ctx, player) {
     if (this.level <= 0) return;
-    const radius = 52 * this.area * player.areaMultiplier;
+    const radius = Math.min(135, 38 * (this.area || 1.0) * (player.areaMultiplier || 1.0));
 
     ctx.save();
     ctx.translate(player.x, player.y);
@@ -909,13 +909,13 @@ class GuardianSpearWeapon extends BaseWeapon {
       count: 1,
       levelsConfig: [
         { damage: 45, cooldown: 1.35, area: 1.0, count: 1, description: 'Estocada imperial com Onda Perfurante e Crítico na ponta (1.5x).' },
-        { damage: 64, area: 1.2, description: 'Dano: 45 ➔ 64 | +20% Alcance da Lança' },
+        { damage: 64, area: 1.08, description: 'Dano: 45 ➔ 64 | +8% Alcance da Lança' },
         { count: 2, cooldown: 1.15, description: 'Estocada Dupla em Leque + Ondas Perfurantes!' },
-        { damage: 90, area: 1.4, description: 'Dano: 64 ➔ 90 | +20% Alcance e Largura' },
+        { damage: 90, area: 1.16, description: 'Dano: 64 ➔ 90 | +16% Alcance e Largura' },
         { count: 3, cooldown: 0.98, description: 'Falange Tripla (3 Lanças Simultâneas) | Recarga: 0.98s' },
-        { damage: 125, area: 1.6, description: 'Dano: 90 ➔ 125 | Impacto Demolidor' },
+        { damage: 125, area: 1.24, description: 'Dano: 90 ➔ 125 | Impacto Demolidor' },
         { count: 4, damage: 165, cooldown: 0.82, description: 'Falange Quádrupla Imperial | Dano: 165' },
-        { damage: 245, area: 1.9, count: 5, cooldown: 0.65, description: 'EVOLUÇÃO: Lança Divina de Longinus (5 lanças sagradas + rajadas de relâmpago dourado)' }
+        { damage: 245, area: 1.32, count: 5, cooldown: 0.65, description: 'EVOLUÇÃO: Lança Divina de Longinus (5 lanças sagradas + rajadas de relâmpago dourado)' }
       ]
     });
     this.thrustEffects = [];
@@ -1168,9 +1168,9 @@ class SpectralOrbWeapon extends BaseWeapon {
         { damage: 28, cooldown: 1.15, count: 1, description: 'Orbe místico que persegue alvos automaticamente.' },
         { damage: 38, count: 2, description: 'Dispara 2 Orbes Espectrais simultâneos.' },
         { damage: 48, cooldown: 1.0, description: 'Dano: 38 ➔ 48 | Recarga: 1.0s' },
-        { count: 3, area: 1.25, description: 'Dispara 3 Orbes | +25% Raio de Impacto' },
+        { count: 3, area: 1.12, description: 'Dispara 3 Orbes | +12% Raio de Impacto' },
         { damage: 65, cooldown: 0.85, description: 'Dano: 48 ➔ 65 | Recarga: 0.85s' },
-        { count: 4, area: 1.45, description: 'Dispara 4 Orbes Espectrais' },
+        { count: 4, area: 1.18, description: 'Dispara 4 Orbes Espectrais' },
         { damage: 85, cooldown: 0.75, description: 'Dano: 65 ➔ 85 | Velocidade de Perseguição Aumentada' },
         { damage: 130, count: 5, cooldown: 0.6, description: 'EVOLUÇÃO: Lamento das Almas Eternas (5 Orbes Vorazes com perfuração e explosão espectral)' }
       ]
@@ -1303,10 +1303,10 @@ class TwinDaggersWeapon extends BaseWeapon {
       levelsConfig: [
         { damage: 18, cooldown: 0.55, count: 2, description: 'Golpes duplos rápidos com alta chance de crítico.' },
         { damage: 25, cooldown: 0.48, description: 'Dano: 18 ➔ 25 | Recarga: 0.48s' },
-        { count: 3, area: 1.15, description: 'Ataque Triplo em corte veloz.' },
+        { count: 3, area: 1.06, description: 'Ataque Triplo em corte veloz.' },
         { damage: 36, cooldown: 0.40, description: 'Dano: 25 ➔ 36 | Recarga: 0.40s' },
         { count: 4, cooldown: 0.35, description: 'Golpe Quádruplo em leque veloz.' },
-        { damage: 52, area: 1.30, description: 'Dano: 36 ➔ 52 | +30% Área' },
+        { damage: 52, area: 1.14, description: 'Dano: 36 ➔ 52 | +14% Área' },
         { count: 5, cooldown: 0.28, description: 'Golpe Quíntuplo | Recarga: 0.28s' },
         { damage: 85, count: 6, cooldown: 0.22, description: 'EVOLUÇÃO: Lâminas da Noite Eterna (Cortes fantasmas contínuos com 100% Crítico)' }
       ]
@@ -1482,13 +1482,13 @@ class DarkGreatswordWeapon extends BaseWeapon {
       count: 1,
       levelsConfig: [
         { damage: 64, cooldown: 1.45, count: 1, description: 'Corte Colossal de longo alcance + 1 Fenda Abissal Terrestre com Ruína Sombria.' },
-        { damage: 88, area: 1.55, description: 'Dano: 64 ➔ 88 | +15% Alcance e impacto amplificado' },
+        { damage: 88, area: 1.18, description: 'Dano: 64 ➔ 88 | +18% Alcance e impacto' },
         { count: 2, cooldown: 1.30, description: 'Dispara 2 Fendas Abissais convergentes rachando a terra.' },
-        { damage: 122, area: 1.75, description: 'Dano: 88 ➔ 122 | +15% Área | Detonação violenta ao abater inimigos amaldiçoados' },
+        { damage: 122, area: 1.25, description: 'Dano: 88 ➔ 122 | +25% Área | Detonação violenta ao abater inimigos amaldiçoados' },
         { count: 3, cooldown: 1.15, description: '3 Fendas Abissais em leque devastador.' },
-        { damage: 168, area: 2.0, description: 'Dano: 122 ➔ 168 | +20% Alcance | Atordoamento e knockback colossal' },
+        { damage: 168, area: 1.32, description: 'Dano: 122 ➔ 168 | +32% Alcance | Atordoamento e knockback' },
         { count: 4, cooldown: 0.95, description: '4 Fendas Abissais | Tempestade de Obsidiana Terrestre' },
-        { damage: 280, area: 2.35, cooldown: 0.78, description: 'EVOLUÇÃO: Devoradora de Reis (280 Dano, Corte Cataclísmico 360°, 4 Fendas Abissais em Cruz e Dreno de Almas: restaura 1 HP a cada 12 abates)' }
+        { damage: 280, area: 1.42, cooldown: 0.78, description: 'EVOLUÇÃO: Devoradora de Reis (280 Dano, Corte Cataclísmico 360°, 4 Fendas Abissais em Cruz e Dreno de Almas: restaura 1 HP a cada 12 abates)' }
       ]
     });
     this.slashEffects = [];
@@ -1709,11 +1709,11 @@ class PlagueFlaskWeapon extends BaseWeapon {
       levelsConfig: [
         { damage: 16, cooldown: 1.35, count: 1, description: 'Lança frasco de ácido que cria poça venenosa por 3s.' },
         { damage: 24, count: 2, description: 'Lança 2 Frascos de Ácido simultâneos.' },
-        { damage: 32, area: 1.25, description: 'Dano: 24 ➔ 32 | +25% Área da Poça' },
+        { damage: 32, area: 1.12, description: 'Dano: 24 ➔ 32 | +12% Área da Poça' },
         { count: 3, cooldown: 1.15, description: 'Lança 3 Frascos | Recarga: 1.15s' },
-        { damage: 45, area: 1.45, description: 'Dano: 32 ➔ 45 | Poça Dura +1s' },
+        { damage: 45, area: 1.18, description: 'Dano: 32 ➔ 45 | Poça Dura +1s' },
         { count: 4, cooldown: 0.95, description: 'Lança 4 Frascos em leque' },
-        { damage: 62, area: 1.65, description: 'Dano: 45 ➔ 62 | Área Massiva de Corrosão' },
+        { damage: 62, area: 1.26, description: 'Dano: 45 ➔ 62 | Área Focada de Corrosão' },
         { damage: 95, count: 5, cooldown: 0.75, description: 'EVOLUÇÃO: Elixir do Apocalipse (5 Frascos gigantes de veneno cáustico com lentidão severa)' }
       ]
     });
@@ -1875,10 +1875,10 @@ class IronFlailWeapon extends BaseWeapon {
         { damage: 26, count: 1, description: 'Esfera de ferro cravada que orbita o jogador causando dano de impacto contínuo.' },
         { damage: 34, speed: 4.2, description: 'Dano: 26 → 34 | +20% Velocidade de Rotação' },
         { count: 2, description: 'Ganha uma 2ª Esfera de Ferro no lado oposto!' },
-        { damage: 48, area: 1.3, description: 'Dano: 34 → 48 | +30% Raio da Órbita' },
+        { damage: 48, area: 1.12, description: 'Dano: 34 → 48 | +12% Raio da Órbita' },
         { speed: 5.2, description: '+25% Velocidade de Rotação' },
         { count: 3, description: 'Ganha uma 3ª Esfera de Ferro formando barreira defensiva!' },
-        { damage: 68, area: 1.5, description: 'Dano: 48 → 68 | +50% Raio da Órbita' },
+        { damage: 68, area: 1.22, description: 'Dano: 48 → 68 | +22% Raio da Órbita' },
         { damage: 105, count: 4, speed: 6.5, description: 'EVOLUÇÃO: Mangual do Juízo Divino! 4 Esferas com espinhos sagrados incandescentes.' }
       ]
     });
@@ -1993,7 +1993,7 @@ class BlunderbussWeapon extends BaseWeapon {
         { damage: 24, count: 8, description: 'Dano: 18 → 24 | Balotes: 6 → 8' },
         { cooldown: 1.35, description: 'Recarga: 1.6s → 1.35s' },
         { damage: 32, count: 10, description: 'Dano: 24 → 32 | Balotes: 8 → 10' },
-        { area: 1.3, cooldown: 1.15, description: '+30% Ângulo do Cone | Recarga: 1.15s' },
+        { area: 1.12, cooldown: 1.15, description: '+12% Ângulo do Cone | Recarga: 1.15s' },
         { damage: 45, count: 13, description: 'Dano: 32 → 45 | Balotes: 10 → 13' },
         { damage: 60, count: 16, cooldown: 0.95, description: 'Dano: 45 → 60 | Balotes: 13 → 16 | Recarga: 0.95s' },
         { damage: 95, count: 22, cooldown: 0.75, description: 'EVOLUÇÃO: Dragão de Fogo! 22 projéteis de estilhaços perfurantes incendiários!' }
@@ -2100,13 +2100,13 @@ class PenitentWhipWeapon extends BaseWeapon {
       speed: 1.0,
       levelsConfig: [
         { damage: 28, cooldown: 1.25, description: 'Desfere duas chicotadas horizontais cortantes à esquerda e direita.' },
-        { damage: 38, area: 1.2, description: 'Dano: 28 → 38 | +20% Alcance' },
+        { damage: 38, area: 1.08, description: 'Dano: 28 → 38 | +8% Alcance' },
         { cooldown: 1.05, description: 'Recarga: 1.25s → 1.05s' },
-        { damage: 52, area: 1.35, description: 'Dano: 38 → 52 | +35% Alcance' },
+        { damage: 52, area: 1.16, description: 'Dano: 38 → 52 | +16% Alcance' },
         { cooldown: 0.88, description: 'Recarga: 1.05s → 0.88s' },
-        { damage: 70, area: 1.5, description: 'Dano: 52 → 70 | +50% Alcance' },
+        { damage: 70, area: 1.24, description: 'Dano: 52 → 70 | +24% Alcance' },
         { damage: 95, cooldown: 0.72, description: 'Dano: 70 → 95 | Recarga: 0.72s' },
-        { damage: 140, area: 1.75, cooldown: 0.58, description: 'EVOLUÇÃO: Chicote da Flagelação Carmesim! Açoites quádruplos que rasgam a alma!' }
+        { damage: 140, area: 1.32, cooldown: 0.58, description: 'EVOLUÇÃO: Chicote da Flagelação Carmesim! Açoites quádruplos que rasgam a alma!' }
       ]
     });
     this.lashEffects = [];
@@ -2358,13 +2358,13 @@ class ThunderHammerWeapon extends BaseWeapon {
       speed: 1.0,
       levelsConfig: [
         { damage: 45, cooldown: 1.5, count: 1, description: 'Faz cair 1 raio colossal dos céus causando impacto elétrico em área.' },
-        { damage: 60, area: 1.25, description: 'Dano: 45 → 60 | +25% Raio do Impacto' },
+        { damage: 60, area: 1.12, description: 'Dano: 45 → 60 | +12% Raio do Impacto' },
         { count: 2, description: 'Invoca 2 Raios simultâneos!' },
         { damage: 80, cooldown: 1.25, description: 'Dano: 60 → 80 | Recarga: 1.25s' },
-        { count: 3, area: 1.4, description: 'Invoca 3 Raios simultâneos | +40% Área' },
+        { count: 3, area: 1.18, description: 'Invoca 3 Raios simultâneos | +18% Área' },
         { damage: 110, cooldown: 1.05, description: 'Dano: 80 → 110 | Recarga: 1.05s' },
         { count: 4, description: 'Invoca 4 Raios simultâneos!' },
-        { damage: 175, count: 5, cooldown: 0.85, area: 1.65, description: 'EVOLUÇÃO: Ira de Thor! 5 Raios cósmicos que propagam arcos elétricos em cadeia!' }
+        { damage: 175, count: 5, cooldown: 0.85, area: 1.28, description: 'EVOLUÇÃO: Ira de Thor! 5 Raios cósmicos que propagam arcos elétricos em cadeia!' }
       ]
     });
   }
@@ -2373,7 +2373,7 @@ class ThunderHammerWeapon extends BaseWeapon {
     if (enemies.length === 0) return;
     const isEvo = this.level >= this.maxLevel;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-    const strikeRadius = 38 * this.area * player.areaMultiplier;
+    const strikeRadius = 28 * this.area * player.areaMultiplier;
     const strikeCount = this.count + (player.bonusProjectiles || 0);
 
     for (let s = 0; s < strikeCount; s++) {
@@ -2566,13 +2566,13 @@ class EldritchTomeWeapon extends BaseWeapon {
       speed: 1.0,
       levelsConfig: [
         { damage: 14, cooldown: 2.2, count: 1, description: 'Cria 1 vórtex gravitacional por 2.5s que puxa monstros e causa dano de sucção contínuo.' },
-        { damage: 20, area: 1.25, description: 'Dano: 14 → 20 | +25% Raio de Sucção' },
+        { damage: 20, area: 1.12, description: 'Dano: 14 → 20 | +12% Raio de Sucção' },
         { count: 2, description: 'Abre 2 Vórtex Gravitacionais simultâneos!' },
         { damage: 28, cooldown: 1.9, description: 'Dano: 20 → 28 | Recarga: 1.9s' },
-        { area: 1.45, description: '+45% Força Gravitacional e Raio' },
+        { area: 1.20, description: '+20% Força Gravitacional e Raio' },
         { count: 3, description: 'Abre 3 Vórtex Gravitacionais simultâneos!' },
         { damage: 42, cooldown: 1.6, description: 'Dano: 28 → 42 | Recarga: 1.6s' },
-        { damage: 75, count: 4, area: 1.75, cooldown: 1.3, description: 'EVOLUÇÃO: Buraco Negro Astral! 4 Vórtex cósmicos com implosão devastadora final!' }
+        { damage: 75, count: 4, area: 1.30, cooldown: 1.3, description: 'EVOLUÇÃO: Buraco Negro Astral! 4 Vórtex cósmicos com implosão devastadora final!' }
       ]
     });
   }
@@ -2581,7 +2581,7 @@ class EldritchTomeWeapon extends BaseWeapon {
     if (!enemies || enemies.length === 0) return;
     const isEvo = this.level >= this.maxLevel;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-    const vortexRadius = 65 * this.area * player.areaMultiplier;
+    const vortexRadius = 45 * this.area * player.areaMultiplier;
     const vortexCount = this.count + (player.bonusProjectiles || 0);
 
     const living = getNearestEnemies(player, enemies, vortexCount);
@@ -2791,7 +2791,7 @@ class RetributionShieldWeapon extends BaseWeapon {
         { damage: 35, count: 1, description: '1 Escudo Sagrado orbitante que anula projéteis inimigos e golpeia atacantes.' },
         { damage: 45, speed: 3.4, description: 'Dano: 35 → 45 | +20% Velocidade' },
         { count: 2, description: 'Invoca um 2º Escudo no lado oposto!' },
-        { damage: 60, area: 1.25, description: 'Dano: 45 → 60 | +25% Raio de Proteção' },
+        { damage: 60, area: 1.12, description: 'Dano: 45 → 60 | +12% Raio de Proteção' },
         { count: 3, description: 'Invoca um 3º Escudo Sagrado!' },
         { damage: 80, speed: 4.2, description: 'Dano: 60 → 80 | +25% Velocidade' },
         { count: 4, description: 'Invoca um 4º Escudo formando barreira total!' },
@@ -2922,13 +2922,13 @@ class HellfireCauldronWeapon extends BaseWeapon {
       speed: 1.0,
       levelsConfig: [
         { damage: 22, cooldown: 0.9, count: 1, description: 'Deixa para trás ânforas que explodem criando poças de chamas vivas por 3.5s.' },
-        { damage: 30, area: 1.25, description: 'Dano: 22 → 30 | +25% Raio das Chamas' },
+        { damage: 30, area: 1.12, description: 'Dano: 22 → 30 | +12% Raio das Chamas' },
         { cooldown: 0.75, description: 'Recarga: 0.9s → 0.75s' },
         { damage: 42, count: 2, description: 'Dano: 30 → 42 | Derruba 2 Ânforas simultâneas' },
         { cooldown: 0.62, description: 'Recarga: 0.75s → 0.62s' },
-        { damage: 58, area: 1.45, description: 'Dano: 42 → 58 | +45% Área de Chamas' },
+        { damage: 58, area: 1.20, description: 'Dano: 42 → 58 | +20% Área de Chamas' },
         { count: 3, cooldown: 0.52, description: 'Derruba 3 Ânforas simultâneas | Recarga: 0.52s' },
-        { damage: 95, count: 4, cooldown: 0.42, area: 1.7, description: 'EVOLUÇÃO: Mar de Fogo Vulcânico! 4 Ânforas de fogo infernal azul com queima perene!' }
+        { damage: 95, count: 4, cooldown: 0.42, area: 1.30, description: 'EVOLUÇÃO: Mar de Fogo Vulcânico! 4 Ânforas de fogo infernal azul com queima perene!' }
       ]
     });
   }
@@ -2936,7 +2936,7 @@ class HellfireCauldronWeapon extends BaseWeapon {
   attack(player, enemies, projectiles, particles) {
     const isEvo = this.level >= this.maxLevel;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
-    const poolRadius = 36 * this.area * player.areaMultiplier;
+    const poolRadius = 26 * this.area * player.areaMultiplier;
     const totalCauldrons = this.count + (player.bonusProjectiles || 0);
 
     for (let c = 0; c < totalCauldrons; c++) {

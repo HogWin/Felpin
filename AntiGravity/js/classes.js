@@ -65,11 +65,11 @@ class ClassRegistry {
         moveSpeed: 3.1,
         damageMultiplier: 1.25,
         cooldownMultiplier: 1.0,
-        areaMultiplier: 1.15,
+        areaMultiplier: 1.05,
         pickupRadius: 90,
         hpRegen: 0.3
       },
-      perkDesc: '+20 Max HP, +2 Armadura, +15% Área e Dano com Espadas.'
+      perkDesc: '+20 Max HP, +2 Armadura, +5% Área e Dano com Espadas.'
     });
 
     // CLASSE 2: Arqueira da Floresta Sombria
@@ -117,11 +117,11 @@ class ClassRegistry {
         moveSpeed: 3.2,
         damageMultiplier: 1.3,
         cooldownMultiplier: 0.85,
-        areaMultiplier: 1.35,
+        areaMultiplier: 1.15,
         pickupRadius: 95,
         hpRegen: 0.0
       },
-      perkDesc: '+30% Dano Mágico, +35% Área de Efeito, -15% Cooldown.'
+      perkDesc: '+30% Dano Mágico, +15% Área de Efeito, -15% Cooldown.'
     });
 
     // CLASSE 4: Paladino da Alvorada
@@ -143,7 +143,7 @@ class ClassRegistry {
         moveSpeed: 2.9,
         damageMultiplier: 1.0,
         cooldownMultiplier: 1.05,
-        areaMultiplier: 1.25,
+        areaMultiplier: 1.10,
         pickupRadius: 100,
         hpRegen: 0.6
       },
@@ -169,7 +169,7 @@ class ClassRegistry {
         moveSpeed: 3.3,
         damageMultiplier: 1.35,
         cooldownMultiplier: 0.95,
-        areaMultiplier: 1.20,
+        areaMultiplier: 1.08,
         pickupRadius: 90,
         hpRegen: 0.1
       },
@@ -195,7 +195,7 @@ class ClassRegistry {
         moveSpeed: 3.1,
         damageMultiplier: 1.15,
         cooldownMultiplier: 0.85,
-        areaMultiplier: 1.15,
+        areaMultiplier: 1.05,
         pickupRadius: 115,
         hpRegen: 0.0
       },
@@ -247,7 +247,7 @@ class ClassRegistry {
         moveSpeed: 2.75,
         damageMultiplier: 1.25,
         cooldownMultiplier: 1.10,
-        areaMultiplier: 1.30,
+        areaMultiplier: 1.12,
         pickupRadius: 80,
         hpRegen: 0.4
       },
@@ -273,7 +273,7 @@ class ClassRegistry {
         moveSpeed: 2.70,
         damageMultiplier: 1.20,
         cooldownMultiplier: 0.95,
-        areaMultiplier: 1.35,
+        areaMultiplier: 1.15,
         pickupRadius: 100,
         hpRegen: 0.2
       },
