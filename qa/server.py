@@ -58,7 +58,7 @@ class MockGameHTTPHandler(http.server.SimpleHTTPRequestHandler):
 class GameTestServer:
     def __init__(self, directory=None, port=8888):
         self.port = port
-        self.directory = directory or os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'AntiGravity'))
+        self.directory = directory or os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'AntiGravity'))
         self.httpd = None
         self.thread = None
 
