@@ -3172,13 +3172,45 @@ class UIController {
   renderUpdatesTab() {
     this._currentUpdatesFilter = this._currentUpdatesFilter || 'all';
 
-    const updatesData = [
+        const updatesData = [
       {
-        version: 'v1.7.2',
-        eraName: 'Hotfix de Neutralização de Menu Contextual',
+        version: 'v2.0.0',
+        eraName: 'Era do Renascimento em TypeScript & QA Automatizado',
         date: '2 de Novembro de 2026',
         isLatest: true,
-        summary: 'Hotfix de correção de usabilidade bloqueando a abertura acidental do menu de contexto nativo do navegador ao clicar com o botão direito durante a partida.',
+        summary: 'Grande marco de evolucao arquitetural de The Fallen Kingdom: migracao integral dos 16 subsistemas para TypeScript tipado, ambiente de testes de estresse Playwright automatizado, pooling de malhas 3D para alta performance de projeteis e garantia de persistencia offline.',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'ARQUITETURA',
+            title: 'Migracao Completa para TypeScript & Modulos Estritos',
+            desc: 'Refatoracao dos 16 subsistemas do motor com tipagem estatica (interfaces para 9 classes, armas, inimigos e saves), eliminando bugs silenciosos de runtime e preparando o reino para mecanicas ainda mais avancadas.'
+          },
+          {
+            type: 'feature',
+            badge: 'QA AUTOMATIZADO',
+            title: 'Ambiente de Testes Automatizados Headless',
+            desc: 'Criacao de suite de testes de estresse continuo com Chromium Headless e mock de APIs, validando 10 cenarios criticos de estabilidade de batalha, modais, saves e teardown de memoria.'
+          },
+          {
+            type: 'improvement',
+            badge: 'PERFORMANCE',
+            title: 'Object Pooling de Projeteis 3D no Three.js',
+            desc: 'Reciclagem continua de malhas graficas de projeteis rapidos (balestras, dardos, orbes e disparos inimigos), eliminando a alocacao e descarte repetitivo de geometrias na GPU e suavizando os 60 FPS.'
+          },
+          {
+            type: 'improvement',
+            badge: 'OFFLINE MODE',
+            title: 'Garantia de Persistencia no Modo Visitante',
+            desc: 'Gravacao imediata da estrutura de save no localStorage ao clicar em Entrar como Visitante, assegurando 100% de tolerancia a falhas offline desde o primeiro segundo.'
+          }
+        ]
+      },
+      {
+        version: 'v1.7.2',
+        eraName: 'Hotfix de Neutralizacao de Menu Contextual',
+        date: '2 de Novembro de 2026',
+        isLatest: false,        summary: 'Hotfix de correção de usabilidade bloqueando a abertura acidental do menu de contexto nativo do navegador ao clicar com o botão direito durante a partida.',
         categories: [
           {
             type: 'improvement',
@@ -3449,7 +3481,7 @@ class UIController {
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v1.7.2 (Hotfix de Entrada & Bloqueio de Menu)</strong>
+              <strong class="text-gold">v2.0.0 (Renascimento em TypeScript & QA)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>
