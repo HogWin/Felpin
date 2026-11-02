@@ -266,6 +266,14 @@ class Game {
     return isNowActive;
   }
 
+  toggleAutoGold() {
+    if (!this.saveManager) return false;
+    const isNowActive = !this.saveManager.data.settings.autoGoldOnMax;
+    this.saveManager.data.settings.autoGoldOnMax = isNowActive;
+    this.saveManager.save();
+    return isNowActive;
+  }
+
   start() {
     const classDef = window.MedievalSurvivors.classRegistry.getClass(this.selectedClassId);
     this.player = new MedievalSurvivors.Player(classDef, 0, 0);
@@ -316,6 +324,7 @@ class Game {
 
     this.ui.updateHUD(this.player, this.gameTime);
     this.ui.updateMouseAimButton();
+    this.ui.updateAutoGoldButton();
     if (this.ui.onGameStart) this.ui.onGameStart();
     window.MedievalSurvivors.sound.startBgm();
 

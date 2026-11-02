@@ -251,6 +251,19 @@ body, html {
   transform: translateY(-2px);
 }
 
+.hud-btn.active {
+  background: rgba(46, 204, 113, 0.25);
+  border-color: #2ecc71;
+  color: #2ecc71;
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
+}
+
+.hud-btn.active:hover {
+  background: #2ecc71;
+  color: #120b05;
+  box-shadow: 0 0 14px rgba(46, 204, 113, 0.7);
+}
+
 /* Controls Hint: Discreetly placed, auto-fading, does not obstruct battle */
 .controls-hint {
   position: absolute;

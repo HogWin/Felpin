@@ -67,6 +67,19 @@ class UIController {
       });
     }
 
+    // Auto-Gold toggle button (HUD)
+    const autoGoldBtn = document.getElementById('btn-auto-gold-hud');
+    if (autoGoldBtn) {
+      autoGoldBtn.addEventListener('click', () => {
+        this.game.toggleAutoGold();
+        this.updateAutoGoldButton();
+        if (this.currentMenuTab === 'settings') {
+          this.renderSettingsTab();
+        }
+      });
+      this.updateAutoGoldButton();
+    }
+
     // Mouse aim toggle button (HUD)
     const mouseAimBtn = document.getElementById('btn-mouse-aim');
     if (mouseAimBtn) {
@@ -434,6 +447,22 @@ class UIController {
     btn.textContent = isActive ? '🎯 Mira: Mouse' : '🎯 Mira: Teclado';
   }
 
+  updateAutoGoldButton(forceState) {
+    const btn = document.getElementById('btn-auto-gold-hud');
+    if (!btn) return;
+    const isActive = forceState !== undefined
+      ? forceState
+      : (this.game.saveManager ? !!this.game.saveManager.data.settings.autoGoldOnMax : false);
+    btn.textContent = isActive ? '💰 Auto-Ouro: Ligado' : '💰 Auto-Ouro: Deslig.';
+    if (isActive) {
+      btn.classList.add('active');
+      btn.title = 'Auto-Ouro Ativo: Coleta ouro automaticamente ao subir de nível com tudo maximizado';
+    } else {
+      btn.classList.remove('active');
+      btn.title = 'Auto-Ouro Desligado: Abre modal de nível para escolha manual';
+    }
+  }
+
   updateMenuMusicButton() {
     const btn = document.getElementById('btn-menu-music-toggle');
     if (!btn) return;
@@ -712,10 +741,19 @@ class UIController {
   //  LEVEL UP MODAL
   // ──────────────────────────────────────────────────────────────
   showLevelUpModal(player) {
-    window.MedievalSurvivors.sound.playLevelUp();
     this.levelUpCards.innerHTML = '';
-
     const options = this.generateUpgradeOptions(player);
+
+    // Auto-Ouro: quando todas as armas/passivas já estiverem no máximo e autoGoldOnMax estiver ligado
+    const isAutoGold = this.game.saveManager && this.game.saveManager.data.settings.autoGoldOnMax;
+    if (isAutoGold && options.length === 1 && options[0].type === 'gold_bag') {
+      options[0].apply();
+      this.levelUpModal.classList.remove('active');
+      this.game.resume();
+      return;
+    }
+
+    window.MedievalSurvivors.sound.playLevelUp();
 
     options.forEach(opt => {
       const card = document.createElement('div');
@@ -2978,6 +3016,16 @@ class UIController {
 
         <div class="forge-card" style="display:flex; justify-content:space-between; align-items:center;">
           <div>
+            <div style="font-weight:700; color:#f0c05a;">💰 Auto-Ouro (Arsenal Máximo)</div>
+            <div style="font-size:0.82rem; color:#aaa; margin-top:4px;">Coletar ouro automaticamente ao subir de nível quando todas as armas e passivas atingirem nível máximo.</div>
+          </div>
+          <button class="btn-primary" id="settings-auto-gold-btn" style="min-width:150px;">
+            ${(sm && sm.data.settings.autoGoldOnMax) ? '💰 Auto-Ouro: Ativo' : '💰 Auto-Ouro: Inativo'}
+          </button>
+        </div>
+
+        <div class="forge-card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
             <div style="font-weight:700; color:#f0c05a;">⚡ Otimização Gráfica</div>
             <div style="font-size:0.82rem; color:#aaa; margin-top:4px;">Alternar entre Alta Resolução e Desempenho Ultra Fluido (60 FPS).</div>
           </div>
@@ -3034,6 +3082,15 @@ class UIController {
       this.updateMouseAimButton();
       this.renderSettingsTab();
     });
+
+    const autoGoldSetBtn = document.getElementById('settings-auto-gold-btn');
+    if (autoGoldSetBtn) {
+      autoGoldSetBtn.addEventListener('click', () => {
+        this.game.toggleAutoGold();
+        this.updateAutoGoldButton();
+        this.renderSettingsTab();
+      });
+    }
 
     document.getElementById('settings-graphics-btn').addEventListener('click', () => {
       const nextQuality = graphicsQuality === 'alta' ? 'desempenho' : 'alta';
