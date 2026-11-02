@@ -461,10 +461,13 @@ class SaveManager {
             this.data.skillTrees[cid] = [origId];
           }
         });
+      } else {
+        this.save();
       }
     } catch (e) {
       console.warn('Erro ao carregar save:', e);
       this.data = this.getDefaultData();
+      this.save();
     }
   }
 

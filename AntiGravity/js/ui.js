@@ -292,6 +292,9 @@ class UIController {
           isGuest: true
         };
         localStorage.setItem('ms_auth_user', JSON.stringify(guestUser));
+        if (this.game && this.game.saveManager) {
+          this.game.saveManager.save();
+        }
         this.hideAuthModal();
         this.updateUserBadge(guestUser);
         this.openMainMenu('play');

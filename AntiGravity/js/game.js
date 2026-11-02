@@ -122,6 +122,9 @@ class Game {
   }
 
   bindInputs() {
+    if (this._inputsBound) return;
+    this._inputsBound = true;
+
     window.addEventListener('pointermove', (e) => {
       this.lastPointerScreenX = e.clientX;
       this.lastPointerScreenY = e.clientY;

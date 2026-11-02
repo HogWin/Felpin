@@ -77,6 +77,7 @@ class GameRenderer {
     this.celestialStrikeMap = new Map(); // celestialStrike -> { telegraphMesh, impactMesh }
     this.damageFlashTimer = 0;
     this.projectileMeshMap = new Map(); // projectile -> THREE.Group
+    this._projectileMeshPool = new Map(); // typeKey -> Array<THREE.Group>
     this.holyAuraMesh = null;
     this.holyFirePoolsMap = new Map();
 
@@ -150,6 +151,46 @@ class GameRenderer {
       this.disposeMesh(mesh);
       this.enemyMeshMap.delete(enemyId);
     }
+  }
+
+  // Pooling de malhas 3D de projéteis para evitar alocações e descarte frequente na GPU
+  getProjectileMesh(p, typeKey, createFn) {
+    let pool = this._projectileMeshPool.get(typeKey);
+    if (!pool) {
+      pool = [];
+      this._projectileMeshPool.set(typeKey, pool);
+    }
+    if (pool.length > 0) {
+      const mesh = pool.pop();
+      mesh.visible = true;
+      mesh.position.set(0, 0, 0);
+      mesh.rotation.set(0, 0, 0);
+      this.scene.add(mesh);
+      return mesh;
+    }
+    const mesh = createFn();
+    mesh._poolType = typeKey;
+    this.scene.add(mesh);
+    return mesh;
+  }
+
+  recycleProjectileMesh(mesh) {
+    if (!mesh) return;
+    if (mesh._poolType) {
+      let pool = this._projectileMeshPool.get(mesh._poolType);
+      if (!pool) {
+        pool = [];
+        this._projectileMeshPool.set(mesh._poolType, pool);
+      }
+      if (pool.length < 60) {
+        mesh.visible = false;
+        this.scene.remove(mesh);
+        pool.push(mesh);
+        return;
+      }
+    }
+    this.scene.remove(mesh);
+    this.disposeMesh(mesh);
   }
 
   resize() {
@@ -339,6 +380,15 @@ class GameRenderer {
       this.disposeMesh(mesh);
     }
     this.projectileMeshMap.clear();
+
+    if (this._projectileMeshPool) {
+      for (let [, pool] of this._projectileMeshPool) {
+        for (let mesh of pool) {
+          this.disposeMesh(mesh);
+        }
+      }
+      this._projectileMeshPool.clear();
+    }
 
     for (let [, mesh] of this.holyFirePoolsMap) {
       this.scene.remove(mesh);
@@ -1006,41 +1056,42 @@ class GameRenderer {
       let pMesh = this.projectileMeshMap.get(p);
       if (!pMesh) {
         if (p.isBolt || (p.constructor && p.constructor.name === 'CrossbowBolt')) {
-          pMesh = window.MedievalSurvivors.models3d.createCrossbowBoltMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'bolt_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createCrossbowBoltMesh(p.isEvolved));
         } else if (p.isAxe || (p.constructor && p.constructor.name === 'ThrownAxe')) {
-          pMesh = window.MedievalSurvivors.models3d.createThrownAxeMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'axe_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createThrownAxeMesh(p.isEvolved));
         } else if (p.isShockwave || (p.constructor && p.constructor.name === 'SpearShockwave')) {
-          pMesh = window.MedievalSurvivors.models3d.createSpearShockwaveMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'shockwave_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createSpearShockwaveMesh(p.isEvolved));
         } else if (p.isSpectralOrb || (p.constructor && p.constructor.name === 'SpectralOrb')) {
-          pMesh = window.MedievalSurvivors.models3d.createSpectralOrbMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'spectral_orb_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createSpectralOrbMesh(p.isEvolved));
         } else if (p.isArtillery || (p.constructor && p.constructor.name === 'SupremeArtilleryShell')) {
-          pMesh = window.MedievalSurvivors.models3d.createArtilleryShellMesh();
+          pMesh = this.getProjectileMesh(p, 'artillery', () => window.MedievalSurvivors.models3d.createArtilleryShellMesh());
         } else if (p.isSupremeSpear || (p.constructor && p.constructor.name === 'SupremeSpearBolt')) {
-          pMesh = window.MedievalSurvivors.models3d.createSupremeSpearMesh();
+          pMesh = this.getProjectileMesh(p, 'supreme_spear', () => window.MedievalSurvivors.models3d.createSupremeSpearMesh());
         } else if (p.isFlail || (p.constructor && (p.constructor.name === 'FlailOrbiter' || p.constructor.name === 'SupremeTitanOrbiter'))) {
-          pMesh = window.MedievalSurvivors.models3d.createFlailMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'flail_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createFlailMesh(p.isEvolved));
         } else if (p.isPellet || (p.constructor && p.constructor.name === 'BlunderbussPellet')) {
-          pMesh = window.MedievalSurvivors.models3d.createPelletMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'pellet_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createPelletMesh(p.isEvolved));
         } else if (p.isGlaive || (p.constructor && p.constructor.name === 'CelestialGlaive')) {
-          pMesh = window.MedievalSurvivors.models3d.createCelestialGlaiveMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'glaive_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createCelestialGlaiveMesh(p.isEvolved));
         } else if (p.isThunder || (p.constructor && p.constructor.name === 'ThunderStrike')) {
-          pMesh = window.MedievalSurvivors.models3d.createThunderStrikeMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'thunder_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createThunderStrikeMesh(p.isEvolved));
         } else if (p.isDart || (p.constructor && p.constructor.name === 'ViperDart')) {
-          pMesh = window.MedievalSurvivors.models3d.createViperDartMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'dart_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createViperDartMesh(p.isEvolved));
         } else if (p.isVortex || (p.constructor && (p.constructor.name === 'VoidVortex' || p.constructor.name === 'SupremeSoulSingularityVortex'))) {
           pMesh = window.MedievalSurvivors.models3d.createVoidVortexMesh(p.radius, p.isEvolved);
+          this.scene.add(pMesh);
         } else if (p.isIce || (p.constructor && p.constructor.name === 'FrostLance')) {
-          pMesh = window.MedievalSurvivors.models3d.createFrostLanceMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'ice_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createFrostLanceMesh(p.isEvolved));
         } else if (p.isShield || (p.constructor && (p.constructor.name === 'RetributionShieldOrbiter' || p.constructor.name === 'SupremeCelestialShieldOrbiter'))) {
-          pMesh = window.MedievalSurvivors.models3d.createRetributionShieldMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'shield_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createRetributionShieldMesh(p.isEvolved));
         } else if (p.isPlague || (p.constructor && p.constructor.name === 'PlagueFlask')) {
-          pMesh = window.MedievalSurvivors.models3d.createPlagueFlaskMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'plague_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createPlagueFlaskMesh(p.isEvolved));
         } else if (p.isAbyssalFissure || (p.constructor && p.constructor.name === 'AbyssalFissureWave')) {
           pMesh = window.MedievalSurvivors.models3d.createAbyssalFissureMesh(p.isEvolved);
+          this.scene.add(pMesh);
         } else {
-          pMesh = window.MedievalSurvivors.models3d.createHolyFireFlaskMesh(p.isEvolved);
+          pMesh = this.getProjectileMesh(p, 'flask_' + !!p.isEvolved, () => window.MedievalSurvivors.models3d.createHolyFireFlaskMesh(p.isEvolved));
         }
-        this.scene.add(pMesh);
         this.projectileMeshMap.set(p, pMesh);
       }
 
@@ -1105,8 +1156,8 @@ class GameRenderer {
       this._activeProjectiles.add(ep);
       let epMesh = this.projectileMeshMap.get(ep);
       if (!epMesh) {
-        epMesh = window.MedievalSurvivors.models3d.createEnemyProjectileMesh(ep.type || 'dark', ep.unblockable);
-        this.scene.add(epMesh);
+        const epKey = 'ep_' + (ep.type || 'dark') + '_' + !!ep.unblockable;
+        epMesh = this.getProjectileMesh(ep, epKey, () => window.MedievalSurvivors.models3d.createEnemyProjectileMesh(ep.type || 'dark', ep.unblockable));
         this.projectileMeshMap.set(ep, epMesh);
       }
       const h = ep.renderHeight || 8;
@@ -1211,11 +1262,10 @@ class GameRenderer {
       }
     }
 
-    // Clean up finished projectiles
+    // Clean up finished projectiles with GPU-friendly object pooling
     for (const [p, mesh] of this.projectileMeshMap.entries()) {
       if (!this._activeProjectiles.has(p)) {
-        this.scene.remove(mesh);
-        this.disposeMesh(mesh);
+        this.recycleProjectileMesh(mesh);
         this.projectileMeshMap.delete(p);
       }
     }
