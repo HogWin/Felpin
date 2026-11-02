@@ -266,52 +266,153 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       // Aim arrow stays on ground pointing at player's facing angle
       aimGroup.rotation.y = -player.facingAngle;
 
-      // Leg swing & arm swing
+      // 1. Locomocao & Sincronizacao de Passos do Cavaleiro / Personagem
+      const inSwordSlash = player.swordAttackTimer > 0;
+      const inToss = player.tossAnimTimer > 0;
+
       if (isMoving) {
-        const swing = Math.sin(walk) * 0.65;
-        if (anim.leftLeg) anim.leftLeg.rotation.x = swing;
-        if (anim.rightLeg) anim.rightLeg.rotation.x = -swing;
-        if (anim.leftArm) anim.leftArm.rotation.x = -swing * 0.7;
-        if (anim.rightArm) anim.rightArm.rotation.x = swing * 0.7;
-        bodyRoot.position.y = Math.abs(Math.sin(walk * 2)) * 1.8;
+        const legSwing = Math.sin(walk) * 0.72;
+        if (anim.leftLeg) anim.leftLeg.rotation.x = legSwing;
+        if (anim.rightLeg) anim.rightLeg.rotation.x = -legSwing;
+        bodyRoot.position.y = Math.abs(Math.sin(walk * 2)) * 1.6;
+
+        // Torcao de marcha do torso (apenas quando nao esta golpeando com a espada)
+        if (anim.torso && !inSwordSlash) {
+          anim.torso.rotation.y = Math.sin(walk) * 0.12;
+          anim.torso.rotation.z = Math.cos(walk) * 0.04;
+        }
+
+        // Braco Esquerdo (Escudo) - Postura de Guarda Tatica com amortecimento de marcha
+        if (anim.leftArm) {
+          anim.leftArm.rotation.x = 0.22 + Math.sin(walk) * 0.12;
+          anim.leftArm.rotation.y = 0.32;
+          anim.leftArm.rotation.z = -0.10;
+        }
+
+        // Braco Direito (Espada) - Postura pronta sincronizada com a inercia da marcha
+        if (anim.rightArm && !inSwordSlash && !inToss) {
+          anim.rightArm.rotation.x = -0.26 + Math.sin(walk) * 0.16;
+          anim.rightArm.rotation.y = -0.18;
+          anim.rightArm.rotation.z = 0.12 + Math.cos(walk) * 0.06;
+        }
+
+        // Capa Nobre - Esvoacamento aerodinamico na corrida
+        if (anim.cape && !inSwordSlash) {
+          anim.cape.rotation.x = 0.42 + Math.sin(walk * 2) * 0.16;
+          anim.cape.rotation.z = Math.sin(walk) * 0.10;
+        }
       } else {
         if (anim.leftLeg) anim.leftLeg.rotation.x = 0;
         if (anim.rightLeg) anim.rightLeg.rotation.x = 0;
-        if (anim.leftArm) anim.leftArm.rotation.x = 0;
-        if (anim.rightArm) anim.rightArm.rotation.x = 0;
-        bodyRoot.position.y = Math.sin(Date.now() / 400) * 0.6;
+
+        // Respiracao Heroica Idle
+        const breath = Math.sin(Date.now() / 420);
+        bodyRoot.position.y = breath * 0.45;
+
+        if (anim.torso && !inSwordSlash) {
+          anim.torso.rotation.y = 0;
+          anim.torso.rotation.z = 0;
+          anim.torso.rotation.x = breath * 0.012;
+        }
+        if (anim.leftArm) {
+          anim.leftArm.rotation.x = 0.14 + breath * 0.02;
+          anim.leftArm.rotation.y = 0.25;
+          anim.leftArm.rotation.z = -0.05;
+        }
+        if (anim.rightArm && !inSwordSlash && !inToss) {
+          anim.rightArm.rotation.x = -0.18 + breath * 0.03;
+          anim.rightArm.rotation.y = -0.12;
+          anim.rightArm.rotation.z = 0.10;
+        }
+        if (anim.cape && !inSwordSlash) {
+          anim.cape.rotation.x = 0.08 + Math.sin(Date.now() / 320) * 0.04;
+          anim.cape.rotation.z = Math.cos(Date.now() / 400) * 0.02;
+        }
       }
 
-      // Dynamic Overhand Throw Animation (Alchemist flask toss & projectile attacks)
-      if (player.tossAnimTimer > 0) {
+      // 2. Animacao de Ataque Sincronizada com a Espada (Golpe Cortante & Talho Devastador)
+      if (inSwordSlash) {
+        player.swordAttackTimer -= dt;
+        const maxT = player.swordAttackMax || 0.28;
+        const progress = 1 - Math.max(0, player.swordAttackTimer / maxT);
+        const combo = (player.swordAttackCombo || 1) % 2;
+
+        if (anim.rightArm) {
+          if (combo === 1) {
+            // COMBO A: Corte Diagonal Descendente (Alto-Direita -> Baixo-Esquerda)
+            if (progress < 0.22) {
+              // Windup: Espada ergue alto e recua acumulando inercia
+              const p = progress / 0.22;
+              anim.rightArm.rotation.x = -0.26 - p * 1.35;
+              anim.rightArm.rotation.y = -0.18 + p * 0.70;
+              anim.rightArm.rotation.z = 0.12 + p * 0.45;
+              if (anim.torso) anim.torso.rotation.y = -0.32 * p;
+            } else if (progress < 0.62) {
+              // Cleave Impact: Arco devastador descendo e cortando pela frente
+              const p = (progress - 0.22) / 0.40;
+              const ease = Math.sin(p * Math.PI * 0.5);
+              anim.rightArm.rotation.x = -1.61 + 3.12 * ease;
+              anim.rightArm.rotation.y = 0.52 - 1.45 * ease;
+              anim.rightArm.rotation.z = 0.57 - 1.05 * ease;
+              if (anim.torso) anim.torso.rotation.y = -0.32 + 0.68 * ease;
+              if (anim.cape) anim.cape.rotation.x = 0.25 + 0.35 * ease;
+            } else {
+              // Follow-through & Recovery suave para a guarda
+              const p = (progress - 0.62) / 0.38;
+              anim.rightArm.rotation.x = 1.51 - 1.77 * p;
+              anim.rightArm.rotation.y = -0.93 + 0.75 * p;
+              anim.rightArm.rotation.z = -0.48 + 0.60 * p;
+              if (anim.torso) anim.torso.rotation.y = 0.36 * (1 - p);
+            }
+          } else {
+            // COMBO B: Talho Transversal Horizontal (Varredura de Lamina Esquerda -> Direita)
+            if (progress < 0.22) {
+              const p = progress / 0.22;
+              anim.rightArm.rotation.x = -0.26 - p * 0.65;
+              anim.rightArm.rotation.y = -0.18 - p * 0.85;
+              anim.rightArm.rotation.z = 0.12 - p * 0.40;
+              if (anim.torso) anim.torso.rotation.y = 0.35 * p;
+            } else if (progress < 0.62) {
+              const p = (progress - 0.22) / 0.40;
+              const ease = Math.sin(p * Math.PI * 0.5);
+              anim.rightArm.rotation.x = -0.91 + 1.82 * ease;
+              anim.rightArm.rotation.y = -1.03 + 2.10 * ease;
+              anim.rightArm.rotation.z = -0.28 + 0.75 * ease;
+              if (anim.torso) anim.torso.rotation.y = 0.35 - 0.70 * ease;
+              if (anim.cape) anim.cape.rotation.x = 0.25 + 0.35 * ease;
+            } else {
+              const p = (progress - 0.62) / 0.38;
+              anim.rightArm.rotation.x = 0.91 - 1.17 * p;
+              anim.rightArm.rotation.y = 1.07 - 1.25 * p;
+              anim.rightArm.rotation.z = 0.47 - 0.35 * p;
+              if (anim.torso) anim.torso.rotation.y = -0.35 * (1 - p);
+            }
+          }
+        }
+      }
+
+      // 3. Dynamic Overhand Throw Animation (Alchemist flask toss & projectile attacks)
+      if (inToss) {
         player.tossAnimTimer -= dt;
         const maxT = player.tossAnimMax || 0.38;
         const progress = 1 - Math.max(0, player.tossAnimTimer / maxT);
         if (anim.rightArm) {
           if (progress < 0.35) {
-            // Windup: arm cocks back high with flask
             const p = progress / 0.35;
             anim.rightArm.rotation.x = -p * 1.5;
             anim.rightArm.rotation.z = 0.35 * p;
           } else {
-            // Throw release: arm whips forward hurling the flask
             const p = (progress - 0.35) / 0.65;
             anim.rightArm.rotation.x = -1.5 + Math.sin(p * Math.PI) * 2.8;
             anim.rightArm.rotation.z = -0.25 * (1 - p);
           }
         }
         if (anim.weapon) {
-          // Flask re-materializes as throw concludes
           const scale = progress < 0.35 ? 1.0 : (progress < 0.7 ? 0.2 : (progress - 0.7) / 0.3);
           anim.weapon.scale.set(scale, scale, scale);
         }
       } else if (anim.weapon && anim.weapon.scale.x !== 1) {
         anim.weapon.scale.set(1, 1, 1);
-      }
-
-      // Cape flutter
-      if (anim.cape) {
-        anim.cape.rotation.x = isMoving ? 0.35 + Math.sin(walk * 2) * 0.15 : 0.08 + Math.sin(Date.now() / 300) * 0.04;
       }
 
       // Flash on hit / invulnerability

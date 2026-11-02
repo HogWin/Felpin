@@ -165,6 +165,11 @@ class BroadswordWeapon extends BaseWeapon {
 
   attack(player, enemies, projectiles, particles) {
     window.MedievalSurvivors.sound.playSwordSlash();
+    if (player) {
+      player.swordAttackTimer = 0.28;
+      player.swordAttackMax = 0.28;
+      player.swordAttackCombo = (player.swordAttackCombo || 0) + 1;
+    }
 
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
@@ -1316,6 +1321,11 @@ class TwinDaggersWeapon extends BaseWeapon {
 
   attack(player, enemies, projectiles, particles) {
     window.MedievalSurvivors.sound.playSwordSlash();
+    if (player) {
+      player.swordAttackTimer = 0.28;
+      player.swordAttackMax = 0.28;
+      player.swordAttackCombo = (player.swordAttackCombo || 0) + 1;
+    }
 
     const isEvo = this.level >= 8;
     const baseCrit = isEvo ? 1.0 : (0.35 + (player.baseCritChance || 0));
@@ -1500,6 +1510,11 @@ class DarkGreatswordWeapon extends BaseWeapon {
       window.MedievalSurvivors.sound.playDarkGreatswordSlash();
     } else if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playSwordSlash) {
       window.MedievalSurvivors.sound.playSwordSlash();
+    }
+    if (player) {
+      player.swordAttackTimer = 0.32;
+      player.swordAttackMax = 0.32;
+      player.swordAttackCombo = (player.swordAttackCombo || 0) + 1;
     }
 
     const isEvo = this.level >= 8;

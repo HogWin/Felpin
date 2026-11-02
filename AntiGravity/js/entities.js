@@ -16,6 +16,13 @@ class Player {
     this.aimingWithMouse = true;
     this.walkCycle = 0;
 
+    // Sincronizacao de animacoes 3D (Espada, Arremessos e Movimento)
+    this.swordAttackTimer = 0;
+    this.swordAttackMax = 0.28;
+    this.swordAttackCombo = 0;
+    this.tossAnimTimer = 0;
+    this.tossAnimMax = 0.38;
+
     // Base stats from chosen class
     this.baseMaxHp = classDef.stats.maxHp;
     this.bonusMaxHp = 0;
