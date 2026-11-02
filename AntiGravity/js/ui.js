@@ -3166,10 +3166,55 @@ class UIController {
 
     const updatesData = [
       {
+        version: 'v1.7.1',
+        eraName: 'Hotfix de Otimização & Harmonia de Área',
+        date: '2 de Novembro de 2026',
+        isLatest: true,
+        summary: 'Hotfix emergencial com otimizações profundas de renderização e CPU contra lag de hordas, rebalanceamento e redução no scaling de efeito em área de todas as armas, ajuste no Montante das Trevas, controle deslizante de volume master e refinamento no Auto-Ouro.',
+        categories: [
+          {
+            type: 'improvement',
+            badge: 'PERFORMANCE',
+            title: 'Otimização Anti-Lag & Instanciação Preguiçosa 3D',
+            desc: 'Malhas de monstros e gemas agora só são instanciadas no Three.js quando entram no campo de visão real, e ricochetes de Glaives usam SpatialGrid O(1). O agrupamento de gemas e os textos flutuantes agora operam com batching sem travamentos de Garbage Collector.'
+          },
+          {
+            type: 'balance',
+            badge: 'EQUILÍBRIO',
+            title: 'Rebalanceamento Geral de Efeito em Área (AoE)',
+            desc: 'Redução do scaling de área da Aura Sagrada (raio base 38 com teto protetor), Frascos de Fogo/Peste, Vórtices e Martelos. A passiva Estandarte de Alcance foi ajustada para +8%/lvl e a Forja para +5%/lvl para evitar poluição visual de tela.'
+          },
+          {
+            type: 'balance',
+            badge: 'EQUILÍBRIO',
+            title: 'Ajuste Visual & Alcance do Montante das Trevas',
+            desc: 'Redução de 35% no alcance base do corte e atenuação no raio das Fendas Abissais e do corte de 360° da evolução Devoradora de Reis, garantindo proporções justas e visibilidade tática no combate corporal.'
+          },
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Barra Deslizante de Volume Master nas Opções',
+            desc: 'Slider medieval contínuo de 0 a 100% adicionado na aba de Opções com barramento master de áudio Web Audio API e persistência no SaveManager.'
+          },
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Integração de HUD do Botão Auto-Ouro',
+            desc: 'Atalho no HUD e sincronização na aba Opções para conversão automática de gemas em moedas ao maximizar todas as armas e passivas.'
+          },
+          {
+            type: 'balance',
+            badge: 'EQUILÍBRIO',
+            title: 'Taxa Reduzida de Campeões de Elite',
+            desc: 'Probabilidade de spawn de monstros com aura dourada ajustada para 1.2%, com teto rígido de até 2 campeões ativos na arena.'
+          }
+        ]
+      },
+      {
         version: 'v1.7.0',
         eraName: 'Sinfonia de Valoria & Vitória das Catacumbas',
         date: '1 de Novembro de 2026',
-        isLatest: true,
+        isLatest: false,
         summary: 'Trilha sonora medieval procedural para o lobby com controle de áudio, baús de campeões de elite com upgrade de arma/passiva, vitória aos 10 minutos, persistência de éter e otimização total de memória.',
         categories: [
           {
@@ -3381,7 +3426,7 @@ class UIController {
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v1.7.0 (Sinfonia de Valoria)</strong>
+              <strong class="text-gold">v1.7.1 (Hotfix de Otimização & Área)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>
