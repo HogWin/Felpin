@@ -22,6 +22,7 @@ class SaveManager {
       settings: {
         mouseAim: true,
         soundMuted: false,
+        soundVolume: 80,
         autoGoldOnMax: false,
         hyperMode: false,
         curseRank: 0,

@@ -2960,6 +2960,8 @@ class UIController {
     const mouseAimActive = sm ? sm.data.settings.mouseAim : true;
     const soundMuted = sm ? sm.data.settings.soundMuted : false;
     const graphicsQuality = sm && sm.data.settings.graphicsQuality ? sm.data.settings.graphicsQuality : 'alta';
+    const sound = window.MedievalSurvivors && window.MedievalSurvivors.sound;
+    const currentVolume = sound ? Math.round(sound.getMasterVolume() * 100) : (sm && sm.data.settings.soundVolume !== undefined ? sm.data.settings.soundVolume : 80);
 
     this.menuTabContent.innerHTML = `
       <div style="max-width:540px; margin:0 auto; display:flex; flex-direction:column; gap:18px; padding:10px 0;">
@@ -2992,6 +2994,21 @@ class UIController {
           <button class="btn-primary" id="settings-menu-music-btn" style="min-width:150px;">
             ${(window.MedievalSurvivors && window.MedievalSurvivors.sound && (window.MedievalSurvivors.sound.lobbyMuted || window.MedievalSurvivors.sound.muted)) ? '🔇 Música: Deslig.' : '🎵 Música: Ligada'}
           </button>
+        </div>
+
+        <div class="forge-card" style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:700; color:#f0c05a;">🎚️ Volume Geral do Som</div>
+              <div style="font-size:0.82rem; color:#aaa; margin-top:2px;">Regular a intensidade do volume de efeitos sonoros, magias e música.</div>
+            </div>
+            <span id="settings-volume-value" style="font-family:'Cinzel', serif; font-size:1.1rem; font-weight:700; color:#ffd700; min-width:52px; text-align:right;">${currentVolume}%</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; width:100%; margin-top:4px;">
+            <span style="font-size:1rem; color:#888;">🔈</span>
+            <input type="range" id="settings-volume-slider" min="0" max="100" value="${currentVolume}" class="medieval-slider" style="flex:1;" />
+            <span style="font-size:1.1rem; color:#f1c40f;">🔊</span>
+          </div>
         </div>
 
         <div class="forge-card" style="display:flex; justify-content:space-between; align-items:center;">
@@ -3039,6 +3056,24 @@ class UIController {
           window.MedievalSurvivors.sound.toggleLobbyMusic();
           this.updateMenuMusicButton();
           this.renderSettingsTab();
+        }
+      });
+    }
+
+    const volumeSlider = document.getElementById('settings-volume-slider');
+    const volumeValue = document.getElementById('settings-volume-value');
+    if (volumeSlider) {
+      volumeSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        if (volumeValue) {
+          volumeValue.textContent = val === 0 ? '0% (Mudo)' : `${val}%`;
+        }
+        if (window.MedievalSurvivors && window.MedievalSurvivors.sound) {
+          window.MedievalSurvivors.sound.setMasterVolume(val);
+        }
+        if (sm) {
+          sm.data.settings.soundVolume = val;
+          sm.save();
         }
       });
     }

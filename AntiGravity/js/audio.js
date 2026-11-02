@@ -17,12 +17,22 @@ class SoundEngine {
     this.musicIntensity = 0.0;
     this.isBossMusic = false;
     this.musicMasterGain = null;
+    this.masterGainNode = null;
+    this.sfxMasterGain = null;
     this.layerGains = {
       drone: null,
       arp: null,
       drums: null,
       climax: null
     };
+
+    // Master Volume level (0.0 to 1.0, default 0.8)
+    try {
+      const storedVol = localStorage.getItem('medieval_master_volume');
+      this.masterVolume = storedVol !== null ? parseInt(storedVol, 10) / 100 : 0.8;
+    } catch (e) {
+      this.masterVolume = 0.8;
+    }
 
     // Lobby / Main Menu Music State
     this.lobbyPlaying = false;
@@ -36,12 +46,51 @@ class SoundEngine {
     }
   }
 
+  get sfxDestination() {
+    return this.sfxMasterGain || (this.masterGainNode || (this.ctx ? this.ctx.destination : null));
+  }
+
+  setMasterVolume(val) {
+    const norm = typeof val === 'number' ? Math.max(0, Math.min(1, val > 1 ? val / 100 : val)) : 0.8;
+    this.masterVolume = norm;
+    try {
+      localStorage.setItem('medieval_master_volume', Math.round(norm * 100).toString());
+    } catch (e) {}
+
+    if (this.masterGainNode && this.ctx) {
+      const t = this.ctx.currentTime;
+      this.masterGainNode.gain.cancelScheduledValues(t);
+      this.masterGainNode.gain.setValueAtTime(this.muted ? 0.0 : this.masterVolume, t);
+    }
+  }
+
+  getMasterVolume() {
+    return this.masterVolume !== undefined ? this.masterVolume : 0.8;
+  }
+
+  initMasterNodes() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (!this.masterGainNode) {
+      this.masterGainNode = this.ctx.createGain();
+      const vol = this.muted ? 0.0 : this.masterVolume;
+      this.masterGainNode.gain.setValueAtTime(vol, t);
+      this.masterGainNode.connect(this.ctx.destination);
+    }
+    if (!this.sfxMasterGain) {
+      this.sfxMasterGain = this.ctx.createGain();
+      this.sfxMasterGain.gain.setValueAtTime(1.0, t);
+      this.sfxMasterGain.connect(this.masterGainNode);
+    }
+  }
+
   init() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) {
         this.ctx = new AudioCtx();
         this.initCachedNoiseBuffers();
+        this.initMasterNodes();
         this.initMusicBuses();
       }
     }
@@ -93,15 +142,17 @@ class SoundEngine {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
 
+    this.initMasterNodes();
+
     // Master music bus (Combat)
     this.musicMasterGain = this.ctx.createGain();
     this.musicMasterGain.gain.setValueAtTime(0.55, t);
-    this.musicMasterGain.connect(this.ctx.destination);
+    this.musicMasterGain.connect(this.masterGainNode);
 
     // Master lobby music bus (Peaceful Tavern / Grand Castle Hub)
     this.lobbyMasterGain = this.ctx.createGain();
-    this.lobbyMasterGain.gain.setValueAtTime(0.48, t);
-    this.lobbyMasterGain.connect(this.ctx.destination);
+    this.lobbyMasterGain.gain.setValueAtTime(this.lobbyMuted ? 0.0 : 0.48, t);
+    this.lobbyMasterGain.connect(this.masterGainNode);
 
     // 4 Dynamic Adaptive Music Layers
     this.layerGains.drone = this.ctx.createGain();
@@ -128,6 +179,11 @@ class SoundEngine {
 
   toggleMute() {
     this.muted = !this.muted;
+    if (this.masterGainNode && this.ctx) {
+      const t = this.ctx.currentTime;
+      this.masterGainNode.gain.cancelScheduledValues(t);
+      this.masterGainNode.gain.setValueAtTime(this.muted ? 0.0 : this.masterVolume, t);
+    }
     if (this.muted) {
       if (this.bgmTimer) {
         clearInterval(this.bgmTimer);
@@ -137,19 +193,7 @@ class SoundEngine {
         clearInterval(this.lobbyTimer);
         this.lobbyPlaying = false;
       }
-      if (this.musicMasterGain && this.ctx) {
-        this.musicMasterGain.gain.setValueAtTime(0.0, this.ctx.currentTime);
-      }
-      if (this.lobbyMasterGain && this.ctx) {
-        this.lobbyMasterGain.gain.setValueAtTime(0.0, this.ctx.currentTime);
-      }
     } else {
-      if (this.musicMasterGain && this.ctx) {
-        this.musicMasterGain.gain.setValueAtTime(0.55, this.ctx.currentTime);
-      }
-      if (this.lobbyMasterGain && this.ctx) {
-        this.lobbyMasterGain.gain.setValueAtTime(this.lobbyMuted ? 0.0 : 0.48, this.ctx.currentTime);
-      }
       const isPlaying = window.MedievalSurvivors && window.MedievalSurvivors.game && window.MedievalSurvivors.game.state === 'PLAYING';
       if (isPlaying) {
         if (!this.bgmPlaying) this.startBgm();
@@ -586,7 +630,7 @@ class SoundEngine {
       gain.gain.exponentialRampToValueAtTime(0.001, t + n.d);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.sfxDestination);
 
       osc.start(t);
       osc.stop(t + n.d);
@@ -612,7 +656,7 @@ class SoundEngine {
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.sfxDestination);
 
       osc.start(t);
       osc.stop(t + 0.25);
@@ -637,7 +681,7 @@ class SoundEngine {
     gain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
 
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxDestination);
 
     osc.start(t);
     osc.stop(t + 0.12);
@@ -665,7 +709,7 @@ class SoundEngine {
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
 
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxDestination);
 
     osc.start(t);
     osc.stop(t + 0.05);
@@ -706,7 +750,7 @@ class SoundEngine {
     osc1.connect(filter);
     osc2.connect(filter);
     filter.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxDestination);
 
     osc1.start(t);
     osc2.start(t);
@@ -737,7 +781,7 @@ class SoundEngine {
         gain.gain.setValueAtTime(0.18, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(this.sfxDestination);
         osc.start(t);
         osc.stop(t + 0.55);
       });
@@ -771,7 +815,7 @@ class SoundEngine {
       gain.gain.exponentialRampToValueAtTime(0.001, t + n.d);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.sfxDestination);
 
       osc.start(t);
       osc.stop(t + n.d);
@@ -786,7 +830,7 @@ class SoundEngine {
     chimeGain.gain.setValueAtTime(0.20, chimeTime);
     chimeGain.gain.exponentialRampToValueAtTime(0.001, chimeTime + 0.8);
     chime.connect(chimeGain);
-    chimeGain.connect(this.ctx.destination);
+    chimeGain.connect(this.sfxDestination);
     chime.start(chimeTime);
     chime.stop(chimeTime + 0.8);
   }
@@ -818,7 +862,7 @@ class SoundEngine {
 
     osc.connect(filter);
     filter.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxDestination);
 
     osc.start(t);
     osc.stop(t + 0.9);
@@ -842,7 +886,7 @@ class SoundEngine {
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
 
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxDestination);
     osc.start(t);
     osc.stop(t + 0.18);
   }
@@ -864,7 +908,7 @@ class SoundEngine {
     subGain.gain.setValueAtTime(0.45, t);
     subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.75);
     subOsc.connect(subGain);
-    subGain.connect(this.ctx.destination);
+    subGain.connect(this.sfxDestination);
     subOsc.start(t);
     subOsc.stop(t + 0.75);
 
@@ -878,7 +922,7 @@ class SoundEngine {
       gain.gain.setValueAtTime(0.24, t + idx * 0.08);
       gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.08 + 0.65);
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.sfxDestination);
       osc.start(t + idx * 0.08);
       osc.stop(t + idx * 0.08 + 0.65);
     });
@@ -903,7 +947,7 @@ class SoundEngine {
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
 
     osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    gain.connect(this.sfxDestination);
     osc.start(t);
     osc.stop(t + 0.35);
   }
@@ -925,7 +969,7 @@ class SoundEngine {
     boomGain.gain.setValueAtTime(0.5, t);
     boomGain.gain.exponentialRampToValueAtTime(0.005, t + 0.45);
     boom.connect(boomGain);
-    boomGain.connect(this.ctx.destination);
+    boomGain.connect(this.sfxDestination);
     boom.start(t);
     boom.stop(t + 0.45);
 
@@ -940,7 +984,7 @@ class SoundEngine {
     noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
     noise.connect(filter);
     filter.connect(noiseGain);
-    noiseGain.connect(this.ctx.destination);
+    noiseGain.connect(this.sfxDestination);
     noise.start(t);
   }
 
