@@ -3169,10 +3169,37 @@ class UIController {
 
     const updatesData = [
       {
+        version: 'v2.1.0',
+        eraName: 'A Alvorada dos Heróis: Rework Visual 3D do Cavaleiro',
+        date: '2 de Novembro de 2026',
+        isLatest: true,
+        summary: 'Grande marco de reformulação visual do reino: rework completo da geometria, anatomia e heráldica do Cavaleiro Real, arsenal com espada de aço valiriano e escudo reforçado com umbo, suporte para iluminação facetada e pavimentação da transição para GLB e Shaders GLSL.',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'VISUAL 3D',
+            title: 'Rework Completo do Cavaleiro de Valoria',
+            desc: 'Substituição da antiga geometria simples por escultura anatômica em V, elmo Armet facetado com visor de 4 fendas de ventilação, crista com pluma de guerra escarlate articulada, ombreiras triplas sobrepostas, gorjal e escarpes reforçados.'
+          },
+          {
+            type: 'feature',
+            badge: 'ARSENAL HEROICO',
+            title: 'Espada de Aço Valiriano & Kite Shield Nobre',
+            desc: 'Nova espada longa com sulco central (fuller), guarda em asas de águia e pomo cravado com rubi lapidado; Escudo naval azul-cobalto chanfrado com relevo da Cruz de Valoria e umbo central cônico.'
+          },
+          {
+            type: 'improvement',
+            badge: 'SHOWCASE & ROADMAP',
+            title: 'Showcase 3D Interativo & Arquitetura Gráfica',
+            desc: 'Lançamento do visualizador 3D dedicado de modelos com rotação 360°, animações de guarda, marcha e golpe valiriano, câmeras de foco e modos de iluminação (Sol, Tocha e Luar).'
+          }
+        ]
+      },
+      {
         version: 'v1.7.2',
         eraName: 'Hotfix de Neutralização de Menu Contextual',
         date: '2 de Novembro de 2026',
-        isLatest: true,
+        isLatest: false,
         summary: 'Hotfix de correção de usabilidade bloqueando a abertura acidental do menu de contexto nativo do navegador ao clicar com o botão direito durante a partida.',
         categories: [
           {
@@ -3444,7 +3471,7 @@ class UIController {
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v1.7.2 (Hotfix de Entrada & Bloqueio de Menu)</strong>
+              <strong class="text-gold">v2.1.0 (Rework Visual do Cavaleiro & Fundação Gráfica)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>

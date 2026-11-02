@@ -36,3 +36,4 @@ Este documento norteia a substituição completa dos modelos geométricos primit
 * **Iluminação Atmosférica**: Luz de luar gótico contrastando com luz quente pontual de tochas e fogueiras.
 * **Destrutíveis Refinados**: Barris de carvalho com aros de ferro, urnas de sangue e baús de tesouro entalhados.
 * **Gancho GLSL**: Névoa volumétrica rasteira no piso (*Ground Fog*) e pós-processamento de tela (*Bloom & Vignette*).
+
