@@ -3166,10 +3166,25 @@ class UIController {
 
     const updatesData = [
       {
+        version: 'v1.7.2',
+        eraName: 'Hotfix de Neutralização de Menu Contextual',
+        date: '2 de Novembro de 2026',
+        isLatest: true,
+        summary: 'Hotfix de correção de usabilidade bloqueando a abertura acidental do menu de contexto nativo do navegador ao clicar com o botão direito durante a partida.',
+        categories: [
+          {
+            type: 'improvement',
+            badge: 'USABILIDADE',
+            title: 'Bloqueio do Menu de Contexto do Navegador',
+            desc: 'Desativação completa do evento contextmenu nativo no canvas e no contêiner do jogo durante o combate, impedindo o surgimento involuntário de opções como definir papel de parede, salvar imagem ou inspecionar elemento ao clicar com o botão direito.'
+          }
+        ]
+      },
+      {
         version: 'v1.7.1',
         eraName: 'Hotfix de Otimização & Harmonia de Área',
         date: '2 de Novembro de 2026',
-        isLatest: true,
+        isLatest: false,
         summary: 'Hotfix emergencial com otimizações profundas de renderização e CPU contra lag de hordas, rebalanceamento e redução no scaling de efeito em área de todas as armas, ajuste no Montante das Trevas, controle deslizante de volume master e refinamento no Auto-Ouro.',
         categories: [
           {
@@ -3426,7 +3441,7 @@ class UIController {
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v1.7.1 (Hotfix de Otimização & Área)</strong>
+              <strong class="text-gold">v1.7.2 (Hotfix de Entrada & Bloqueio de Menu)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>
