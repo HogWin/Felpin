@@ -64,6 +64,10 @@ class SpatialGrid {
     }
     return arr;
   }
+
+  query(x, y, radius = 90, outArr = null) {
+    return this.getNearby(x, y, radius, outArr);
+  }
 }
 
 class Game {
@@ -448,7 +452,12 @@ class Game {
   }
 
   addFloatingText(x, y, text, color, isCritical) {
-    if (this.floatingTexts.length >= 60) this.floatingTexts.shift();
+    if (this.floatingTexts.length >= 28) {
+      const old = this.floatingTexts.shift();
+      if (old && this.floatingTextPool) {
+        this.floatingTextPool.release(old);
+      }
+    }
     this.floatingTexts.push(this.floatingTextPool.acquire(x, y, text, color, isCritical));
   }
 
@@ -706,6 +715,7 @@ class Game {
       etherEarned: this.player.ether || 0,
       outcome: 'VITÓRIA'
     });
+    this.saveManager.save();
 
     this.renderer.triggerShake(16, 1.0);
     if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playVictory) {
@@ -892,8 +902,8 @@ class Game {
       }
     }
 
-    // 6. Update XP Gems (with intelligent background clustering to avoid performance degradation)
-    if (this.gems.length > 75) {
+    // 6. Update XP Gems (throttled intelligent clustering to eliminate GC spikes)
+    if (this.gems.length > 75 && this.frameCount % 60 === 0) {
       this.consolidateGems();
     }
     let triggeredLevelUp = false;
@@ -976,6 +986,7 @@ class Game {
         etherEarned: this.player.ether || 0,
         outcome: 'DERROTA'
       });
+      this.saveManager.save();
 
       this.submitRunToNeon();
 

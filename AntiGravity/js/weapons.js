@@ -2289,8 +2289,9 @@ class CelestialGlaive {
       else this.hitCooldowns.set(id, timer - dt);
     }
 
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const e = enemies[i];
+    const nearby = getNearbyEnemiesForCollision(this.x, this.y, this.radius + 35, enemies);
+    for (let i = 0, len = nearby.length; i < len; i++) {
+      const e = nearby[i];
       if (!e.alive || this.hitCooldowns.has(e.id)) continue;
 
       const dx = e.x - this.x;
@@ -2302,19 +2303,22 @@ class CelestialGlaive {
         this.hitCooldowns.set(e.id, 0.35);
         this.bouncesLeft--;
 
-        if (particles && particles.createExplosionWave) {
-          particles.createExplosionWave(this.x, this.y, 18, this.isEvolved ? '#70a1ff' : '#00d2d3');
+        if (particles && particles.createSpark) {
+          particles.createSpark(this.x, this.y, this.isEvolved ? '#70a1ff' : '#00d2d3');
         }
 
-        // Find next nearest enemy to ricochet toward
+        // Fast SpatialGrid-backed ricochet targeting
+        const searchNearby = getNearbyEnemiesForCollision(this.x, this.y, 260, enemies);
         let nextTarget = null;
-        let minDist = 260;
-        for (let j = 0; j < len; j++) {
-          const cand = enemies[j];
+        let minDistSq = 260 * 260;
+        for (let j = 0, cLen = searchNearby.length; j < cLen; j++) {
+          const cand = searchNearby[j];
           if (cand !== e && cand.alive && !this.hitCooldowns.has(cand.id)) {
-            const d = Math.hypot(cand.x - this.x, cand.y - this.y);
-            if (d < minDist) {
-              minDist = d;
+            const cdx = cand.x - this.x;
+            const cdy = cand.y - this.y;
+            const dSq = cdx * cdx + cdy * cdy;
+            if (dSq < minDistSq) {
+              minDistSq = dSq;
               nextTarget = cand;
             }
           }

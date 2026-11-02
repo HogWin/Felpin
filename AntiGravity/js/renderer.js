@@ -638,28 +638,24 @@ class GameRenderer {
       if (!e.alive) continue;
 
       this._activeEnemyIds.add(e.id);
-      let mesh = this.enemyMeshMap.get(e.id);
 
-      if (!mesh) {
-        mesh = window.MedievalSurvivors.models3d.createEnemyModel(e);
-        this.scene.add(mesh);
-        this.enemyMeshMap.set(e.id, mesh);
-      }
-
-      mesh.position.set(e.x, 0, e.y);
-
-      // Animation LOD & Frustum Culling:
-      // Offscreen enemies skip articulated limb math, sin/cos sweeps, and mesh rendering!
       const dx = e.x - px;
       const dy = e.y - py;
       const inView = (dx * dx + dy * dy) <= viewDistSq;
+      let mesh = this.enemyMeshMap.get(e.id);
 
       if (inView || e.isBoss) {
+        if (!mesh) {
+          mesh = window.MedievalSurvivors.models3d.createEnemyModel(e);
+          this.scene.add(mesh);
+          this.enemyMeshMap.set(e.id, mesh);
+        }
         mesh.visible = true;
+        mesh.position.set(e.x, 0, e.y);
         if (mesh.updateVisuals) {
           mesh.updateVisuals(dt, e);
         }
-      } else {
+      } else if (mesh) {
         mesh.visible = false;
       }
     }
@@ -719,25 +715,24 @@ class GameRenderer {
     for (let i = 0, len = gems.length; i < len; i++) {
       const gem = gems[i];
       this._activeGems.add(gem);
-      let mesh = this.gemMeshMap.get(gem);
-
-      if (!mesh) {
-        mesh = window.MedievalSurvivors.models3d.createGemModel(gem.value || 1);
-        this.scene.add(mesh);
-        this.gemMeshMap.set(gem, mesh);
-      }
 
       const dx = gem.x - px;
       const dy = gem.y - py;
       const inView = (dx * dx + dy * dy) <= viewDistSq;
+      let mesh = this.gemMeshMap.get(gem);
 
       if (inView) {
+        if (!mesh) {
+          mesh = window.MedievalSurvivors.models3d.createGemModel(gem.value || 1);
+          this.scene.add(mesh);
+          this.gemMeshMap.set(gem, mesh);
+        }
         mesh.visible = true;
         mesh.position.set(gem.x, 0, gem.y);
         if (mesh.updateVisuals) {
           mesh.updateVisuals(dt);
         }
-      } else {
+      } else if (mesh) {
         mesh.visible = false;
       }
     }
@@ -1252,25 +1247,36 @@ class GameRenderer {
       return this._screenPos;
     };
 
-    // 1. Floating Damage Numbers (cull numbers outside viewport before running 4x4 matrix projection)
+    // 1. Floating Damage Numbers (batched, font-cached, zero-lag capped)
     if (game.floatingTexts.length > 0) {
       ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 4.5;
+      ctx.lineWidth = 3.5;
       ctx.textAlign = 'center';
 
       const px = game.player ? game.player.x : 0;
       const py = game.player ? game.player.y : 0;
+      const maxDraw = Math.min(game.floatingTexts.length, 24);
 
-      for (let i = 0, len = game.floatingTexts.length; i < len; i++) {
+      let lastWasCritical = null;
+      let lastColor = null;
+
+      for (let i = 0; i < maxDraw; i++) {
         const ft = game.floatingTexts[i];
         if (Math.abs(ft.x - px) > 460 || Math.abs(ft.y - py) > 340) continue;
 
         const screenPos = project3D(ft.x, ft.y);
         if (screenPos.onScreen) {
           ctx.globalAlpha = Math.max(0, Math.min(1, ft.life));
-          ctx.fillStyle = ft.color || '#ffffff';
-          ctx.font = ft.isCritical ? 'bold 26px Cinzel, Georgia' : 'bold 20px Cinzel, Georgia';
-          const drawY = screenPos.y - (1 - ft.life) * 28;
+          const color = ft.color || '#ffffff';
+          if (lastColor !== color) {
+            ctx.fillStyle = color;
+            lastColor = color;
+          }
+          if (lastWasCritical !== ft.isCritical) {
+            ctx.font = ft.isCritical ? 'bold 24px Cinzel, Georgia' : 'bold 18px Cinzel, Georgia';
+            lastWasCritical = ft.isCritical;
+          }
+          const drawY = screenPos.y - (1 - ft.life) * 24;
           if (ft.isCritical) {
             ctx.strokeText(ft.text, screenPos.x, drawY);
           }

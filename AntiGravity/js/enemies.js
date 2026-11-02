@@ -116,9 +116,10 @@ class BaseEnemy {
     if (!this.alive) return;
     this.walkCycle += dt * 8;
 
-    // Knockback decay
-    this.knockbackX *= Math.pow(0.01, dt);
-    this.knockbackY *= Math.pow(0.01, dt);
+    // Fast Knockback decay (zero-Math.pow overhead)
+    const kbDecay = Math.max(0, 1 - 28 * dt);
+    this.knockbackX *= kbDecay;
+    this.knockbackY *= kbDecay;
 
     // Perseguicao EXCLUSIVA em direcao ao jogador (Zero-overhead, alivio total de CPU/memoria)
     const dx = player.x - this.x;
