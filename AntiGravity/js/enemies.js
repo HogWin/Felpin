@@ -1358,7 +1358,9 @@ class WaveDirector {
     }
 
     // Elite Champion Monster (2.5x HP, +25% size, +35% damage, 4x XP, golden runic aura, drops Tier-1 Chest)
-    if (t > 40 && Math.random() < 0.045) {
+    // Chance de spawn substancialmente reduzida para 1.2% e teto de no maximo 2 campeões simultaneos na arena
+    const activeChampions = enemies.filter(e => e.isChampion && e.alive).length;
+    if (t > 50 && activeChampions < 2 && Math.random() < 0.012) {
       enemy.isChampion = true;
       enemy.dropChest = true;
       enemy.bossTier = 1;
