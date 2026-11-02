@@ -3169,10 +3169,31 @@ class UIController {
 
     const updatesData = [
       {
+        version: 'v2.1.1',
+        eraName: 'Hotfix de Sincronização de Combate & Locomoção',
+        date: '2 de Novembro de 2026',
+        isLatest: true,
+        summary: 'Hotfix cinemático refinando a sincronia entre a animação de ataque com a espada e a locomoção do guerreiro: sistema de combo duplo alternado (corte diagonal e talho transversal), postura de guarda firme com o escudo e torção anatômica do tronco em marcha.',
+        categories: [
+          {
+            type: 'improvement',
+            badge: 'CINEMÁTICA',
+            title: 'Sincronização de Ataque com a Espada',
+            desc: 'Integração direta entre o timer dos arcos de corte (Espada Longa Real e Montante das Trevas) e o modelo 3D do herói com windup, impacto frontal devastador e recuperação suave, operando com independência das pernas durante a corrida.'
+          },
+          {
+            type: 'improvement',
+            badge: 'LOCOMOÇÃO',
+            title: 'Postura de Guarda & Torção Anatômica',
+            desc: 'O escudo passa a ser empunhado em guarda tática firme amortecendo os passos da marcha, a espada oscila com a inércia do movimento e o peitoral/bacia realizam torção de passada eliminando a rigidez anterior.'
+          }
+        ]
+      },
+      {
         version: 'v2.1.0',
         eraName: 'A Alvorada dos Heróis: Rework Visual 3D do Cavaleiro',
         date: '2 de Novembro de 2026',
-        isLatest: true,
+        isLatest: false,
         summary: 'Grande marco de reformulação visual do reino: rework completo da geometria, anatomia e heráldica do Cavaleiro Real, arsenal com espada de aço valiriano e escudo reforçado com umbo, suporte para iluminação facetada e pavimentação da transição para GLB e Shaders GLSL.',
         categories: [
           {
@@ -3471,7 +3492,7 @@ class UIController {
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v2.1.0 (Rework Visual do Cavaleiro & Fundação Gráfica)</strong>
+              <strong class="text-gold">v2.1.1 (Hotfix de Sincronização de Ataque & Locomoção)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>
