@@ -331,154 +331,311 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     return root;
   }
 
-  // 1.1 CAVALEIRO REAL (Knight Model)
+  // 1.1 CAVALEIRO REAL (Knight Model - Grand Champion Visual Rework)
   function buildKnightModel(group, anim) {
-    const steelMat = createFlashable(materials.steel);
-    const darkSteelMat = createFlashable(materials.darkSteel);
-    const goldMat = createFlashable(materials.gold);
-    const redMat = createFlashable(materials.royalRed);
-    const capeMat = createFlashable(materials.crimsonCloth);
-    anim.materials.push(steelMat, darkSteelMat, goldMat, redMat, capeMat);
+    // Shaders / Materials com iluminacao PBR refinada, flatShading heroico e suporte para GLSL
+    const steelMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x8a99ad,
+      metalness: 0.88,
+      roughness: 0.28,
+      flatShading: true
+    }));
+    const darkSteelMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x222933,
+      metalness: 0.92,
+      roughness: 0.38,
+      flatShading: true
+    }));
+    const goldMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      emissive: 0x78350f,
+      emissiveIntensity: 0.22,
+      metalness: 0.95,
+      roughness: 0.20,
+      flatShading: true
+    }));
+    const royalRedMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x991b1b,
+      roughness: 0.75,
+      flatShading: true
+    }));
+    const capeMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x7f1d1d,
+      roughness: 0.82,
+      side: THREE.DoubleSide
+    }));
+    const leatherMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x45230e,
+      roughness: 0.80
+    }));
+    const bladeMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xf8fafc,
+      emissive: 0x94a3b8,
+      emissiveIntensity: 0.18,
+      metalness: 0.98,
+      roughness: 0.12,
+      flatShading: true
+    }));
+    const shieldCobaltMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x1e3a8a,
+      metalness: 0.45,
+      roughness: 0.40,
+      flatShading: true
+    }));
+    const rubyGemMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xef4444,
+      emissive: 0xdc2626,
+      emissiveIntensity: 0.65,
+      metalness: 0.6,
+      roughness: 0.1
+    }));
 
-    // Torso / Breastplate
+    anim.materials.push(steelMat, darkSteelMat, goldMat, royalRedMat, capeMat, leatherMat, bladeMat, shieldCobaltMat, rubyGemMat);
+
+    // =========================================================================
+    // 1. TORSO & PEITORAL ANATOMICO EM V
+    // =========================================================================
     const torsoGroup = new THREE.Group();
-    torsoGroup.position.y = 15;
+    torsoGroup.position.y = 14.5;
     group.add(torsoGroup);
     anim.torso = torsoGroup;
 
-    const chestGeo = new THREE.BoxGeometry(10, 11, 7);
+    // Peitoral Muscular com Corte Angular de 8 Faces
+    const chestGeo = new THREE.CylinderGeometry(5.8, 4.4, 9.5, 8);
     const chestMesh = new THREE.Mesh(chestGeo, steelMat);
     torsoGroup.add(chestMesh);
 
-    // Golden cross emblem on chest
-    const crossVGeo = new THREE.BoxGeometry(2, 7, 0.4);
-    crossVGeo.translate(0, 0, 3.6);
-    torsoGroup.add(new THREE.Mesh(crossVGeo, goldMat));
-    const crossHGeo = new THREE.BoxGeometry(6, 2, 0.4);
-    crossHGeo.translate(0, 1, 3.6);
-    torsoGroup.add(new THREE.Mesh(crossHGeo, goldMat));
+    // Gorjal (Protecao de Garganta em Placas Sobrepostas)
+    const gorgetGeo = new THREE.CylinderGeometry(4.6, 5.2, 2.0, 8);
+    gorgetGeo.translate(0, 4.8, 0);
+    torsoGroup.add(new THREE.Mesh(gorgetGeo, darkSteelMat));
 
-    // Waist belt & Tassets
-    const beltGeo = new THREE.BoxGeometry(10.6, 2.2, 7.6);
-    beltGeo.translate(0, -5, 0);
-    torsoGroup.add(new THREE.Mesh(beltGeo, goldMat));
+    // Brasao Heraldico Real de Valoria em Alto Relevo Dourado
+    const crestGroup = new THREE.Group();
+    crestGroup.position.set(0, 0.8, 4.3);
+    const crossV = new THREE.Mesh(new THREE.BoxGeometry(1.6, 7.2, 0.6), goldMat);
+    const crossH = new THREE.Mesh(new THREE.BoxGeometry(5.8, 1.6, 0.6), goldMat);
+    crossH.position.y = 1.0;
+    const diamondCrest = new THREE.Mesh(new THREE.OctahedronGeometry(1.3, 0), rubyGemMat);
+    diamondCrest.position.set(0, 1.0, 0.4);
+    crestGroup.add(crossV, crossH, diamondCrest);
+    torsoGroup.add(crestGroup);
 
-    const tassetGeo = new THREE.BoxGeometry(3.5, 4.5, 1.2);
-    const tassetL = new THREE.Mesh(tassetGeo, steelMat);
-    tassetL.position.set(-3, -7, 3.2);
-    torsoGroup.add(tassetL);
-    const tassetR = new THREE.Mesh(tassetGeo, steelMat);
-    tassetR.position.set(3, -7, 3.2);
-    torsoGroup.add(tassetR);
+    // Cinto Tatico de Cavaleiro com Fivela de Ouro & Bolsa de Alquimia
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(4.65, 4.75, 1.8, 12), leatherMat);
+    belt.position.y = -4.5;
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.0, 1.0), goldMat);
+    buckle.position.set(0, -4.5, 4.5);
+    const beltPouch = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.6, 1.5), leatherMat);
+    beltPouch.position.set(3.8, -4.5, 1.6);
+    beltPouch.rotation.y = -0.4;
+    torsoGroup.add(belt, buckle, beltPouch);
 
-    // Head & Helmet
+    // Escarcelas Frontais Articuladas (Tassets)
+    [-2.6, 2.6].forEach(x => {
+      const tassetGroup = new THREE.Group();
+      tassetGroup.position.set(x, -6.8, 3.2);
+      tassetGroup.rotation.x = 0.18;
+      const tassetPlate = new THREE.Mesh(new THREE.BoxGeometry(3.0, 4.5, 0.8), steelMat);
+      const tassetTrim = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.0, 0.9), goldMat);
+      tassetTrim.position.y = -1.8;
+      tassetGroup.add(tassetPlate, tassetTrim);
+      torsoGroup.add(tassetGroup);
+    });
+
+    // =========================================================================
+    // 2. ELMO REAL FECHADO COM CRISTA & PLUMA DE GUERRA
+    // =========================================================================
     const headGroup = new THREE.Group();
-    headGroup.position.y = 8;
+    headGroup.position.y = 7.0;
     torsoGroup.add(headGroup);
     anim.head = headGroup;
 
-    const helmGeo = new THREE.BoxGeometry(6.5, 7.5, 6.8);
+    // Armet / Grande Elmo Facetado
+    const helmGeo = new THREE.CylinderGeometry(3.7, 3.3, 6.2, 8);
     const helmMesh = new THREE.Mesh(helmGeo, steelMat);
     headGroup.add(helmMesh);
 
-    // Helmet visor slit
-    const visorGeo = new THREE.BoxGeometry(5.2, 1.2, 0.6);
-    visorGeo.translate(0, 0.4, 3.5);
-    headGroup.add(new THREE.Mesh(visorGeo, darkSteelMat));
+    // Crista Central Reforcada do Elmo
+    const combGeo = new THREE.BoxGeometry(0.8, 7.6, 7.0);
+    combGeo.translate(0, 3.4, 0);
+    headGroup.add(new THREE.Mesh(combGeo, goldMat));
 
-    // Golden helm crest / trim
-    const crestGeo = new THREE.BoxGeometry(1.4, 3, 7.2);
-    crestGeo.translate(0, 4.2, 0);
-    headGroup.add(new THREE.Mesh(crestGeo, goldMat));
+    // Viseira Angular Frontal (Visor Faceplate)
+    const visorPlate = new THREE.Mesh(new THREE.CylinderGeometry(3.8, 3.5, 3.2, 5), darkSteelMat);
+    visorPlate.rotation.y = Math.PI;
+    visorPlate.position.set(0, 0.2, 0.8);
+    headGroup.add(visorPlate);
 
-    // Majestic Red Feathered Plume
-    const plumeGeo = new THREE.ConeGeometry(2.4, 8, 5);
-    plumeGeo.rotateX(-0.3);
-    plumeGeo.translate(0, 8.5, -2);
-    headGroup.add(new THREE.Mesh(plumeGeo, redMat));
+    // Fenda de Visao Estreita Horizontal (Slit)
+    const slit = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.65, 1.2), new THREE.MeshBasicMaterial({ color: 0x05080d }));
+    slit.position.set(0, 0.6, 3.7);
+    headGroup.add(slit);
 
-    // Flowing Cape
+    // Pluma Majestosa Escalonada de Crina de Guerra Carmesim
+    const plumeGroup = new THREE.Group();
+    plumeGroup.position.set(0, 6.8, -1.8);
+    const plumeSocket = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.6, 1.6, 6), goldMat);
+    plumeGroup.add(plumeSocket);
+
+    const feather1 = new THREE.Mesh(new THREE.ConeGeometry(2.0, 7.5, 6), royalRedMat);
+    feather1.rotation.x = -0.45;
+    feather1.position.set(0, 3.8, -1.2);
+    const feather2 = new THREE.Mesh(new THREE.ConeGeometry(1.6, 6.5, 6), royalRedMat);
+    feather2.rotation.x = -0.65;
+    feather2.position.set(0, 4.8, -3.2);
+    plumeGroup.add(feather1, feather2);
+    headGroup.add(plumeGroup);
+
+    // =========================================================================
+    // 3. CAPA EPICA COM DOBRAS GEOMETRICAS & BROCHES DE OURO
+    // =========================================================================
     const capeGroup = new THREE.Group();
-    capeGroup.position.set(0, 5, -3.6);
-    const capeGeo = new THREE.PlaneGeometry(9, 16, 3, 3);
-    capeGeo.translate(0, -8, 0);
+    capeGroup.position.set(0, 5.2, -3.8);
+    const capeGeo = new THREE.PlaneGeometry(10.5, 17.5, 4, 4);
+    capeGeo.translate(0, -8.5, 0);
     const capeMesh = new THREE.Mesh(capeGeo, capeMat);
+    capeMesh.rotation.x = 0.16;
     capeGroup.add(capeMesh);
     torsoGroup.add(capeGroup);
     anim.cape = capeGroup;
 
-    // Left Arm & Shield
+    // Broches de Ombro de Rubi e Ouro
+    [-4.6, 4.6].forEach(x => {
+      const brooch = new THREE.Mesh(new THREE.SphereGeometry(1.1, 8, 8), goldMat);
+      brooch.position.set(x, 5.0, -1.8);
+      const ruby = new THREE.Mesh(new THREE.OctahedronGeometry(0.65, 0), rubyGemMat);
+      ruby.position.set(x, 5.0, -0.8);
+      torsoGroup.add(brooch, ruby);
+    });
+
+    // =========================================================================
+    // 4. BRACO ESQUERDO, OMBREIRA TRIPLA & ESCUDO KITE HEROICO
+    // =========================================================================
     const leftArmGroup = new THREE.Group();
-    leftArmGroup.position.set(-6.5, 4, 0);
+    leftArmGroup.position.set(-6.8, 3.8, 0);
     torsoGroup.add(leftArmGroup);
     anim.leftArm = leftArmGroup;
 
-    const pauldronGeo = new THREE.BoxGeometry(3.6, 3.6, 4.2);
-    leftArmGroup.add(new THREE.Mesh(pauldronGeo, steelMat));
-    const armGeo = new THREE.CylinderGeometry(1.4, 1.3, 7, 6);
-    armGeo.translate(0, -3.5, 0);
-    leftArmGroup.add(new THREE.Mesh(armGeo, steelMat));
+    // Ombreira Imperial Tripla (Tiered Pauldron)
+    const pauldronMain = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 3.4, 3.6, 6), steelMat);
+    pauldronMain.rotation.z = Math.PI / 6;
+    const pauldronTrim = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 3.6, 1.0, 6), goldMat);
+    pauldronTrim.rotation.z = Math.PI / 6;
+    pauldronTrim.position.y = 1.4;
+    leftArmGroup.add(pauldronMain, pauldronTrim);
 
-    // Shield (Heater shield)
+    // Bracadeira e Cotoveleira (Couter)
+    const armGeo = new THREE.CylinderGeometry(1.5, 1.3, 7.2, 6);
+    armGeo.translate(0, -3.6, 0);
+    leftArmGroup.add(new THREE.Mesh(armGeo, steelMat));
+    const couter = new THREE.Mesh(new THREE.OctahedronGeometry(1.1, 0), darkSteelMat);
+    couter.position.set(-0.8, -4.0, 0);
+    leftArmGroup.add(couter);
+
+    // Escudo Kite de Cavalaria de Valoria (Kite Shield)
     const shieldGroup = new THREE.Group();
-    shieldGroup.position.set(-2, -4, 2);
-    shieldGroup.rotation.y = 0.4;
-    const shieldPlateGeo = new THREE.BoxGeometry(7, 10, 0.8);
-    const shieldPlate = new THREE.Mesh(shieldPlateGeo, redMat);
-    shieldGroup.add(shieldPlate);
-    const shieldBorderGeo = new THREE.BoxGeometry(7.6, 10.6, 0.6);
-    shieldGroup.add(new THREE.Mesh(shieldBorderGeo, goldMat));
+    shieldGroup.position.set(-2.4, -4.2, 2.2);
+    shieldGroup.rotation.y = 0.35;
+
+    const shieldBodyGeo = new THREE.CylinderGeometry(3.6, 1.2, 11.5, 5);
+    shieldBodyGeo.scale(1, 1, 0.28);
+    const shieldBody = new THREE.Mesh(shieldBodyGeo, shieldCobaltMat);
+    shieldBody.rotation.y = Math.PI;
+
+    const shieldBorderGeo = new THREE.CylinderGeometry(3.9, 1.4, 11.8, 5);
+    shieldBorderGeo.scale(1, 1, 0.22);
+    const shieldBorder = new THREE.Mesh(shieldBorderGeo, goldMat);
+    shieldBorder.rotation.y = Math.PI;
+
+    const umbo = new THREE.Mesh(new THREE.SphereGeometry(1.2, 8, 8), steelMat);
+    umbo.position.set(0, 1.5, 1.1);
+    const shieldCrossV = new THREE.Mesh(new THREE.BoxGeometry(0.8, 7.5, 0.3), goldMat);
+    shieldCrossV.position.set(0, 0.8, 0.95);
+    const shieldCrossH = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.8, 0.3), goldMat);
+    shieldCrossH.position.set(0, 2.0, 0.95);
+
+    shieldGroup.add(shieldBody, shieldBorder, umbo, shieldCrossV, shieldCrossH);
     leftArmGroup.add(shieldGroup);
 
-    // Right Arm & Broadsword
+    // =========================================================================
+    // 5. BRACO DIREITO, MANOPLA & GRANDE ESPADA DE ACO VALIRIANO
+    // =========================================================================
     const rightArmGroup = new THREE.Group();
-    rightArmGroup.position.set(6.5, 4, 0);
+    rightArmGroup.position.set(6.8, 3.8, 0);
     torsoGroup.add(rightArmGroup);
     anim.rightArm = rightArmGroup;
 
-    const rPauldron = new THREE.Mesh(pauldronGeo, steelMat);
-    rightArmGroup.add(rPauldron);
+    const rPauldronMain = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 3.4, 3.6, 6), steelMat);
+    rPauldronMain.rotation.z = -Math.PI / 6;
+    const rPauldronTrim = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 3.6, 1.0, 6), goldMat);
+    rPauldronTrim.rotation.z = -Math.PI / 6;
+    rPauldronTrim.position.y = 1.4;
+    rightArmGroup.add(rPauldronMain, rPauldronTrim);
+
     const rArm = new THREE.Mesh(armGeo, steelMat);
-    rightArmGroup.add(rArm);
+    const rCouter = new THREE.Mesh(new THREE.OctahedronGeometry(1.1, 0), darkSteelMat);
+    rCouter.position.set(0.8, -4.0, 0);
+    rightArmGroup.add(rArm, rCouter);
 
-    // 3D Broadsword held in hand
+    // Montante de Aco Valiriano com Fio Duplo e Canaleta Central
     const swordGroup = new THREE.Group();
-    swordGroup.position.set(0, -6, 2);
-    swordGroup.rotation.x = Math.PI / 4;
+    swordGroup.position.set(0, -6.5, 2.4);
+    swordGroup.rotation.x = Math.PI / 4.2;
 
-    const bladeGeo = new THREE.BoxGeometry(1.6, 17, 0.5);
-    bladeGeo.translate(0, 8.5, 0);
-    swordGroup.add(new THREE.Mesh(bladeGeo, steelMat));
+    const bladeGeo = new THREE.BoxGeometry(1.5, 19.5, 0.45);
+    bladeGeo.translate(0, 9.75, 0);
+    const bladeMesh = new THREE.Mesh(bladeGeo, bladeMat);
 
-    const crossguardGeo = new THREE.BoxGeometry(6, 1, 1.2);
-    swordGroup.add(new THREE.Mesh(crossguardGeo, goldMat));
+    const fullerGeo = new THREE.BoxGeometry(0.35, 14.5, 0.52);
+    fullerGeo.translate(0, 8.5, 0);
+    const fullerMesh = new THREE.Mesh(fullerGeo, darkSteelMat);
 
-    const hiltGeo = new THREE.CylinderGeometry(0.7, 0.7, 3.5, 5);
-    hiltGeo.translate(0, -2, 0);
-    swordGroup.add(new THREE.Mesh(hiltGeo, materials.leather));
+    const guardGeo = new THREE.BoxGeometry(7.2, 1.2, 1.4);
+    const guardMesh = new THREE.Mesh(guardGeo, goldMat);
 
-    const pommelGeo = new THREE.SphereGeometry(1.1, 6, 6);
-    pommelGeo.translate(0, -4, 0);
-    swordGroup.add(new THREE.Mesh(pommelGeo, goldMat));
+    const hiltGeo = new THREE.CylinderGeometry(0.7, 0.7, 4.2, 8);
+    hiltGeo.translate(0, -2.4, 0);
+    const hiltMesh = new THREE.Mesh(hiltGeo, leatherMat);
 
+    const pommelGeo = new THREE.DodecahedronGeometry(1.3, 0);
+    pommelGeo.translate(0, -5.0, 0);
+    const pommelMesh = new THREE.Mesh(pommelGeo, goldMat);
+    const pommelRuby = new THREE.Mesh(new THREE.OctahedronGeometry(0.65, 0), rubyGemMat);
+    pommelRuby.position.set(0, -5.0, 0);
+
+    swordGroup.add(bladeMesh, fullerMesh, guardMesh, hiltMesh, pommelMesh, pommelRuby);
     rightArmGroup.add(swordGroup);
     anim.weapon = swordGroup;
 
-    // Legs
-    const legGeo = new THREE.CylinderGeometry(1.6, 1.4, 9, 6);
-    legGeo.translate(0, -4.5, 0);
+    // =========================================================================
+    // 6. PERNAS, JOELHEIRAS ARTICULADAS & ESCARPES DE ACO
+    // =========================================================================
+    [-3.2, 3.2].forEach((x, idx) => {
+      const legGroup = new THREE.Group();
+      legGroup.position.set(x, 8.5, 0);
 
-    const leftLegGroup = new THREE.Group();
-    leftLegGroup.position.set(-3, 9, 0);
-    leftLegGroup.add(new THREE.Mesh(legGeo, steelMat));
-    group.add(leftLegGroup);
-    anim.leftLeg = leftLegGroup;
+      const cuisseGeo = new THREE.CylinderGeometry(1.9, 1.7, 5.0, 6);
+      cuisseGeo.translate(0, -2.5, 0);
+      legGroup.add(new THREE.Mesh(cuisseGeo, darkSteelMat));
 
-    const rightLegGroup = new THREE.Group();
-    rightLegGroup.position.set(3, 9, 0);
-    rightLegGroup.add(new THREE.Mesh(legGeo, steelMat));
-    group.add(rightLegGroup);
-    anim.rightLeg = rightLegGroup;
+      const poleynGeo = new THREE.ConeGeometry(1.2, 1.8, 5);
+      poleynGeo.rotateX(Math.PI / 2);
+      poleynGeo.translate(0, -5.0, 1.4);
+      legGroup.add(new THREE.Mesh(poleynGeo, goldMat));
+
+      const greaveGeo = new THREE.CylinderGeometry(1.7, 1.4, 5.5, 6);
+      greaveGeo.translate(0, -7.5, 0);
+      legGroup.add(new THREE.Mesh(greaveGeo, steelMat));
+
+      const sabatonGeo = new THREE.BoxGeometry(2.4, 1.6, 4.5);
+      sabatonGeo.translate(0, -9.8, 1.1);
+      legGroup.add(new THREE.Mesh(sabatonGeo, steelMat));
+
+      group.add(legGroup);
+      if (idx === 0) anim.leftLeg = legGroup;
+      else anim.rightLeg = legGroup;
+    });
   }
 
   // 1.2 ARQUEIRA DAS SOMBRAS (Ranger Model - Visual Rework Completo)

@@ -24,3 +24,4 @@ Esta pasta contém as versões em **TypeScript (`.ts`)** dos 15 módulos do jogo
 | **`ui.ts`** | `ui.js` | Gerenciador de HUD, modais góticos, abas do hub e autenticação |
 | **`weapons.ts`** | `weapons.js` | Armas primárias, orbes, áreas de efeito e disparos |
 | **`types.d.ts`** | — | Definições globais de interfaces e namespace `MedievalSurvivors` |
+

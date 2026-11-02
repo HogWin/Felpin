@@ -133,3 +133,4 @@ declare namespace MedievalSurvivors {
 }
 
 declare let THREE: any;
+
