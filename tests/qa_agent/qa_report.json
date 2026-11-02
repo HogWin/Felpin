@@ -5,58 +5,58 @@
     "failed": 0,
     "errors_count": 0,
     "warnings_count": 0,
-    "timestamp": "2026-11-02 03:04:07"
+    "timestamp": "2026-11-02 03:09:41"
   },
   "results": {
     "1. Carga Inicial & Integridade do DOM": {
       "passed": true,
       "details": "Canvas 3D: OK, Erros: 0",
-      "duration": 2.024
+      "duration": 1.832
     },
     "2. Autenticação Visitante (Guest Mode)": {
       "passed": true,
       "details": "Menu Ativo: True, Modal Auth Oculto: True, Save Criado: True",
-      "duration": 0.654
+      "duration": 0.635
     },
     "3. Fuzzing de Navegação Rápida no Hub (11 Abas)": {
       "passed": true,
       "details": "25 trocas rápidas de aba executadas. Novos erros: 0",
-      "duration": 0.791
+      "duration": 0.799
     },
     "4. Controles da Árvore de Talentos & SVG Viewport": {
       "passed": true,
       "details": "Troca entre 9 classes e zoom contínuo testados. Novos erros: 0",
-      "duration": 0.329
+      "duration": 0.369
     },
     "5. Inicialização de Batalha & Criação do Jogador": {
       "passed": true,
       "details": "Estado: PLAYING, Jogador Ativo: True, Armas: True, Novos erros: 0",
-      "duration": 0.771
+      "duration": 0.813
     },
     "6. Fuzzing Caótico de Inputs & Bloqueio de Clique Direito": {
       "passed": true,
-      "details": "Tempo decorrido: 1.5s, Posição final: (-7, 7), Novos erros: 0",
-      "duration": 1.352
+      "details": "Tempo decorrido: 1.7s, Posição final: (-8, -8), Novos erros: 0",
+      "duration": 1.546
     },
     "7. Race Condition de Pausa & Estabilidade do Game Loop": {
       "passed": true,
-      "details": "Estado: PLAYING, Loop Rodando: True (Δt=0.158s), Novos erros: 0",
-      "duration": 0.77
+      "details": "Estado: PLAYING, Loop Rodando: True (Δt=0.164s), Novos erros: 0",
+      "duration": 0.795
     },
     "8. Subidas de Nível Rápidas & Seleção de Upgrades": {
       "passed": true,
       "details": "Nível alcançado: 4, Estado restaurado: PLAYING, Novos erros: 0",
-      "duration": 0.656
+      "duration": 0.702
     },
     "9. Fluxo de Abertura & Coleta de Baú de Tesouro": {
       "passed": true,
       "details": "Modal Aberto: True, Fechado: True, Estado: PLAYING, Novos erros: 0",
-      "duration": 0.545
+      "duration": 0.546
     },
     "10. Auditoria de Memory Leaks & Teardown Pós-Run": {
       "passed": true,
       "details": "Entidades zeradas: True, Malhas residuais de inimigos/gemas: 0/0, Novos erros: 0",
-      "duration": 20.598
+      "duration": 20.617
     }
   },
   "errors": [],
