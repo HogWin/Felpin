@@ -50,6 +50,15 @@ Este arquivo serve como contexto mestre persistente para o **Antigravity IDE** e
 │   │   ├── ui.js                # UIController, modais, abas de menu, autenticação, HUD
 │   │   └── game.js              # Loop principal, estados (MENU, PLAYING, PAUSED, LEVEL_UP, CHEST, etc.)
 │   └── index.html               # Entrypoint do client, modais góticos, container Three.js
+├── typescript/                  # Versões TypeScript (.ts) equivalentes aos 15 arquivos JS
+│   ├── types.d.ts               # Definições globais de interfaces e tipos do jogo
+│   ├── README.md                # Documentação e tabela de equivalência
+│   └── *.ts                     # 15 módulos TypeScript espelhando AntiGravity/js/
+├── qa/                          # Suíte de testes automatizados de QA
+│   ├── qa_stress_suite.py       # Suíte dos 10 testes de estresse (Playwright Headless)
+│   ├── server.py                # Servidor mock local com APIs isoladas
+│   ├── qa_report.json           # Relatório da última execução de testes
+│   └── README.md                # Guia de execução sob demanda
 ├── api/
 │   └── index.js                 # Handler serverless para a Vercel que direciona para server/server.js
 ├── server/

@@ -33,3 +33,4 @@ python qa/qa_stress_suite.py
 8. **Subidas de Nível Rápidas (Level-Up Fuzzing)**: Sorteio de cartas de upgrade sob rajada contínua de XP.
 9. **Fluxo de Baús de Tesouro**: Drop, abertura, coleta e retorno seguro ao estado `PLAYING`.
 10. **Auditoria de Memory Leaks & Teardown**: Limpeza de todas as entidades, malhas Three.js e retorno ao menu.
+
