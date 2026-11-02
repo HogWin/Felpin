@@ -61,7 +61,7 @@ Este arquivo serve como contexto mestre persistente para o **Antigravity IDE** e
 │   └── skills/                  # Skills do Neon (Postgres, Auth, Functions, AI Gateway, etc.)
 ├── package.json                 # Dependências (@neondatabase/serverless, express, etc.)
 ├── vercel.json                  # Configurações de deploy (outputDirectory: "AntiGravity")
-└── GEMINI.md                    # Este arquivo de contexto mestre
+└── AGENTS.md                    # Arquivo de contexto mestre e regras do projeto
 ```
 
 ---
