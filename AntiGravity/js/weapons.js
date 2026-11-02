@@ -1478,17 +1478,17 @@ class DarkGreatswordWeapon extends BaseWeapon {
       maxLevel: 8,
       damage: 64,
       cooldown: 1.45,
-      area: 1.35,
+      area: 1.0,
       count: 1,
       levelsConfig: [
-        { damage: 64, cooldown: 1.45, count: 1, description: 'Corte Colossal de longo alcance + 1 Fenda Abissal Terrestre com Ruína Sombria.' },
-        { damage: 88, area: 1.18, description: 'Dano: 64 ➔ 88 | +18% Alcance e impacto' },
+        { damage: 64, cooldown: 1.45, count: 1, description: 'Corte Pesado de espada de duas mãos + 1 Fenda Abissal Terrestre com Ruína Sombria.' },
+        { damage: 88, area: 1.05, description: 'Dano: 64 ➔ 88 | +5% Alcance e impacto' },
         { count: 2, cooldown: 1.30, description: 'Dispara 2 Fendas Abissais convergentes rachando a terra.' },
-        { damage: 122, area: 1.25, description: 'Dano: 88 ➔ 122 | +25% Área | Detonação violenta ao abater inimigos amaldiçoados' },
-        { count: 3, cooldown: 1.15, description: '3 Fendas Abissais em leque devastador.' },
-        { damage: 168, area: 1.32, description: 'Dano: 122 ➔ 168 | +32% Alcance | Atordoamento e knockback' },
+        { damage: 122, area: 1.08, description: 'Dano: 88 ➔ 122 | +8% Área | Detonação violenta ao abater inimigos amaldiçoados' },
+        { count: 3, cooldown: 1.15, description: '3 Fendas Abissais em leque focado.' },
+        { damage: 168, area: 1.12, description: 'Dano: 122 ➔ 168 | +12% Alcance | Atordoamento e knockback' },
         { count: 4, cooldown: 0.95, description: '4 Fendas Abissais | Tempestade de Obsidiana Terrestre' },
-        { damage: 280, area: 1.42, cooldown: 0.78, description: 'EVOLUÇÃO: Devoradora de Reis (280 Dano, Corte Cataclísmico 360°, 4 Fendas Abissais em Cruz e Dreno de Almas: restaura 1 HP a cada 12 abates)' }
+        { damage: 280, area: 1.18, cooldown: 0.78, description: 'EVOLUÇÃO: Devoradora de Reis (280 Dano, Corte 360°, 4 Fendas Abissais em Cruz e Dreno de Almas: restaura 1 HP a cada 12 abates)' }
       ]
     });
     this.slashEffects = [];
@@ -1505,7 +1505,7 @@ class DarkGreatswordWeapon extends BaseWeapon {
     const isEvo = this.level >= 8;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
-    const baseReach = 74 * effectiveArea;
+    const baseReach = 48 * effectiveArea;
     const facingAngle = (player.facingAngle !== undefined)
       ? player.facingAngle
       : ((player.vx || player.vy) ? Math.atan2(player.vy, player.vx) : 0);
@@ -1525,8 +1525,8 @@ class DarkGreatswordWeapon extends BaseWeapon {
         y: player.y,
         player: player,
         angle: facingAngle,
-        radius: baseReach * 1.15,
-        reach: baseReach * 1.15,
+        radius: baseReach * 1.05,
+        reach: baseReach * 1.05,
         duration: slashDuration,
         maxDuration: slashDuration,
         isEvolved: true,
@@ -1588,7 +1588,7 @@ class DarkGreatswordWeapon extends BaseWeapon {
           angle: fAngle,
           speed: isEvo ? 260 : 215,
           damage: fissureDamage,
-          radius: 24 * effectiveArea,
+          radius: 16 * effectiveArea,
           pierce: isEvo ? 999 : (4 + this.level),
           isEvolved: isEvo,
           weapon: this
