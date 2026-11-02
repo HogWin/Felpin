@@ -1944,14 +1944,14 @@ class FlailOrbiter {
     this.x = player.x + Math.cos(this.angle) * this.orbitRadius;
     this.y = player.y + Math.sin(this.angle) * this.orbitRadius;
 
-    for (const [e, timer] of this.hitCooldowns.entries()) {
-      if (timer <= dt) this.hitCooldowns.delete(e);
-      else this.hitCooldowns.set(e, timer - dt);
+    for (const [id, timer] of this.hitCooldowns.entries()) {
+      if (timer <= dt) this.hitCooldowns.delete(id);
+      else this.hitCooldowns.set(id, timer - dt);
     }
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const e = enemies[i];
-      if (!e.alive || this.hitCooldowns.has(e)) continue;
+      if (!e.alive || this.hitCooldowns.has(e.id)) continue;
 
       const dx = e.x - this.x;
       const dy = e.y - this.y;
@@ -1961,7 +1961,7 @@ class FlailOrbiter {
         const kbY = Math.sin(this.angle) * 16;
         const dealt = e.takeDamage(this.damage, kbX, kbY, 0.12);
         this.weapon.totalDamageDealt += dealt;
-        this.hitCooldowns.set(e, 0.28);
+        this.hitCooldowns.set(e.id, 0.28);
 
         if (particles && particles.createBloodSparks) {
           particles.createBloodSparks(this.x, this.y, 6, this.isEvolved ? '#f1c40f' : '#bdc3c7');
@@ -2057,13 +2057,13 @@ class BlunderbussPellet {
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const e = enemies[i];
-      if (!e.alive || this.hitEnemies.has(e)) continue;
+      if (!e.alive || this.hitEnemies.has(e.id)) continue;
 
       const dx = e.x - this.x;
       const dy = e.y - this.y;
       const hitDist = this.radius + e.radius;
       if (dx * dx + dy * dy <= hitDist * hitDist) {
-        this.hitEnemies.add(e);
+        this.hitEnemies.add(e.id);
         const kbX = Math.cos(this.angle) * 22;
         const kbY = Math.sin(this.angle) * 22;
         const dealt = e.takeDamage(this.damage, kbX, kbY, 0.15);
@@ -2284,14 +2284,14 @@ class CelestialGlaive {
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
 
-    for (const [e, timer] of this.hitCooldowns.entries()) {
-      if (timer <= dt) this.hitCooldowns.delete(e);
-      else this.hitCooldowns.set(e, timer - dt);
+    for (const [id, timer] of this.hitCooldowns.entries()) {
+      if (timer <= dt) this.hitCooldowns.delete(id);
+      else this.hitCooldowns.set(id, timer - dt);
     }
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const e = enemies[i];
-      if (!e.alive || this.hitCooldowns.has(e)) continue;
+      if (!e.alive || this.hitCooldowns.has(e.id)) continue;
 
       const dx = e.x - this.x;
       const dy = e.y - this.y;
@@ -2299,7 +2299,7 @@ class CelestialGlaive {
       if (dx * dx + dy * dy <= hitDist * hitDist) {
         const dealt = e.takeDamage(this.damage, Math.cos(this.angle) * 12, Math.sin(this.angle) * 12, 0.1);
         this.weapon.totalDamageDealt += dealt;
-        this.hitCooldowns.set(e, 0.35);
+        this.hitCooldowns.set(e.id, 0.35);
         this.bouncesLeft--;
 
         if (particles && particles.createExplosionWave) {
@@ -2311,7 +2311,7 @@ class CelestialGlaive {
         let minDist = 260;
         for (let j = 0; j < len; j++) {
           const cand = enemies[j];
-          if (cand !== e && cand.alive && !this.hitCooldowns.has(cand)) {
+          if (cand !== e && cand.alive && !this.hitCooldowns.has(cand.id)) {
             const d = Math.hypot(cand.x - this.x, cand.y - this.y);
             if (d < minDist) {
               minDist = d;
@@ -2520,13 +2520,13 @@ class ViperDart {
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const e = enemies[i];
-      if (!e.alive || this.hitEnemies.has(e)) continue;
+      if (!e.alive || this.hitEnemies.has(e.id)) continue;
 
       const dx = e.x - this.x;
       const dy = e.y - this.y;
       const hitDist = this.radius + e.radius;
       if (dx * dx + dy * dy <= hitDist * hitDist) {
-        this.hitEnemies.add(e);
+        this.hitEnemies.add(e.id);
         e.isPoisoned = true;
         e.speedModifier = this.isEvolved ? 0.45 : 0.65; // Slow down enemy!
 
@@ -2739,13 +2739,13 @@ class FrostLance {
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const e = enemies[i];
-      if (!e.alive || this.hitEnemies.has(e)) continue;
+      if (!e.alive || this.hitEnemies.has(e.id)) continue;
 
       const dx = e.x - this.x;
       const dy = e.y - this.y;
       const hitDist = this.radius + e.radius;
       if (dx * dx + dy * dy <= hitDist * hitDist) {
-        this.hitEnemies.add(e);
+        this.hitEnemies.add(e.id);
         e.isFrozen = true;
         e.freezeTimer = this.isEvolved ? 2.0 : 1.2;
 
@@ -2872,14 +2872,14 @@ class RetributionShieldOrbiter {
       }
     }
 
-    for (const [e, timer] of this.hitCooldowns.entries()) {
-      if (timer <= dt) this.hitCooldowns.delete(e);
-      else this.hitCooldowns.set(e, timer - dt);
+    for (const [id, timer] of this.hitCooldowns.entries()) {
+      if (timer <= dt) this.hitCooldowns.delete(id);
+      else this.hitCooldowns.set(id, timer - dt);
     }
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const e = enemies[i];
-      if (!e.alive || this.hitCooldowns.has(e)) continue;
+      if (!e.alive || this.hitCooldowns.has(e.id)) continue;
 
       const dx = e.x - this.x;
       const dy = e.y - this.y;
@@ -2889,7 +2889,7 @@ class RetributionShieldOrbiter {
         const kbY = Math.sin(this.angle) * 18;
         const dealt = e.takeDamage(this.damage, kbX, kbY, 0.15);
         this.weapon.totalDamageDealt += dealt;
-        this.hitCooldowns.set(e, 0.32);
+        this.hitCooldowns.set(e.id, 0.32);
 
         if (particles && particles.createBloodSparks) {
           particles.createBloodSparks(this.x, this.y, 6, '#f39c12');

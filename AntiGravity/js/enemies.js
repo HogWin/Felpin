@@ -94,6 +94,20 @@ class BaseEnemy {
     return actualDamage;
   }
 
+  destroy() {
+    this.alive = false;
+    this.knockbackX = 0;
+    this.knockbackY = 0;
+    this.vx = 0;
+    this.vy = 0;
+    this._lastSepX = 0;
+    this._lastSepY = 0;
+    this.abyssalRuin = false;
+    this.isPoisoned = false;
+    this.isBurning = false;
+    this.isFrozen = false;
+  }
+
   update(dt, player, allEnemies, enemyProjectiles) {
     if (this.freezeTimer > 0) {
       this.freezeTimer -= dt;
@@ -106,58 +120,27 @@ class BaseEnemy {
     this.knockbackX *= Math.pow(0.01, dt);
     this.knockbackY *= Math.pow(0.01, dt);
 
-    // Vector towards player
+    // Perseguicao EXCLUSIVA em direcao ao jogador (Zero-overhead, alivio total de CPU/memoria)
     const dx = player.x - this.x;
     const dy = player.y - this.y;
     const dist = Math.hypot(dx, dy) || 1;
 
-    let moveX = (dx / dist) * this.speed;
-    let moveY = (dy / dist) * this.speed;
-
-    // Separation from nearby enemies using spatial grid / squared distance (O(1) cell lookup)
-    if (!this.isBoss) {
-      const game = window.MedievalSurvivors.game;
-      // Interleave separation calculations across frames to halve CPU time spent in separation math
-      if ((this.id + (game ? game.frameCount : 0)) % 2 === 0) {
-        let sepX = 0;
-        let sepY = 0;
-        const neighbors = (game && game.getNearbyEnemies) ? game.getNearbyEnemies(this.x, this.y, 45) : allEnemies;
-        // Cap neighbor checks to at most 6 nearby entities to avoid N^2 crowding stalls
-        const maxChecks = Math.min(neighbors.length, 6);
-        for (let i = 0; i < maxChecks; i++) {
-          const other = neighbors[i];
-          if (other === this || !other.alive) continue;
-          const ox = this.x - other.x;
-          const oy = this.y - other.y;
-          const minDist = this.radius + other.radius;
-          const dSq = ox * ox + oy * oy;
-          if (dSq > 0 && dSq < minDist * minDist) {
-            const d = Math.sqrt(dSq);
-            const push = ((minDist - d) / minDist) * 45;
-            sepX += (ox / d) * push;
-            sepY += (oy / d) * push;
-          }
-        }
-        this._lastSepX = sepX;
-        this._lastSepY = sepY;
-      }
-      moveX += (this._lastSepX || 0);
-      moveY += (this._lastSepY || 0);
-    }
+    const moveX = (dx / dist) * this.speed;
+    const moveY = (dy / dist) * this.speed;
 
     this.vx = moveX;
     this.vy = moveY;
 
-    // Apply movement & knockback
+    // Aplica movimentacao direta e knockback
     this.x += (moveX + this.knockbackX) * dt;
     this.y += (moveY + this.knockbackY) * dt;
 
-    // Keep enemy inside bounded square arena
+    // Manter inimigo dentro dos limites da arena
     const arenaLimit = (window.MedievalSurvivors && window.MedievalSurvivors.ARENA_HALF_LIMIT_ENEMY) || 1540;
     this.x = Math.max(-arenaLimit, Math.min(arenaLimit, this.x));
     this.y = Math.max(-arenaLimit, Math.min(arenaLimit, this.y));
 
-    // Collision with player
+    // Colisao com o jogador
     if (dist <= this.radius + player.radius) {
       player.takeDamage(this.damage);
     }
@@ -1268,10 +1251,8 @@ class WaveDirector {
     this.bossEvents = [
       { time: 60, type: 'executioner', name: 'O Carrasco Carmesim', spawned: false },
       { time: 180, type: 'golem', name: 'Golem das Catacumbas', spawned: false },
-      { time: 330, type: 'death_baron', name: 'Barão da Morte Von Kroll', spawned: false },
-      { time: 480, type: 'executioner', name: 'O Carrasco Carmesim II', spawned: false },
-      { time: 660, type: 'golem', name: 'Colosso Titânico Ancestral', spawned: false },
-      { time: 840, type: 'death_baron', name: 'Arquiduque das Sombras', spawned: false }
+      { time: 330, type: 'executioner', name: 'O Carrasco Carmesim II', spawned: false },
+      { time: 480, type: 'death_baron', name: 'Barão da Morte Von Kroll', spawned: false }
     ];
     this.recurringBossInterval = 150; // After 840s, spawn dynamic bosses every 2.5 minutes
     this.lastRecurringBossTime = 840;
@@ -1376,9 +1357,11 @@ class WaveDirector {
       default: enemy = new PlagueRatEnemy(x, y, hpScaling, dmgScaling); break;
     }
 
-    // Elite Champion Monster (2.5x HP, +25% size, +35% damage, 4x XP, golden runic aura)
+    // Elite Champion Monster (2.5x HP, +25% size, +35% damage, 4x XP, golden runic aura, drops Tier-1 Chest)
     if (t > 40 && Math.random() < 0.045) {
       enemy.isChampion = true;
+      enemy.dropChest = true;
+      enemy.bossTier = 1;
       enemy.hp = Math.round(enemy.hp * 2.5);
       enemy.maxHp = enemy.hp;
       enemy.radius = Math.round(enemy.radius * 1.25);

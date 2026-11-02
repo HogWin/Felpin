@@ -107,6 +107,9 @@ class UIController {
     document.querySelectorAll('.btn-restart').forEach(btn => {
       btn.addEventListener('click', () => {
         this.hideAllModals();
+        if (this.game && this.game.clearRunData) {
+          this.game.clearRunData();
+        }
         this.game.selectedClassId = this._menuSelectedClass;
         this.game.start();
       });
@@ -121,12 +124,42 @@ class UIController {
       });
     }
 
+    // Menu Music Toggle Button (Lobby)
+    const menuMusicBtn = document.getElementById('btn-menu-music-toggle');
+    if (menuMusicBtn) {
+      menuMusicBtn.addEventListener('click', () => {
+        if (window.MedievalSurvivors && window.MedievalSurvivors.sound) {
+          window.MedievalSurvivors.sound.toggleLobbyMusic();
+          this.updateMenuMusicButton();
+          if (this.currentMenuTab === 'settings') {
+            this.renderSettingsTab();
+          }
+        }
+      });
+      this.updateMenuMusicButton();
+    }
+
     // Game Over → Forge button
     const gameoverForgeBtn = document.getElementById('btn-gameover-forge');
     if (gameoverForgeBtn) {
       gameoverForgeBtn.addEventListener('click', () => {
         this.gameOverModal.classList.remove('active');
+        if (this.game && this.game.clearRunData) {
+          this.game.clearRunData();
+        }
         this.openMainMenu('forge');
+      });
+    }
+
+    // Game Over → Menu button
+    const gameoverMenuBtn = document.getElementById('btn-gameover-menu');
+    if (gameoverMenuBtn) {
+      gameoverMenuBtn.addEventListener('click', () => {
+        this.gameOverModal.classList.remove('active');
+        if (this.game && this.game.clearRunData) {
+          this.game.clearRunData();
+        }
+        this.openMainMenu('play');
       });
     }
 
@@ -135,7 +168,22 @@ class UIController {
     if (victoryForgeBtn) {
       victoryForgeBtn.addEventListener('click', () => {
         this.victoryModal.classList.remove('active');
+        if (this.game && this.game.clearRunData) {
+          this.game.clearRunData();
+        }
         this.openMainMenu('forge');
+      });
+    }
+
+    // Victory → Menu button
+    const victoryMenuBtn = document.getElementById('btn-victory-menu');
+    if (victoryMenuBtn) {
+      victoryMenuBtn.addEventListener('click', () => {
+        this.victoryModal.classList.remove('active');
+        if (this.game && this.game.clearRunData) {
+          this.game.clearRunData();
+        }
+        this.openMainMenu('play');
       });
     }
 
@@ -384,6 +432,24 @@ class UIController {
       ? forceState
       : (this.game.saveManager ? this.game.saveManager.data.settings.mouseAim : true);
     btn.textContent = isActive ? '🎯 Mira: Mouse' : '🎯 Mira: Teclado';
+  }
+
+  updateMenuMusicButton() {
+    const btn = document.getElementById('btn-menu-music-toggle');
+    if (!btn) return;
+    const sound = window.MedievalSurvivors && window.MedievalSurvivors.sound;
+    const isMuted = sound ? (sound.lobbyMuted || sound.muted) : false;
+    const icon = document.getElementById('menu-music-icon');
+    const text = document.getElementById('menu-music-text');
+    if (icon) icon.textContent = isMuted ? '🔇' : '🎵';
+    if (text) text.textContent = isMuted ? 'Música: Deslig.' : 'Música: Ligada';
+    if (isMuted) {
+      btn.classList.add('muted');
+      btn.title = 'Música do Menu Silenciada (Clique para reativar)';
+    } else {
+      btn.classList.remove('muted');
+      btn.title = 'Música do Menu Ativa (Clique para silenciar)';
+    }
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -921,25 +987,74 @@ class UIController {
     this.chestRewards.innerHTML = '';
     const rewardCount = tier === 3 ? 5 : (tier === 2 ? 3 : 1);
 
-    const upgradeables = player.weapons.filter(w => w.level < w.maxLevel);
+    const subtitle = this.chestModal ? this.chestModal.querySelector('.modal-subtitle') : null;
+    if (subtitle) {
+      subtitle.textContent = tier === 1
+        ? 'Você derrotou um guerreiro de elite e saqueou seu baú do tesouro:'
+        : 'Você derrotou um poderoso lorde das trevas e saqueou seu tesouro régio:';
+    }
 
     for (let i = 0; i < rewardCount; i++) {
-      if (upgradeables.length > 0) {
-        const wep = upgradeables[Math.floor(Math.random() * upgradeables.length)];
-        wep.upgrade();
+      // 1. Armas atualmente possuídas que ainda podem receber upgrade
+      const availableWeapons = (player.weapons || []).filter(w => w.level < w.maxLevel);
 
-        const row = document.createElement('div');
-        row.className = 'reward-row';
-        row.innerHTML = `
-          <div class="reward-icon">${wep.icon}</div>
-          <div class="reward-info">
-            <h4>${wep.name} Aprimorado!</h4>
-            <p>Novo Nível: ${wep.level} - ${wep.getNextLevelDiff()}</p>
-          </div>
-        `;
-        this.chestRewards.appendChild(row);
+      // 2. Passivas atualmente possuídas que ainda podem receber upgrade
+      const availablePassives = [];
+      if (player.passives && window.MedievalSurvivors.passives) {
+        player.passives.forEach((lvl, pid) => {
+          const def = window.MedievalSurvivors.passives.get(pid);
+          if (def && lvl < def.maxLevel) {
+            availablePassives.push({ id: pid, def, currentLvl: lvl });
+          }
+        });
+      }
+
+      // 3. Pool de upgrades restrito exclusivamente a armas e passivas que o herói já possui
+      const candidates = [];
+      availableWeapons.forEach(w => candidates.push({ type: 'weapon', item: w }));
+      availablePassives.forEach(p => candidates.push({ type: 'passive', item: p }));
+
+      if (candidates.length > 0) {
+        const choice = candidates[Math.floor(Math.random() * candidates.length)];
+
+        if (choice.type === 'weapon') {
+          const wep = choice.item;
+          wep.upgrade();
+          const cfg = wep.levelsConfig && wep.levelsConfig[wep.level - 1];
+          const diffText = (cfg && cfg.description) || (wep.level >= wep.maxLevel ? 'Nível Máximo Atingido!' : 'Aprimora dano e eficiência.');
+
+          const row = document.createElement('div');
+          row.className = 'reward-row';
+          row.innerHTML = `
+            <div class="reward-icon">${wep.icon || '⚔️'}</div>
+            <div class="reward-info">
+              <h4>${wep.name} Aprimorado!</h4>
+              <p>Novo Nível: ${wep.level} - ${diffText}</p>
+            </div>
+          `;
+          this.chestRewards.appendChild(row);
+        } else {
+          const { id, def, currentLvl } = choice.item;
+          const nextLvl = currentLvl + 1;
+          const diffText = def.getNextLevelDiff ? def.getNextLevelDiff(currentLvl) : `Nível ${nextLvl}`;
+          player.passives.set(id, nextLvl);
+          if (def.apply) {
+            def.apply(player, nextLvl);
+          }
+
+          const row = document.createElement('div');
+          row.className = 'reward-row';
+          row.innerHTML = `
+            <div class="reward-icon">${def.icon || '✨'}</div>
+            <div class="reward-info">
+              <h4>${def.name} Aprimorada!</h4>
+              <p>Novo Nível: ${nextLvl} - ${diffText}</p>
+            </div>
+          `;
+          this.chestRewards.appendChild(row);
+        }
       } else {
-        // Gold / Heal reward
+        // Recompensa alternativa caso todas as armas e passivas possuídas já estejam no nível máximo
         player.heal(player.maxHp * 0.3);
         player.gold += 100;
         const row = document.createElement('div');
@@ -953,6 +1068,10 @@ class UIController {
         `;
         this.chestRewards.appendChild(row);
       }
+    }
+
+    if (this.updateEquipmentSlots) {
+      this.updateEquipmentSlots(player);
     }
 
     this.chestModal.classList.add('active');
@@ -1107,13 +1226,13 @@ class UIController {
       const lvlLabel = w.hasAscended ? '✨ Ascensão' : (isMax ? 'Nv. MAX' : `Nv. ${w.level}`);
 
       return `
-      <div style="margin-bottom:8px; background:rgba(0,0,0,0.22); padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
-        <div style="display:flex; justify-content:space-between; margin-bottom:3px; font-size:0.86rem; align-items:center;">
-          <span>${w.icon} <strong>${w.name}</strong> <span style="color:#d4af37; font-size:0.75rem;">(${lvlLabel})</span>:</span>
-          <span style="color:#f7d774; font-weight:700;">${dmg.toLocaleString()} dano <span style="color:#00e5ff; font-size:0.78rem;">(${dps} DPS | ${pct}%)</span></span>
+      <div style="background:rgba(0,0,0,0.22); padding:4px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.06); box-sizing:border-box;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:2px; font-size:0.78rem; align-items:center;">
+          <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${w.icon} <strong>${w.name}</strong> <span style="color:#d4af37; font-size:0.72rem;">(${lvlLabel})</span>:</span>
+          <span style="color:#f7d774; font-weight:700; font-size:0.76rem; white-space:nowrap; margin-left:4px;">${dmg.toLocaleString()} <span style="color:#00e5ff; font-size:0.70rem;">(${dps} DPS | ${pct}%)</span></span>
         </div>
-        <div style="width:100%; height:7px; background:#120c18; border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,0.08);">
-          <div style="width:${pct}%; height:100%; background:linear-gradient(90deg, #d35400, #f1c40f); border-radius:4px;"></div>
+        <div style="width:100%; height:5px; background:#120c18; border-radius:3px; overflow:hidden; border:1px solid rgba(255,255,255,0.08);">
+          <div style="width:${pct}%; height:100%; background:linear-gradient(90deg, #d35400, #f1c40f); border-radius:3px;"></div>
         </div>
       </div>
       `;
@@ -1174,11 +1293,18 @@ class UIController {
   // ──────────────────────────────────────────────────────────────
   openMainMenu(tab) {
     this.game.state = 'MENU';
+    if (this.game && this.game.clearRunData) {
+      this.game.clearRunData();
+    }
     this._menuSelectedClass = this.game.selectedClassId || 'knight';
     this.updateMenuGoldDisplay();
     this.hideAllModals();
     this.mainMenuModal.classList.add('active');
+    this.updateMenuMusicButton();
     this.switchMenuTab(tab || 'play');
+    if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.startLobbyMusic) {
+      window.MedievalSurvivors.sound.startLobbyMusic();
+    }
   }
 
   updateMenuGoldDisplay() {
@@ -2398,18 +2524,18 @@ class UIController {
       <div class="codex-grid">
         ${enemies.map(e => `
           <div class="codex-card" style="text-align:left;">
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
-              <span style="font-size:2.4rem; display:inline-flex; align-items:center; justify-content:center; width:48px; height:48px;">${e.icon}</span>
-              <div>
-                <div style="font-weight:700; color:#f0c05a; font-size:0.95rem;">${e.name}</div>
-                <div style="font-size:0.75rem; color:#aaa; display:flex; align-items:center; gap:6px; margin-top:2px;">
-                  <span>${e.type}</span> &bull; 
-                  <span style="display:inline-flex; align-items:center; gap:2px;"><span style="font-size:0.85rem;">${hpIcon}</span> ${e.hp}</span> &bull; 
-                  <span style="display:inline-flex; align-items:center; gap:2px;"><span style="font-size:0.85rem;">${dmgIcon}</span> ${e.dmg}</span>
+            <div class="codex-header">
+              <span class="codex-avatar">${e.icon}</span>
+              <div class="codex-title-wrap">
+                <div class="codex-title">${e.name}</div>
+                <div class="codex-statline">
+                  <span style="color:#00d2d3; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">${e.type}</span> &bull; 
+                  <span style="display:inline-flex; align-items:center; gap:3px;"><span style="font-size:0.85rem;">${hpIcon}</span> ${e.hp}</span> &bull; 
+                  <span style="display:inline-flex; align-items:center; gap:3px;"><span style="font-size:0.85rem;">${dmgIcon}</span> ${e.dmg}</span>
                 </div>
               </div>
             </div>
-            <p style="font-size:0.82rem; color:#ccc; margin:0; line-height:1.5;">${e.desc}</p>
+            <p class="codex-desc">${e.desc}</p>
           </div>
         `).join('')}
       </div>
@@ -2427,18 +2553,18 @@ class UIController {
 
       return `
         <div class="codex-card ${!isUnlocked ? 'locked' : ''}" style="text-align:left;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-            <span style="font-size:2.2rem; ${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${w.icon}</span>
-            <div>
-              <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'}; display:flex; align-items:center; gap:6px;">
+          <div class="codex-header">
+            <span class="codex-avatar" style="${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${w.icon}</span>
+            <div class="codex-title-wrap">
+              <div class="codex-title" style="color:${isUnlocked ? '#f0c05a' : '#ff7675'}; display:flex; align-items:center; gap:6px;">
                 <span>${w.name}</span> <span style="font-size:0.9rem; display:inline-flex;">${!isUnlocked ? window.MedievalIcons.get('hud_lock') : window.MedievalIcons.get('hud_check')}</span>
               </div>
-              <div style="font-size:0.75rem; color:#aaa;">Dano: ${w.damage} &nbsp;|&nbsp; Máx Nível: ${w.maxLevel}</div>
+              <div class="codex-statline">Dano: ${w.damage} &nbsp;|&nbsp; Máx Nível: ${w.maxLevel}</div>
             </div>
           </div>
-          <p style="font-size:0.82rem; color:#ccc; margin:0; line-height:1.5;">${w.description}</p>
+          <p class="codex-desc">${w.description}</p>
           ${!isUnlocked ? `
-            <div class="codex-lock-tag" style="display:flex; align-items:center; gap:6px;">
+            <div class="codex-lock-tag">
               <span style="font-size:0.9rem; display:inline-flex;">${window.MedievalIcons.get('hud_lock')}</span> Requer Conquista: ${unlockHint}
             </div>
           ` : ''}
@@ -2460,18 +2586,18 @@ class UIController {
 
           return `
           <div class="codex-card ${!isUnlocked ? 'locked' : ''}" style="text-align:left;">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-              <span style="font-size:2.2rem; ${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${p.icon}</span>
-              <div>
-                <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'}; display:flex; align-items:center; gap:6px;">
+            <div class="codex-header">
+              <span class="codex-avatar" style="${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${p.icon}</span>
+              <div class="codex-title-wrap">
+                <div class="codex-title" style="color:${isUnlocked ? '#f0c05a' : '#ff7675'}; display:flex; align-items:center; gap:6px;">
                   <span>${p.name}</span> <span style="font-size:0.9rem; display:inline-flex;">${!isUnlocked ? window.MedievalIcons.get('hud_lock') : window.MedievalIcons.get('hud_check')}</span>
                 </div>
-                <div style="font-size:0.75rem; color:#aaa;">Máx Nível: ${p.maxLevel}</div>
+                <div class="codex-statline">Máx Nível: ${p.maxLevel}</div>
               </div>
             </div>
-            <p style="font-size:0.82rem; color:#ccc; margin:0; line-height:1.5;">${p.description}</p>
+            <p class="codex-desc">${p.description}</p>
             ${!isUnlocked ? `
-              <div class="codex-lock-tag" style="display:flex; align-items:center; gap:6px;">
+              <div class="codex-lock-tag">
                 <span style="font-size:0.9rem; display:inline-flex;">${window.MedievalIcons.get('hud_lock')}</span> Requer Conquista: ${unlockHint}
               </div>
             ` : ''}
@@ -2491,30 +2617,30 @@ class UIController {
           const isUnlocked = sm ? sm.isClassUnlocked(c.id) : true;
           return `
           <div class="codex-card ${!isUnlocked ? 'locked' : ''}" style="text-align:left;">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-              <span style="font-size:2.4rem; ${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${c.icon}</span>
-              <div>
-                <div style="font-weight:700; color:${isUnlocked ? '#f0c05a' : '#ff7675'}; display:flex; align-items:center; gap:6px;">
+            <div class="codex-header">
+              <span class="codex-avatar" style="${!isUnlocked ? 'filter:grayscale(0.6);' : ''}">${c.icon}</span>
+              <div class="codex-title-wrap">
+                <div class="codex-title" style="color:${isUnlocked ? '#f0c05a' : '#ff7675'}; display:flex; align-items:center; gap:6px;">
                   <span>${c.name}</span> <span style="font-size:0.9rem; display:inline-flex;">${!isUnlocked ? window.MedievalIcons.get('hud_lock') : window.MedievalIcons.get('hud_check')}</span>
                 </div>
-                <div style="font-size:0.75rem; color:#aaa;">${c.subtitle}</div>
+                <div class="codex-statline">${c.subtitle}</div>
               </div>
             </div>
-            <p style="font-size:0.82rem; color:#ccc; margin:0 0 8px; line-height:1.5;">${c.description}</p>
+            <p class="codex-desc" style="margin-bottom:4px;">${c.description}</p>
             ${!isUnlocked ? `
-              <div class="codex-lock-tag" style="display:flex; align-items:center; gap:6px;">
+              <div class="codex-lock-tag">
                 <span style="font-size:0.9rem; display:inline-flex;">${window.MedievalIcons.get('hud_lock')}</span> Requisito: ${c.unlockHint}
               </div>
             ` : `
-              <div style="font-size:0.8rem; color:#f0c05a; background:rgba(0,0,0,0.3); border-radius:6px; padding:8px;">
-                <strong>Perk:</strong> ${c.perkDesc}
+              <div class="codex-perk-box">
+                <strong style="font-family:'Cinzel', serif; letter-spacing:0.5px; color:#f0c05a;">Perk:</strong> ${c.perkDesc}
               </div>
             `}
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; font-size:0.78rem; color:#ccc;">
-              <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('hud_hp')}</span> ${c.stats.maxHp} Max HP</div>
-              <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('passive_armor')}</span> ${c.stats.armor} Armadura</div>
-              <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('passive_speed')}</span> ${(c.stats.moveSpeed * 100).toFixed(0)} Velocidade</div>
-              <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.9rem;">${window.MedievalIcons.get('weapon_broadsword')}</span> +${((c.stats.damageMultiplier - 1) * 100).toFixed(0)}% Dano</div>
+            <div class="codex-stats-grid">
+              <div><span style="font-size:0.9rem;">${window.MedievalIcons.get('hud_hp')}</span> ${c.stats.maxHp} Max HP</div>
+              <div><span style="font-size:0.9rem;">${window.MedievalIcons.get('passive_armor')}</span> ${c.stats.armor} Armadura</div>
+              <div><span style="font-size:0.9rem;">${window.MedievalIcons.get('passive_speed')}</span> ${(c.stats.moveSpeed * 100).toFixed(0)} Velocidade</div>
+              <div><span style="font-size:0.9rem;">${window.MedievalIcons.get('weapon_broadsword')}</span> +${((c.stats.damageMultiplier - 1) * 100).toFixed(0)}% Dano</div>
             </div>
           </div>
           `;
@@ -2531,7 +2657,7 @@ class UIController {
     const wins = sm.data.runsCompleted;
 
     let tableRows = history.length === 0
-      ? `<tr><td colspan="7" style="text-align:center; color:#666; padding:20px;">Nenhuma run registrada ainda. Entre em batalha!</td></tr>`
+      ? `<tr><td colspan="8" style="text-align:center; color:#666; padding:20px;">Nenhuma run registrada ainda. Entre em batalha!</td></tr>`
       : history.map(run => `
           <tr>
             <td>${run.date}</td>
@@ -2541,26 +2667,31 @@ class UIController {
             <td>${run.level}</td>
             <td>${run.kills}</td>
             <td style="color:#ffeaa7;">+${run.goldEarned} 💰</td>
+            <td style="color:#e0b0ff;">+${run.etherEarned || 0} 🔮</td>
           </tr>
         `).join('');
 
     this.menuTabContent.innerHTML = `
-      <div style="display:flex; gap:20px; justify-content:center; margin-bottom:20px; flex-wrap:wrap;">
-        <div class="stat-box" style="min-width:120px; text-align:center;">
+      <div style="display:flex; gap:16px; justify-content:center; margin-bottom:20px; flex-wrap:wrap;">
+        <div class="stat-box" style="min-width:110px; text-align:center;">
           <span class="title">Runs Totais</span>
           <span class="val">${total}</span>
         </div>
-        <div class="stat-box" style="min-width:120px; text-align:center;">
+        <div class="stat-box" style="min-width:110px; text-align:center;">
           <span class="title">Vitórias</span>
           <span class="val" style="color:#2ecc71;">${wins}</span>
         </div>
-        <div class="stat-box" style="min-width:120px; text-align:center;">
+        <div class="stat-box" style="min-width:110px; text-align:center;">
           <span class="title">Taxa de Vitória</span>
           <span class="val">${total > 0 ? ((wins / total) * 100).toFixed(1) : 0}%</span>
         </div>
-        <div class="stat-box" style="min-width:120px; text-align:center;">
+        <div class="stat-box" style="min-width:110px; text-align:center;">
           <span class="title">Ouro Total</span>
           <span class="val" style="color:#ffeaa7;">${sm.data.totalGoldEarned.toLocaleString()} 💰</span>
+        </div>
+        <div class="stat-box" style="min-width:110px; text-align:center;">
+          <span class="title">Éter Total</span>
+          <span class="val" style="color:#e0b0ff;">${(sm.data.totalEtherEarned || 0).toLocaleString()} 🔮</span>
         </div>
       </div>
       <div style="overflow-x:auto;">
@@ -2574,6 +2705,7 @@ class UIController {
               <th>Nível</th>
               <th>Abates</th>
               <th>Ouro</th>
+              <th>Éter</th>
             </tr>
           </thead>
           <tbody>
@@ -2854,6 +2986,16 @@ class UIController {
 
         <div class="forge-card" style="display:flex; justify-content:space-between; align-items:center;">
           <div>
+            <div style="font-weight:700; color:#f0c05a;">🎵 Música do Menu / Lobby</div>
+            <div style="font-size:0.82rem; color:#aaa; margin-top:4px;">Silenciar ou reativar a trilha sonora medieval procedural do menu e lobby.</div>
+          </div>
+          <button class="btn-primary" id="settings-menu-music-btn" style="min-width:150px;">
+            ${(window.MedievalSurvivors && window.MedievalSurvivors.sound && (window.MedievalSurvivors.sound.lobbyMuted || window.MedievalSurvivors.sound.muted)) ? '🔇 Música: Deslig.' : '🎵 Música: Ligada'}
+          </button>
+        </div>
+
+        <div class="forge-card" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
             <div style="font-weight:700; color:#f0c05a;">🔊 Áudio e Efeitos</div>
             <div style="font-size:0.82rem; color:#aaa; margin-top:4px;">Alternar efeitos sonoros medievais e sintetizador de áudio.</div>
           </div>
@@ -2890,6 +3032,17 @@ class UIController {
       this.renderSettingsTab();
     });
 
+    const menuMusicSetBtn = document.getElementById('settings-menu-music-btn');
+    if (menuMusicSetBtn) {
+      menuMusicSetBtn.addEventListener('click', () => {
+        if (window.MedievalSurvivors && window.MedievalSurvivors.sound) {
+          window.MedievalSurvivors.sound.toggleLobbyMusic();
+          this.updateMenuMusicButton();
+          this.renderSettingsTab();
+        }
+      });
+    }
+
     document.getElementById('settings-sound-btn').addEventListener('click', () => {
       const isMuted = window.MedievalSurvivors.sound.toggleMute();
       if (sm) {
@@ -2898,6 +3051,7 @@ class UIController {
       }
       const hudSoundBtn = document.getElementById('btn-sound-toggle');
       if (hudSoundBtn) hudSoundBtn.innerHTML = isMuted ? '🔇 Som: Desligado' : '🔊 Som: Ligado';
+      this.updateMenuMusicButton();
       this.renderSettingsTab();
     });
 
@@ -2920,10 +3074,55 @@ class UIController {
 
     const updatesData = [
       {
+        version: 'v1.7.0',
+        eraName: 'Sinfonia de Valoria & Vitória das Catacumbas',
+        date: '1 de Novembro de 2026',
+        isLatest: true,
+        summary: 'Trilha sonora medieval procedural para o lobby com controle de áudio, baús de campeões de elite com upgrade de arma/passiva, vitória aos 10 minutos, persistência de éter e otimização total de memória.',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Música Procedural do Lobby & Botão de Silenciar',
+            desc: 'Composição de taverna medieval (Balada de Valoria) gerada proceduralmente via Web Audio API, com controle de áudio persistente no cabeçalho e na aba Opções.'
+          },
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Baús de Campeões de Elite (Aura Dourada)',
+            desc: 'Inimigos com aura dourada (isChampion) agora derrubam com 100% de chance um baú concedendo 1 upgrade aleatório exclusivamente para armas ou passivas que o herói já possui.'
+          },
+          {
+            type: 'feature',
+            badge: 'NOVO',
+            title: 'Encerramento & Vitória aos 10 Minutos (600s)',
+            desc: 'A partida agora encerra oficialmente aos 10:00 com tela de Vitória Gloriosa, bônus de ouro real e confronto supremo com o Barão da Morte Von Kroll aos 8 minutos.'
+          },
+          {
+            type: 'improvement',
+            badge: 'MELHORIA',
+            title: 'Persistência & Contabilização de Éter Ancestral',
+            desc: 'Implementação de addEther e getEther no SaveManager, corrigindo o acúmulo de Éter pós-run e sincronizando em tempo real com o cabeçalho e a Árvore de Talentos.'
+          },
+          {
+            type: 'improvement',
+            badge: 'MELHORIA',
+            title: 'Otimização Extrema de Memória & Limpeza Pós-Run',
+            desc: 'Descarte imediato de malhas 3D de monstros eliminados, pooling de grid espacial para evitar alocações de GC, perseguição homing direta e purge total de memória ao voltar ao menu.'
+          },
+          {
+            type: 'visual',
+            badge: 'VISUAL',
+            title: 'Interface Compacta em Tela Única & Códice Polido',
+            desc: 'Telas de Fim de Jogo e Vitória ajustadas para caber em telas menores sem rolagem, além da padronização tipográfica e visual do Códice de Inimigos, Armas, Passivas e Classes.'
+          }
+        ]
+      },
+      {
         version: 'v1.6.0',
         eraName: 'Era da Constelação Talentos',
         date: '31 de Outubro de 2026',
-        isLatest: true,
+        isLatest: false,
         summary: 'Chegada da grande Árvore de Talentos interativa estilo Path of Exile 2, sistema de constelação ancestral com 4 ramos e bênçãos supremas (Keystones).',
         categories: [
           {
@@ -3090,7 +3289,7 @@ class UIController {
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v1.6.0 (Constelação)</strong>
+              <strong class="text-gold">v1.7.0 (Sinfonia de Valoria)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>

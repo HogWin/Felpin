@@ -124,8 +124,32 @@ class GameRenderer {
             child.material.dispose();
           }
         }
+        child.geometry = null;
+        child.material = null;
       }
     });
+    // Desacopla filhos e hooks para liberacao imediata pelo Garbage Collector
+    while (root.children && root.children.length > 0) {
+      root.remove(root.children[0]);
+    }
+    if (root.updateVisuals) root.updateVisuals = null;
+    if (root.anim) {
+      if (root.anim.flashMeshes) root.anim.flashMeshes.length = 0;
+      if (root.anim.materials) root.anim.materials.length = 0;
+      if (root.anim.limbs) root.anim.limbs.length = 0;
+      root.anim = null;
+    }
+  }
+
+  // Destroi e libera imediatamente da memoria a malha 3D de um inimigo executado/morto
+  destroyEnemyMesh(enemyId) {
+    const mesh = this.enemyMeshMap.get(enemyId);
+    if (mesh) {
+      this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0xa81923, 6, 30);
+      this.scene.remove(mesh);
+      this.disposeMesh(mesh);
+      this.enemyMeshMap.delete(enemyId);
+    }
   }
 
   resize() {
@@ -238,7 +262,22 @@ class GameRenderer {
     }, 5500);
   }
 
+  clear3DParticles() {
+    if (!this.particlesData) return;
+    for (let i = 0; i < this.maxParticles; i++) {
+      this.particlesData[i].alive = false;
+      this.particlePositions[i * 3 + 1] = -1000;
+    }
+    if (this.activeParticleIndices) {
+      this.activeParticleIndices.length = 0;
+    }
+    if (this.particleSystem && this.particleSystem.geometry && this.particleSystem.geometry.attributes.position) {
+      this.particleSystem.geometry.attributes.position.needsUpdate = true;
+    }
+  }
+
   clearMeshPools() {
+    this.clear3DParticles();
     for (let [, mesh] of this.enemyMeshMap) {
       this.scene.remove(mesh);
       this.disposeMesh(mesh);

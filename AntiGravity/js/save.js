@@ -359,7 +359,7 @@ class SaveManager {
         id: 'ultimate_victory',
         name: 'Libertador do Reino',
         icon: '🏆',
-        description: 'Conquiste a vitória absoluta sobrevivendo aos 15 minutos de batalha.',
+        description: 'Conquiste a vitória absoluta sobrevivendo aos 10 minutos de batalha.',
         category: 'progression',
         reward: { gold: 1000 },
         check: (game, trigger) => trigger === 'run_victory'
@@ -444,6 +444,8 @@ class SaveManager {
       if (raw) {
         const parsed = JSON.parse(raw);
         this.data = Object.assign(this.getDefaultData(), parsed);
+        this.data.ether = typeof this.data.ether === 'number' ? this.data.ether : 0;
+        this.data.totalEtherEarned = typeof this.data.totalEtherEarned === 'number' ? this.data.totalEtherEarned : 0;
         this.data.settings = Object.assign(this.getDefaultData().settings, parsed.settings || {});
         this.data.metaUpgrades = Object.assign(this.getDefaultData().metaUpgrades, parsed.metaUpgrades || {});
         this.data.unlockedAchievements = Object.assign({}, parsed.unlockedAchievements || {});
@@ -612,7 +614,20 @@ class SaveManager {
   }
 
   getGold() {
-    return this.data.gold;
+    return this.data.gold || 0;
+  }
+
+  addEther(amount) {
+    if (!amount || amount <= 0) return 0;
+    this.data.ether = (this.data.ether || 0) + amount;
+    this.data.totalEtherEarned = (this.data.totalEtherEarned || 0) + amount;
+    this.save();
+    this.checkAchievements('ether_updated', null, window.MedievalSurvivors.game);
+    return amount;
+  }
+
+  getEther() {
+    return typeof this.data.ether === 'number' ? this.data.ether : 0;
   }
 
   isSynergyDiscovered(id) {
@@ -691,6 +706,7 @@ class SaveManager {
       kills: run.kills || 0,
       damage: run.damage || 0,
       goldEarned: run.goldEarned || 0,
+      etherEarned: run.etherEarned || 0,
       outcome: run.outcome || 'DERROTA'
     });
 

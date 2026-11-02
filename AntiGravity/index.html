@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Fallen Kingdom</title>
-  <link rel="stylesheet" href="css/style.css?v=55">
+  <link rel="stylesheet" href="css/style.css?v=66">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22><text y=%2226%22 font-size=%2228%22>⚔️</text></svg>">
 </head>
 <body>
@@ -282,7 +282,7 @@
 
     <!-- ==================== MODAL: Fim de Jogo (Game Over) ==================== -->
     <div class="modal-overlay" id="game-over-modal">
-      <div class="modal-box ornate-frame gameover-box" style="max-width: 680px;">
+      <div class="modal-box ornate-frame gameover-box" style="max-width: 820px;">
         <div class="ornate-corner corner-tl"></div>
         <div class="ornate-corner corner-tr"></div>
         <div class="ornate-corner corner-bl"></div>
@@ -330,7 +330,10 @@
             <span>🔄 Jogar Novamente</span>
           </button>
           <button class="btn-royal btn-forge" id="btn-gameover-forge">
-            <span>🔨 Forja Real (Gastar Ouro)</span>
+            <span>🔨 Forja Real</span>
+          </button>
+          <button class="btn-royal btn-menu" id="btn-gameover-menu">
+            <span>🏰 Retornar ao Menu</span>
           </button>
         </div>
       </div>
@@ -338,7 +341,7 @@
 
     <!-- ==================== MODAL: Vitória Real ==================== -->
     <div class="modal-overlay" id="victory-modal">
-      <div class="modal-box ornate-frame victory-box" style="max-width: 680px;">
+      <div class="modal-box ornate-frame victory-box" style="max-width: 820px;">
         <div class="ornate-corner corner-tl"></div>
         <div class="ornate-corner corner-tr"></div>
         <div class="ornate-corner corner-bl"></div>
@@ -368,6 +371,10 @@
             <span class="title">💰 Ouro Total Conquistado</span>
             <span class="val text-gold" id="victory-gold">0 💰</span>
           </div>
+          <div class="stat-box">
+            <span class="title">🔮 Éter Ancestral</span>
+            <span class="val text-ether" id="victory-ether" style="color: #e0b0ff;">+0 🔮</span>
+          </div>
         </div>
 
         <div class="breakdown-card" style="margin-top: 14px;">
@@ -377,12 +384,15 @@
           <div id="victory-weapon-breakdown"></div>
         </div>
 
-        <div class="modal-actions-row" style="margin-top: 22px;">
-          <button class="btn-royal btn-forge" id="btn-victory-forge">
-            <span>🔨 Ir para a Forja</span>
-          </button>
+        <div class="modal-actions-row" style="margin-top: 10px;">
           <button class="btn-royal btn-epic-start btn-restart">
             <span>⚔️ Nova Conquista</span>
+          </button>
+          <button class="btn-royal btn-forge" id="btn-victory-forge">
+            <span>🔨 Forja Real</span>
+          </button>
+          <button class="btn-royal btn-menu" id="btn-victory-menu">
+            <span>🏰 Retornar ao Menu</span>
           </button>
         </div>
       </div>
@@ -501,6 +511,10 @@
               <span id="menu-user-badge" style="color: #f1c40f; font-weight: bold; font-size: 0.82rem;">👤 Visitante</span>
               <button type="button" id="btn-switch-user" style="background: transparent; border: none; color: #ff7675; cursor: pointer; font-size: 0.75rem; text-decoration: underline;" title="Trocar combatente / Sair">Sair</button>
             </div>
+            <button type="button" class="menu-audio-btn" id="btn-menu-music-toggle" title="Ligar/Silenciar Música do Menu">
+              <span id="menu-music-icon">🎵</span>
+              <span id="menu-music-text">Música: Ligada</span>
+            </button>
             <div class="gold-vault-pill">
               <span class="vault-label">Tesouro Real</span>
               <div class="vault-amount">
@@ -578,22 +592,22 @@
   </div>
 
   <!-- 3D Engine & Game Scripts -->
-  <script src="js/three.min.js?v=55"></script>
-  <script src="js/audio.js?v=55"></script>
-  <script src="js/icons.js?v=55"></script>
-  <script src="js/save.js?v=55"></script>
-  <script src="js/classes.js?v=55"></script>
-  <script src="js/passives.js?v=55"></script>
-  <script src="js/weapons.js?v=55"></script>
-  <script src="js/synergies.js?v=55"></script>
-  <script src="js/entities.js?v=55"></script>
-  <script src="js/enemies.js?v=55"></script>
-  <script src="js/models3d.js?v=55"></script>
-  <script src="js/map3d.js?v=55"></script>
-  <script src="js/skilltree.js?v=55"></script>
-  <script src="js/renderer.js?v=55"></script>
-  <script src="js/ui.js?v=55"></script>
-  <script src="js/game.js?v=55"></script>
+  <script src="js/three.min.js?v=66"></script>
+  <script src="js/audio.js?v=66"></script>
+  <script src="js/icons.js?v=66"></script>
+  <script src="js/save.js?v=66"></script>
+  <script src="js/classes.js?v=66"></script>
+  <script src="js/passives.js?v=66"></script>
+  <script src="js/weapons.js?v=66"></script>
+  <script src="js/synergies.js?v=66"></script>
+  <script src="js/entities.js?v=66"></script>
+  <script src="js/enemies.js?v=66"></script>
+  <script src="js/models3d.js?v=66"></script>
+  <script src="js/map3d.js?v=66"></script>
+  <script src="js/skilltree.js?v=66"></script>
+  <script src="js/renderer.js?v=66"></script>
+  <script src="js/ui.js?v=66"></script>
+  <script src="js/game.js?v=66"></script>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
@@ -605,6 +619,20 @@
         } else if (window.MedievalSurvivors.game.ui && window.MedievalSurvivors.game.ui.openMainMenu) {
           window.MedievalSurvivors.game.ui.openMainMenu('play');
         }
+
+        // Desbloqueia e inicia a musica do Lobby no primeiro toque/clique do usuario
+        const unlockLobbyAudio = () => {
+          if (window.MedievalSurvivors && window.MedievalSurvivors.sound) {
+            window.MedievalSurvivors.sound.init();
+            if (window.MedievalSurvivors.game && window.MedievalSurvivors.game.state === 'MENU') {
+              if (!window.MedievalSurvivors.sound.lobbyMuted) {
+                window.MedievalSurvivors.sound.startLobbyMusic();
+              }
+            }
+          }
+        };
+        window.addEventListener('pointerdown', unlockLobbyAudio, { once: true });
+        window.addEventListener('keydown', unlockLobbyAudio, { once: true });
       } catch (err) {
         console.error('Falha na inicialização do jogo:', err);
       }

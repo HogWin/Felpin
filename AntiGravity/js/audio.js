@@ -23,6 +23,17 @@ class SoundEngine {
       drums: null,
       climax: null
     };
+
+    // Lobby / Main Menu Music State
+    this.lobbyPlaying = false;
+    this.lobbyTimer = null;
+    this.lobbyStep = 0;
+    this.lobbyMasterGain = null;
+    try {
+      this.lobbyMuted = localStorage.getItem('medieval_lobby_music_muted') === 'true';
+    } catch (e) {
+      this.lobbyMuted = false;
+    }
   }
 
   init() {
@@ -82,10 +93,15 @@ class SoundEngine {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
 
-    // Master music bus
+    // Master music bus (Combat)
     this.musicMasterGain = this.ctx.createGain();
     this.musicMasterGain.gain.setValueAtTime(0.55, t);
     this.musicMasterGain.connect(this.ctx.destination);
+
+    // Master lobby music bus (Peaceful Tavern / Grand Castle Hub)
+    this.lobbyMasterGain = this.ctx.createGain();
+    this.lobbyMasterGain.gain.setValueAtTime(0.48, t);
+    this.lobbyMasterGain.connect(this.ctx.destination);
 
     // 4 Dynamic Adaptive Music Layers
     this.layerGains.drone = this.ctx.createGain();
@@ -117,15 +133,28 @@ class SoundEngine {
         clearInterval(this.bgmTimer);
         this.bgmPlaying = false;
       }
+      if (this.lobbyTimer) {
+        clearInterval(this.lobbyTimer);
+        this.lobbyPlaying = false;
+      }
       if (this.musicMasterGain && this.ctx) {
         this.musicMasterGain.gain.setValueAtTime(0.0, this.ctx.currentTime);
+      }
+      if (this.lobbyMasterGain && this.ctx) {
+        this.lobbyMasterGain.gain.setValueAtTime(0.0, this.ctx.currentTime);
       }
     } else {
       if (this.musicMasterGain && this.ctx) {
         this.musicMasterGain.gain.setValueAtTime(0.55, this.ctx.currentTime);
       }
-      if (!this.bgmPlaying) {
-        this.startBgm();
+      if (this.lobbyMasterGain && this.ctx) {
+        this.lobbyMasterGain.gain.setValueAtTime(this.lobbyMuted ? 0.0 : 0.48, this.ctx.currentTime);
+      }
+      const isPlaying = window.MedievalSurvivors && window.MedievalSurvivors.game && window.MedievalSurvivors.game.state === 'PLAYING';
+      if (isPlaying) {
+        if (!this.bgmPlaying) this.startBgm();
+      } else {
+        if (!this.lobbyPlaying && !this.lobbyMuted) this.startLobbyMusic();
       }
     }
     return this.muted;
@@ -915,6 +944,243 @@ class SoundEngine {
     noise.start(t);
   }
 
+  // ==========================================
+  // PROCEDURAL LOBBY MUSIC: Balada de Valoria
+  // ==========================================
+  stopLobbyMusic() {
+    if (this.lobbyTimer) {
+      clearInterval(this.lobbyTimer);
+      this.lobbyTimer = null;
+    }
+    this.lobbyPlaying = false;
+    if (this.lobbyMasterGain && this.ctx) {
+      const t = this.ctx.currentTime;
+      this.lobbyMasterGain.gain.cancelScheduledValues(t);
+      this.lobbyMasterGain.gain.linearRampToValueAtTime(0.001, t + 0.35);
+    }
+  }
+
+  toggleLobbyMusic() {
+    this.lobbyMuted = !this.lobbyMuted;
+    try {
+      localStorage.setItem('medieval_lobby_music_muted', this.lobbyMuted ? 'true' : 'false');
+    } catch (e) {}
+
+    if (this.lobbyMuted) {
+      this.stopLobbyMusic();
+      if (this.lobbyMasterGain && this.ctx) {
+        this.lobbyMasterGain.gain.setValueAtTime(0.001, this.ctx.currentTime);
+      }
+    } else {
+      if (!this.muted) {
+        if (this.lobbyMasterGain && this.ctx) {
+          this.lobbyMasterGain.gain.setValueAtTime(0.48, this.ctx.currentTime);
+        }
+        this.startLobbyMusic();
+      }
+    }
+    return this.lobbyMuted;
+  }
+
+  startLobbyMusic() {
+    if (this.lobbyPlaying || this.muted || this.lobbyMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    // Garante que o combate BGM esta encerrado
+    if (this.bgmPlaying) {
+      this.stopBgm();
+    }
+
+    if (this.lobbyMasterGain) {
+      const t = this.ctx.currentTime;
+      this.lobbyMasterGain.gain.cancelScheduledValues(t);
+      this.lobbyMasterGain.gain.setValueAtTime(0.001, t);
+      this.lobbyMasterGain.gain.linearRampToValueAtTime(0.48, t + 0.8);
+    }
+
+    this.lobbyPlaying = true;
+    this.lobbyStep = 0;
+
+    // Balada Medieval Acustica: ~80 BPM (compasso suave com intervalo de 375ms por semi-colcheia)
+    const stepInterval = 375;
+
+    // Progressao Modal Medieval: Am -> Fmaj7 -> Dm -> Em/E7 (Taberna Real & Santuario)
+    const chords = [
+      {
+        root: 110.00, // A2 (La)
+        bell: 880.00, // A5
+        lute: [220.00, 261.63, 329.63, 440.00, 523.25, 440.00, 329.63, 261.63] // A3, C4, E4, A4, C5, A4, E4, C4
+      },
+      {
+        root: 87.31,  // F2 (Fa)
+        bell: 698.46, // F5
+        lute: [174.61, 220.00, 261.63, 329.63, 349.23, 329.63, 261.63, 220.00] // F3, A3, C4, E4, F4, E4, C4, A3
+      },
+      {
+        root: 73.42,  // D2 (Re)
+        bell: 587.33, // D5
+        lute: [146.83, 174.61, 220.00, 293.66, 349.23, 293.66, 220.00, 174.61] // D3, F3, A3, D4, F4, D4, A3, F3
+      },
+      {
+        root: 82.41,  // E2 (Mi)
+        bell: 659.25, // E5
+        lute: [164.81, 196.00, 246.94, 329.63, 392.00, 329.63, 246.94, 196.00] // E3, G3, B3, E4, G4, E4, B3, G3
+      }
+    ];
+
+    this.lobbyTimer = setInterval(() => {
+      if (this.muted || !this.lobbyPlaying || !this.ctx) return;
+
+      const t = this.ctx.currentTime;
+      const step = this.lobbyStep % 16;
+      const barIndex = Math.floor(this.lobbyStep / 16);
+      const chord = chords[barIndex % chords.length];
+
+      // 1. Violoncelo / Viol Barroco (Pad acustico suave acionado no inicio de cada compasso)
+      if (step === 0) {
+        this.playLobbyCelloPad(t, chord.root, 0.32, 5.8);
+        this.playLobbyBell(t, chord.bell, 0.14);
+      }
+
+      // 2. Harpa Celtica / Alaude Dedilhado (Arpejos sincopados)
+      if (step % 2 === 0 || step === 7 || step === 15) {
+        const noteIdx = (Math.floor(step / 2) + barIndex) % chord.lute.length;
+        const freq = chord.lute[noteIdx];
+        const isAccent = (step === 0 || step === 8);
+        this.playLobbyLute(t, freq, isAccent ? 0.22 : 0.16, isAccent ? 0.65 : 0.45);
+      }
+
+      // 3. Suspiro acustico da taberna / Lareira acolhedora
+      if (step === 4 || step === 12) {
+        this.playLobbyAmbience(t, 0.04);
+      }
+
+      this.lobbyStep++;
+    }, stepInterval);
+  }
+
+  // Instrumento 1: Alaude Medieval / Harpa dedilhada
+  playLobbyLute(t, freq, volume, decay) {
+    if (!this.lobbyMasterGain || !this.ctx) return;
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc1.type = 'triangle';
+    osc1.frequency.setValueAtTime(freq, t);
+
+    // Brilho acustico de corda de nylon
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(freq * 2, t);
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1600, t);
+    filter.frequency.exponentialRampToValueAtTime(500, t + decay);
+    filter.Q.setValueAtTime(2.2, t);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(volume, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + decay);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.lobbyMasterGain);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + decay);
+    osc2.stop(t + decay);
+  }
+
+  // Instrumento 2: Violoncelo / Viol com arco
+  playLobbyCelloPad(t, freq, volume, duration) {
+    if (!this.lobbyMasterGain || !this.ctx) return;
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc1.type = 'sawtooth';
+    osc1.frequency.setValueAtTime(freq, t);
+
+    // Detune sutil para calor de cordas de orquestra
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(freq * 1.004, t);
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(240, t);
+    filter.frequency.linearRampToValueAtTime(320, t + duration * 0.5);
+    filter.frequency.linearRampToValueAtTime(200, t + duration);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(volume, t + 1.2);
+    gain.gain.setValueAtTime(volume * 0.85, t + duration - 1.2);
+    gain.gain.linearRampToValueAtTime(0.001, t + duration);
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.lobbyMasterGain);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + duration);
+    osc2.stop(t + duration);
+  }
+
+  // Instrumento 3: Sino de Santuario / Harmonica de Cristal
+  playLobbyBell(t, freq, volume) {
+    if (!this.lobbyMasterGain || !this.ctx) return;
+    const osc1 = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(freq, t);
+
+    // Parcial inarmonico de campana medieval
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(freq * 2.76, t);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(volume, t + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 2.8);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(this.lobbyMasterGain);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + 2.8);
+    osc2.stop(t + 2.8);
+  }
+
+  // Instrumento 4: Calor de Taberna e Lareira
+  playLobbyAmbience(t, volume) {
+    if (!this.lobbyMasterGain || !this.ctx || !this._crackleNoiseBuffer) return;
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = this._crackleNoiseBuffer;
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(450, t);
+
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.linearRampToValueAtTime(volume, t + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.lobbyMasterGain);
+
+    noise.start(t);
+  }
+
   // --- Procedural Adaptive Layered Soundtrack Engine ---
   stopBgm() {
     if (this.bgmTimer) {
@@ -928,6 +1194,10 @@ class SoundEngine {
   }
 
   startBgm() {
+    // Interrompe suavemente a musica do lobby ao entrar em combate
+    if (this.lobbyPlaying) {
+      this.stopLobbyMusic();
+    }
     if (this.musicMasterGain && this.ctx && !this.muted) {
       this.musicMasterGain.gain.setValueAtTime(0.55, this.ctx.currentTime);
     }

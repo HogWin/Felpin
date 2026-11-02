@@ -6,6 +6,7 @@ class SpatialGrid {
     this.cellSize = cellSize;
     this.invCellSize = 1 / cellSize;
     this.cells = new Map();
+    this._cellPool = [];
     this._defaultBuffer = [];
   }
 
@@ -14,6 +15,10 @@ class SpatialGrid {
   }
 
   clear() {
+    for (const cell of this.cells.values()) {
+      cell.length = 0;
+      this._cellPool.push(cell);
+    }
     this.cells.clear();
   }
 
@@ -23,7 +28,7 @@ class SpatialGrid {
     const key = this._getKey(cx, cy);
     let cell = this.cells.get(key);
     if (!cell) {
-      cell = [];
+      cell = this._cellPool.pop() || [];
       this.cells.set(key, cell);
     }
     cell.push(entity);
@@ -338,6 +343,48 @@ class Game {
     }
   }
 
+  // Libera completamente todas as entidades, particulas e malhas 3D da run finalizada
+  clearRunData() {
+    // 1. Limpa e remove todas as malhas 3D da cena Three.js
+    if (this.renderer && this.renderer.clearMeshPools) {
+      this.renderer.clearMeshPools();
+    }
+
+    // 2. Destroi entidades e zera arrays da partida
+    for (let i = 0; i < this.enemies.length; i++) {
+      const e = this.enemies[i];
+      if (e && e.destroy) e.destroy();
+    }
+    this.enemies.length = 0;
+    this.allies.length = 0;
+    this.projectiles.length = 0;
+    this.enemyProjectiles.length = 0;
+    this.gems.length = 0;
+    this.chests.length = 0;
+    this.destructibles.length = 0;
+    this.collectibles.length = 0;
+    this.floatingTexts.length = 0;
+
+    // 3. Esvazia a grade espacial e particulas 2D
+    if (this.spatialGrid) {
+      this.spatialGrid.clear();
+    }
+    if (this.particles && this.particles.particles) {
+      this.particles.particles.length = 0;
+    }
+
+    // 4. Reseta wave director e eventos de arena
+    if (this.waveDirector) {
+      this.waveDirector.reset();
+    }
+    if (this.arenaEventManager) {
+      this.arenaEventManager.reset();
+    }
+
+    this.player = null;
+    this.gameTime = 0;
+  }
+
   quitToMenu() {
     // 1. Salva ouro e éter acumulados até o momento na partida
     if (this.player && this.saveManager) {
@@ -364,28 +411,22 @@ class Game {
         kills: this.player.killCount || 0,
         damage: totalDmg,
         goldEarned: this.player.gold || 0,
+        etherEarned: this.player.ether || 0,
         outcome: 'RETIRADA'
       });
       this.saveManager.save();
     }
 
-    // 2. Limpa entidades ativas da arena
-    this.enemies = [];
-    this.allies = [];
-    this.projectiles = [];
-    this.enemyProjectiles = [];
-    this.gems = [];
-    this.chests = [];
-    this.destructibles = [];
-    this.collectibles = [];
-    this.floatingTexts = [];
-    this.gameTime = 0;
+    // 2. Limpa e desafoga completamente a memoria da run
+    this.clearRunData();
     this.state = 'MENU';
 
-    // 3. Para a trilha sonora adaptativa
+    // 3. Para a trilha sonora de combate e inicia a musica da taberna/lobby
     if (window.MedievalSurvivors.sound) {
       window.MedievalSurvivors.sound.setMusicIntensity(0.0, false);
-      if (window.MedievalSurvivors.sound.stopBgm) {
+      if (window.MedievalSurvivors.sound.startLobbyMusic) {
+        window.MedievalSurvivors.sound.startLobbyMusic();
+      } else if (window.MedievalSurvivors.sound.stopBgm) {
         window.MedievalSurvivors.sound.stopBgm();
       }
     }
@@ -644,24 +685,37 @@ class Game {
       this.saveManager.addEther(this.player.ether);
     }
 
-    const totalDmg = this.player.weapons.reduce((sum, w) => sum + w.totalDamageDealt, 0);
+    const totalDmg = this.player.weapons.reduce((sum, w) => sum + (w.totalDamageDealt || 0), 0);
     this.saveManager.recordRun({
       hero: this.player.classDef.name,
-      timeSurvived: '15:00',
-      timeSeconds: 900,
+      timeSurvived: '10:00',
+      timeSeconds: 600,
       level: this.player.level,
       kills: this.player.killCount,
       damage: totalDmg,
       goldEarned: this.player.gold,
+      etherEarned: this.player.ether || 0,
       outcome: 'VITÓRIA'
     });
 
     this.renderer.triggerShake(16, 1.0);
-    window.MedievalSurvivors.sound.playLevelUp();
+    if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playVictory) {
+      window.MedievalSurvivors.sound.playVictory();
+    } else if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playLevelUp) {
+      window.MedievalSurvivors.sound.playLevelUp();
+    }
     if (this.saveManager) {
       this.saveManager.checkAchievements('run_victory', null, this);
     }
     this.submitRunToNeon();
+
+    if (window.MedievalSurvivors.sound) {
+      window.MedievalSurvivors.sound.setMusicIntensity(0.0, false);
+      if (window.MedievalSurvivors.sound.startLobbyMusic) {
+        window.MedievalSurvivors.sound.startLobbyMusic();
+      }
+    }
+
     this.ui.showVictory(this.player, this.gameTime, bonusGold);
   }
 
@@ -673,6 +727,13 @@ class Game {
 
     this.frameCount++;
     this.gameTime += dt;
+
+    // 0. Condição de Término e Vitória: 10 Minutos de Sobrevivência (600 segundos)
+    if (this.gameTime >= 600) {
+      this.gameTime = 600;
+      this.triggerVictory();
+      return;
+    }
 
     // Check timed survival achievements (3 minutes = 180s, 5 minutes = 300s)
     if (this.gameTime >= 180 && this.saveManager) {
@@ -803,10 +864,19 @@ class Game {
           this.addFloatingText(enemy.x, enemy.y - 24, `+${gained} 🔮`, '#bb86fc', false);
         }
 
-        // Spawn Treasure Chest if Mini-Boss
-        if (enemy.dropChest) {
-          this.chests.push(new MedievalSurvivors.TreasureChest(enemy.x, enemy.y, enemy.bossTier));
+        // Spawn Treasure Chest if Mini-Boss or Champion Elite (Tier 1 = 1 upgrade)
+        if (enemy.dropChest || enemy.isChampion) {
+          const chestTier = enemy.isChampion ? 1 : (enemy.bossTier || 1);
+          this.chests.push(new MedievalSurvivors.TreasureChest(enemy.x, enemy.y, chestTier));
           this.renderer.triggerShake(8, 0.4);
+        }
+
+        // Liberacao imediata de memoria e malha 3D do inimigo executado
+        if (this.renderer && this.renderer.destroyEnemyMesh) {
+          this.renderer.destroyEnemyMesh(enemy.id);
+        }
+        if (enemy.destroy) {
+          enemy.destroy();
         }
 
         this.enemies.splice(i, 1);
@@ -894,10 +964,22 @@ class Game {
         kills: this.player.killCount,
         damage: totalDmg,
         goldEarned: this.player.gold,
+        etherEarned: this.player.ether || 0,
         outcome: 'DERROTA'
       });
 
       this.submitRunToNeon();
+
+      // Interrompe imediatamente o combate e inicia a musica serena do lobby/morte
+      if (window.MedievalSurvivors.sound) {
+        window.MedievalSurvivors.sound.setMusicIntensity(0.0, false);
+        if (window.MedievalSurvivors.sound.startLobbyMusic) {
+          window.MedievalSurvivors.sound.startLobbyMusic();
+        } else if (window.MedievalSurvivors.sound.stopBgm) {
+          window.MedievalSurvivors.sound.stopBgm();
+        }
+      }
+
       this.ui.showGameOver(this.player, this.gameTime);
       return;
     }
