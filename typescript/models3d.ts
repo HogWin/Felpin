@@ -289,6 +289,10 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             anim.leftArm.rotation.x = 0.65 + Math.sin(walk) * 0.08;
             anim.leftArm.rotation.y = 0.38;
             anim.leftArm.rotation.z = -0.15;
+          } else if (anim.isAlchemist) {
+            anim.leftArm.rotation.x = 0.35 + Math.sin(walk) * 0.15;
+            anim.leftArm.rotation.y = 0.22;
+            anim.leftArm.rotation.z = -0.18;
           } else {
             anim.leftArm.rotation.x = 0.22 + Math.sin(walk) * 0.12;
             anim.leftArm.rotation.y = 0.32;
@@ -302,6 +306,10 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             anim.rightArm.rotation.x = -0.55 + Math.sin(walk) * 0.12;
             anim.rightArm.rotation.y = -0.22;
             anim.rightArm.rotation.z = 0.10 + Math.cos(walk) * 0.05;
+          } else if (anim.isAlchemist) {
+            anim.rightArm.rotation.x = -0.42 + Math.sin(walk) * 0.14;
+            anim.rightArm.rotation.y = -0.15;
+            anim.rightArm.rotation.z = 0.12 + Math.cos(walk) * 0.06;
           } else {
             anim.rightArm.rotation.x = -0.26 + Math.sin(walk) * 0.16;
             anim.rightArm.rotation.y = -0.18;
@@ -332,6 +340,10 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             anim.leftArm.rotation.x = 0.58 + breath * 0.015;
             anim.leftArm.rotation.y = 0.32;
             anim.leftArm.rotation.z = -0.12;
+          } else if (anim.isAlchemist) {
+            anim.leftArm.rotation.x = 0.28 + breath * 0.02;
+            anim.leftArm.rotation.y = 0.20;
+            anim.leftArm.rotation.z = -0.15;
           } else {
             anim.leftArm.rotation.x = 0.14 + breath * 0.02;
             anim.leftArm.rotation.y = 0.25;
@@ -343,6 +355,10 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             anim.rightArm.rotation.x = -0.48 + breath * 0.02;
             anim.rightArm.rotation.y = -0.18;
             anim.rightArm.rotation.z = 0.08;
+          } else if (anim.isAlchemist) {
+            anim.rightArm.rotation.x = -0.36 + breath * 0.025;
+            anim.rightArm.rotation.y = -0.12;
+            anim.rightArm.rotation.z = 0.10;
           } else {
             anim.rightArm.rotation.x = -0.18 + breath * 0.03;
             anim.rightArm.rotation.y = -0.12;
@@ -474,6 +490,20 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
           w.mesh.scale.set(pulse, pulse * 1.25, pulse);
         }
       }
+      // 2.8 Vapores Tóxicos do Alquimista (Floating Miasma Puffs)
+      if (anim.miasmaPuffs && anim.miasmaPuffs.length > 0) {
+        const timeSec = Date.now() * 0.003;
+        for (let i = 0; i < anim.miasmaPuffs.length; i++) {
+          const p = anim.miasmaPuffs[i];
+          p.mesh.position.y = p.baseY + Math.sin(timeSec * 2.2 + p.phase) * 0.45;
+          p.mesh.position.x = p.baseX + Math.cos(timeSec * 1.6 + p.phase) * 0.30;
+          p.mesh.rotation.y += 0.025;
+          p.mesh.rotation.z += 0.02;
+          const s = p.baseScale * (1 + 0.28 * Math.sin(timeSec * 3.0 + p.phase));
+          p.mesh.scale.set(s, s * 1.15, s);
+        }
+      }
+
       // 3. Dynamic Overhand Throw Animation (Alchemist flask toss & projectile attacks)
       if (inToss) {
         player.tossAnimTimer -= dt;
@@ -2097,121 +2127,470 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   }
 
   // 1.9 ALQUIMISTA DA PESTE (Plague Alchemist Model)
-  function buildPlagueAlchemistModel(group, anim) {
-    const leatherMat = createFlashable(materials.leather);
-    const darkMat = createFlashable(materials.darkCloth);
-    const boneMat = createFlashable(materials.bone);
-    const greenMat = materials.glowingGreen;
-    const glassMat = new THREE.MeshBasicMaterial({ color: 0x55ff77, transparent: true, opacity: 0.75 });
-    anim.materials.push(leatherMat, darkMat, boneMat);
+    function buildPlagueAlchemistModel(group, anim) {
+  anim.isAlchemist = true;
+  anim.materials = [];
+  anim.miasmaPuffs = [];
 
-    const torsoGroup = new THREE.Group();
-    torsoGroup.position.y = 15;
-    group.add(torsoGroup);
-    anim.torso = torsoGroup;
+  // =========================================================================
+  // PALETA PBR GÓTICA: APOTHECARY OF DEATH (PESTE & ALQUIMIA NEGRA)
+  // =========================================================================
+  const waxCoatMat = createFlashable(new THREE.MeshStandardMaterial({
+    color: 0x121417,       // Couro encerado negro de médico da peste
+    roughness: 0.48,
+    metalness: 0.12,
+    flatShading: true
+  }));
+  const darkTunicMat = createFlashable(new THREE.MeshStandardMaterial({
+    color: 0x1e2229,       // Túnica de linho escuro sob o sobretudo
+    roughness: 0.78,
+    flatShading: true
+  }));
+  const heavyLeatherMat = createFlashable(new THREE.MeshStandardMaterial({
+    color: 0x2b1c14,       // Couro curtido rústico de correias e coldres
+    roughness: 0.72,
+    flatShading: true
+  }));
+  const agedBrassMat = createFlashable(new THREE.MeshStandardMaterial({
+    color: 0xb38622,       // Latão e cobre envelhecidos de alambique e fivelas
+    metalness: 0.88,
+    roughness: 0.32,
+    emissive: 0x2b1f06,
+    emissiveIntensity: 0.18,
+    flatShading: true
+  }));
+  const blackenedSteelMat = createFlashable(new THREE.MeshStandardMaterial({
+    color: 0x181a1e,       // Aço forjado escuro para rebites e ferragens
+    metalness: 0.92,
+    roughness: 0.30,
+    flatShading: true
+  }));
+  const ivoryBeakMat = createFlashable(new THREE.MeshStandardMaterial({
+    color: 0xd8cca8,       // Osso envelhecido trabalhado da máscara de corvo
+    roughness: 0.52,
+    flatShading: true
+  }));
+  const plagueAcidMat = createFlashable(new THREE.MeshStandardMaterial({
+    color: 0x10b981,       // Ácido cáustico esmeralda luminescente
+    emissive: 0x059669,
+    emissiveIntensity: 0.95,
+    metalness: 0.20,
+    roughness: 0.10
+  }));
+  const alchemicalGlassMat = createFlashable(new THREE.MeshStandardMaterial({
+    color: 0x6ee7b7,       // Vidro borossilicato translúcido
+    roughness: 0.15,
+    metalness: 0.10,
+    transparent: true,
+    opacity: 0.65
+  }));
+  const miasmaVaporMat = new THREE.MeshBasicMaterial({
+    color: 0x34d399,       // Vapor tóxico esmeralda/verde-peste
+    transparent: true,
+    opacity: 0.55
+  });
+  const goggleLensMat = materials.glowingGreen || new THREE.MeshBasicMaterial({ color: 0x10b981 });
 
-    // Long dark leather apothecary trenchcoat
-    const coatGeo = new THREE.BoxGeometry(9.5, 12, 7);
-    torsoGroup.add(new THREE.Mesh(coatGeo, darkMat));
+  anim.materials.push(
+    waxCoatMat, darkTunicMat, heavyLeatherMat, agedBrassMat,
+    blackenedSteelMat, ivoryBeakMat, plagueAcidMat, alchemicalGlassMat, miasmaVaporMat
+  );
 
-    // Chemist bandolier holding green vials
-    const bandolier = new THREE.Mesh(new THREE.BoxGeometry(10, 2, 7.4), leatherMat);
-    bandolier.rotation.z = 0.45;
-    torsoGroup.add(bandolier);
+  // =========================================================================
+  // 1. TORSO, SOBRETUDO DE COURO ENCERADO & BANDOLEIRA DUPLA DE REAGENTES
+  // =========================================================================
+  const torsoGroup = new THREE.Group();
+  torsoGroup.position.y = 14.5;
+  group.add(torsoGroup);
+  anim.torso = torsoGroup;
 
-    for (let v of [-2, 0, 2]) {
-      const vial = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 2.5, 5), greenMat);
-      vial.position.set(v * 1.8, v * 0.8, 3.8);
-      torsoGroup.add(vial);
-    }
+  // Peitoral do sobretudo encerado
+  const coatChestGeo = new THREE.CylinderGeometry(5.2, 4.4, 9.4, 8);
+  const coatChest = new THREE.Mesh(coatChestGeo, waxCoatMat);
+  torsoGroup.add(coatChest);
 
-    // Iconic Plague Doctor Beak Mask & Wide-Brim Hat
-    const headGroup = new THREE.Group();
-    headGroup.position.y = 8;
-    torsoGroup.add(headGroup);
-    anim.head = headGroup;
+  // Lapelas duplas do casaco de médico (abotoamento duplo)
+  const lapelL = new THREE.Mesh(new THREE.BoxGeometry(1.6, 7.8, 0.4), darkTunicMat);
+  lapelL.position.set(-1.6, 0.6, 2.5);
+  lapelL.rotation.y = -0.15;
+  const lapelR = new THREE.Mesh(new THREE.BoxGeometry(1.6, 7.8, 0.4), darkTunicMat);
+  lapelR.position.set(1.6, 0.6, 2.5);
+  lapelR.rotation.y = 0.15;
+  torsoGroup.add(lapelL, lapelR);
 
-    const headGeo = new THREE.BoxGeometry(6, 6.5, 6.5);
-    headGroup.add(new THREE.Mesh(headGeo, darkMat));
-
-    // Curved bone beak
-    const beakGeo = new THREE.ConeGeometry(2.2, 8, 5);
-    beakGeo.rotateX(Math.PI / 2.2);
-    beakGeo.translate(0, -1, 6.5);
-    headGroup.add(new THREE.Mesh(beakGeo, boneMat));
-
-    // Brass round goggles
-    for (let g of [-1.5, 1.5]) {
-      const goggle = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.8, 6), materials.gold);
-      goggle.rotation.x = Math.PI / 2;
-      goggle.position.set(g, 1, 3.5);
-      headGroup.add(goggle);
-
-      const lens = new THREE.Mesh(new THREE.CircleGeometry(0.9, 6), greenMat);
-      lens.position.set(g, 1, 4);
-      headGroup.add(lens);
-    }
-
-    // Wide-brimmed flat leather doctor hat
-    const brimGeo = new THREE.CylinderGeometry(7.5, 7.5, 0.6, 12);
-    brimGeo.translate(0, 3.5, 0);
-    headGroup.add(new THREE.Mesh(brimGeo, leatherMat));
-    const hatCrown = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.4, 3.5, 8), leatherMat);
-    hatCrown.position.y = 5.2;
-    headGroup.add(hatCrown);
-
-    // Left Arm & Leather Glove
-    const leftArmGroup = new THREE.Group();
-    leftArmGroup.position.set(-6, 3.5, 0);
-    torsoGroup.add(leftArmGroup);
-    anim.leftArm = leftArmGroup;
-
-    const armGeo = new THREE.CylinderGeometry(1.4, 1.3, 7, 6);
-    armGeo.translate(0, -3.5, 0);
-    leftArmGroup.add(new THREE.Mesh(armGeo, darkMat));
-
-    // Right Arm holding Corrosive Plague Flask
-    const rightArmGroup = new THREE.Group();
-    rightArmGroup.position.set(6, 3.5, 0);
-    torsoGroup.add(rightArmGroup);
-    anim.rightArm = rightArmGroup;
-
-    const rArm = new THREE.Mesh(armGeo, darkMat);
-    rightArmGroup.add(rArm);
-
-    const flaskGroup = new THREE.Group();
-    flaskGroup.position.set(0, -6, 2);
-
-    const flaskGlobe = new THREE.Mesh(new THREE.SphereGeometry(2.4, 8, 8), glassMat);
-    flaskGroup.add(flaskGlobe);
-    const flaskCore = new THREE.Mesh(new THREE.SphereGeometry(1.6, 6, 6), greenMat);
-    flaskGroup.add(flaskCore);
-    const flaskNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 2.2, 6), materials.wood);
-    flaskNeck.position.y = 2.4;
-    flaskGroup.add(flaskNeck);
-
-    rightArmGroup.add(flaskGroup);
-    anim.weapon = flaskGroup;
-
-    // Coat lower skirts & Boots
-    const skirtGeo = new THREE.CylinderGeometry(5.2, 7.5, 9, 8);
-    skirtGeo.translate(0, -4.5, 0);
-    torsoGroup.add(new THREE.Mesh(skirtGeo, darkMat));
-
-    const legGeo = new THREE.CylinderGeometry(1.4, 1.2, 8.5, 6);
-    legGeo.translate(0, -4.2, 0);
-    const legL = new THREE.Group();
-    legL.position.set(-2.6, 8.5, 0);
-    legL.add(new THREE.Mesh(legGeo, leatherMat));
-    group.add(legL);
-    anim.leftLeg = legL;
-
-    const legR = new THREE.Group();
-    legR.position.set(2.6, 8.5, 0);
-    legR.add(new THREE.Mesh(legGeo, leatherMat));
-    group.add(legR);
-    anim.rightLeg = legR;
+  // Botões de latão envelhecido
+  for (let bY = -1.8; bY <= 2.6; bY += 1.4) {
+    [-1.2, 1.2].forEach(bX => {
+      const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.25, 6), agedBrassMat);
+      btn.rotation.x = Math.PI / 2;
+      btn.position.set(bX, bY, 2.7);
+      torsoGroup.add(btn);
+    });
   }
+
+  // Bandoleira Alquímica Cruzada com Fivelas de Latão
+  const bandolier = new THREE.Mesh(new THREE.BoxGeometry(1.4, 14.2, 0.45), heavyLeatherMat);
+  bandolier.position.set(0, 0.2, 0.5);
+  bandolier.rotation.set(0.12, -0.15, -0.65);
+  torsoGroup.add(bandolier);
+
+  // 4 Frascos de Poção Ácida Presos na Bandoleira
+  const vialPositions = [
+    [-2.2, 2.2, 2.6], [-0.8, 0.8, 2.8], [0.8, -0.6, 2.7], [2.2, -2.0, 2.4]
+  ];
+  vialPositions.forEach(([vx, vy, vz], idx) => {
+    const vialHolder = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.8, 6), heavyLeatherMat);
+    vialHolder.position.set(vx, vy, vz);
+    vialHolder.rotation.z = 0.65;
+
+    const vialTube = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 2.4, 8), alchemicalGlassMat);
+    vialTube.position.set(vx, vy, vz);
+    vialTube.rotation.z = 0.65;
+
+    const vialFluid = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 1.7, 6), plagueAcidMat);
+    vialFluid.position.set(vx, vy - 0.2, vz);
+    vialFluid.rotation.z = 0.65;
+
+    const vialCork = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 0.5, 6), heavyLeatherMat);
+    vialCork.position.set(vx - 0.7 * 0.65, vy + 0.7 * 0.65, vz);
+    vialCork.rotation.z = 0.65;
+
+    torsoGroup.add(vialHolder, vialTube, vialFluid, vialCork);
+  });
+
+  // Cinto Tático de Couro com Bolsa de Ingredientes & Incensário Pendurado
+  const belt = new THREE.Mesh(new THREE.CylinderGeometry(4.6, 4.8, 1.8, 10), heavyLeatherMat);
+  belt.position.y = -4.2;
+  const buckle = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.9, 0.8), agedBrassMat);
+  buckle.position.set(0, -4.2, 3.6);
+  torsoGroup.add(belt, buckle);
+
+  // Bolsa de Filtros e Ervas Medicinais na Cintura
+  const herbPouch = new THREE.Mesh(new THREE.BoxGeometry(2.5, 3.0, 1.8), heavyLeatherMat);
+  herbPouch.position.set(3.8, -4.2, 1.2);
+  herbPouch.rotation.y = -0.35;
+  const pouchClasp = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.4), agedBrassMat);
+  pouchClasp.position.set(3.8, -4.2, 2.2);
+  torsoGroup.add(herbPouch, pouchClasp);
+
+  // Incensário / Queimador Alquímico Pendurado por Corrente de Latão
+  const censerChain = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.5, 4), agedBrassMat);
+  censerChain.position.set(-3.6, -5.2, 1.2);
+  const censerPot = new THREE.Mesh(new THREE.OctahedronGeometry(1.0, 0), agedBrassMat);
+  censerPot.position.set(-3.6, -7.0, 1.2);
+  const censerSmoke = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55, 0), miasmaVaporMat);
+  censerSmoke.position.set(-3.6, -6.4, 1.2);
+  torsoGroup.add(censerChain, censerPot, censerSmoke);
+
+  // Saia Longa do Sobretudo Fendida (Permite Corrida & Dinâmica Tática)
+  [-1.8, 1.8].forEach(x => {
+    // Abas Frontais
+    const skirtF = new THREE.Mesh(new THREE.BoxGeometry(3.6, 5.8, 0.8), waxCoatMat);
+    skirtF.position.set(x, -6.8, 2.2);
+    skirtF.rotation.x = 0.14;
+    skirtF.rotation.y = x > 0 ? -0.10 : 0.10;
+    // Abas Traseiras
+    const skirtB = new THREE.Mesh(new THREE.BoxGeometry(3.8, 6.2, 0.8), waxCoatMat);
+    skirtB.position.set(x, -7.0, -2.2);
+    skirtB.rotation.x = -0.16;
+    skirtB.rotation.y = x > 0 ? 0.10 : -0.10;
+    torsoGroup.add(skirtF, skirtB);
+  });
+
+  // =========================================================================
+  // 2. RETORTO ALQUÍMICO & APARELHO DE DESTILAÇÃO NAS COSTAS (ALEMBIC PACK)
+  // =========================================================================
+  const alembicGroup = new THREE.Group();
+  alembicGroup.position.set(0, 1.2, -3.2);
+  torsoGroup.add(alembicGroup);
+
+  // Tanque Principal da Caldeira em Cobre/Latão Envelhecido
+  const boilerTank = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 6.5, 8), agedBrassMat);
+  boilerTank.rotation.x = Math.PI / 2;
+  alembicGroup.add(boilerTank);
+
+  // Aros de Reforço em Aço Escuro
+  [-2.2, 2.2].forEach(z => {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.45, 0.22, 6, 8), blackenedSteelMat);
+    ring.position.y = z;
+    boilerTank.add(ring);
+  });
+
+  // Manômetro de Pressão a Vapor
+  const gaugeBezel = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.4, 8), agedBrassMat);
+  gaugeBezel.position.set(1.8, 1.6, -0.6);
+  gaugeBezel.rotation.z = -0.4;
+  const gaugeFace = new THREE.Mesh(new THREE.CircleGeometry(0.7, 8), ivoryBeakMat);
+  gaugeFace.position.set(1.8, 1.85, -0.6);
+  gaugeFace.rotation.x = -Math.PI / 2;
+  alembicGroup.add(gaugeBezel, gaugeFace);
+
+  // Serpentina de Destilação em Vidro com Ácido Verde Correndo Dentro
+  const glassBulb = new THREE.Mesh(new THREE.SphereGeometry(1.4, 8, 8), alchemicalGlassMat);
+  glassBulb.position.set(-1.8, -1.2, -0.6);
+  const bulbFluid = new THREE.Mesh(new THREE.SphereGeometry(1.0, 6, 6), plagueAcidMat);
+  bulbFluid.position.set(-1.8, -1.2, -0.6);
+  alembicGroup.add(glassBulb, bulbFluid);
+
+  // Tubo de Exaustão de Vapores Tóxicos
+  const chimney = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 3.8, 6), agedBrassMat);
+  chimney.position.set(-1.2, 3.8, -0.4);
+  chimney.rotation.z = 0.18;
+  const chimneyCap = new THREE.Mesh(new THREE.ConeGeometry(0.85, 0.8, 6), blackenedSteelMat);
+  chimneyCap.position.set(-1.4, 5.8, -0.4);
+  alembicGroup.add(chimney, chimneyCap);
+
+  // =========================================================================
+  // 3. CABEÇA: MÁSCARA DE CORVO ANATÔMICA, ÓCULOS DE LATÃO & CHAPÉU DE ABAS
+  // =========================================================================
+  const headGroup = new THREE.Group();
+  headGroup.position.y = 7.6;
+  torsoGroup.add(headGroup);
+  anim.head = headGroup;
+
+  // Capuz de Couro Encerado Cobrindo Cabeça e Pescoço
+  const hoodCowlGeo = new THREE.SphereGeometry(3.1, 12, 10);
+  hoodCowlGeo.scale(0.92, 1.05, 1.0);
+  const hoodCowl = new THREE.Mesh(hoodCowlGeo, waxCoatMat);
+  headGroup.add(hoodCowl);
+
+  // Máscara Facial com Seam de Costura Central
+  const maskFace = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.0, 3.4, 8), heavyLeatherMat);
+  maskFace.position.set(0, -0.4, 1.2);
+  headGroup.add(maskFace);
+
+  // Bico Curvo de Corvo em Osso Envelhecido (Plague Doctor Beak)
+  // Construído com curvatura aerodinâmica realista e orifícios de ventilação
+  const beakBase = new THREE.Mesh(new THREE.ConeGeometry(1.8, 4.2, 6), ivoryBeakMat);
+  beakBase.position.set(0, -0.6, 3.2);
+  beakBase.rotation.x = Math.PI / 2.1;
+  const beakTip = new THREE.Mesh(new THREE.ConeGeometry(1.1, 4.4, 5), ivoryBeakMat);
+  beakTip.position.set(0, -1.8, 5.6);
+  beakTip.rotation.x = Math.PI / 1.75;
+  headGroup.add(beakBase, beakTip);
+
+  // Válvulas / Orifícios de Purificação com Ervas no Bico
+  [-0.65, 0.65].forEach(bX => {
+    const vent = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.35, 6), agedBrassMat);
+    vent.position.set(bX, -0.8, 3.2);
+    vent.rotation.z = bX > 0 ? -0.4 : 0.4;
+    headGroup.add(vent);
+  });
+
+  // Óculos Herméticos de Proteção Alquímica (Heavy Brass Goggles)
+  [-1.25, 1.25].forEach(gX => {
+    const goggleBezel = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.8, 8), agedBrassMat);
+    goggleBezel.rotation.x = Math.PI / 2;
+    goggleBezel.position.set(gX, 0.6, 2.6);
+
+    const goggleLens = new THREE.Mesh(new THREE.CircleGeometry(0.82, 8), goggleLensMat);
+    goggleLens.position.set(gX, 0.6, 3.05);
+
+    // Correia lateral dos óculos contornando a cabeça
+    const goggleStrap = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.35, 2.4), heavyLeatherMat);
+    goggleStrap.position.set(gX > 0 ? 2.5 : -2.5, 0.6, 0.8);
+
+    headGroup.add(goggleBezel, goggleLens, goggleStrap);
+  });
+
+  // Ponte Central dos Óculos em Latão
+  const goggleBridge = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.25, 0.4), agedBrassMat);
+  goggleBridge.position.set(0, 0.6, 2.8);
+  headGroup.add(goggleBridge);
+
+  // Chapéu Tradicional de Médico da Peste com Abas Largas Circulares
+  const hatGroup = new THREE.Group();
+  hatGroup.position.set(0, 2.6, 0);
+  hatGroup.rotation.x = -0.08;
+  headGroup.add(hatGroup);
+
+  // Aba Larga com Leve Curvatura Frontal e Traseira
+  const hatBrim = new THREE.Mesh(new THREE.CylinderGeometry(7.2, 7.4, 0.45, 12), heavyLeatherMat);
+  const hatCrown = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 3.8, 3.4, 8), heavyLeatherMat);
+  hatCrown.position.y = 1.8;
+
+  // Faixa do Chapéu com Fivela de Latão e Mini Caveira de Corvo
+  const hatBand = new THREE.Mesh(new THREE.CylinderGeometry(3.85, 3.85, 0.65, 8), darkTunicMat);
+  hatBand.position.y = 0.5;
+  const hatBuckle = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.8, 0.4), agedBrassMat);
+  hatBuckle.position.set(0, 0.5, 3.85);
+  hatGroup.add(hatBrim, hatCrown, hatBand, hatBuckle);
+
+  // =========================================================================
+  // 4. BRAÇO ESQUERDO: LUVA CIRÚRGICA & APOIO TÁTICO
+  // =========================================================================
+  const leftShoulder = new THREE.Group();
+  leftShoulder.position.set(-5.6, 4.4, 0);
+  torsoGroup.add(leftShoulder);
+  anim.leftArm = leftShoulder;
+
+  // Manga de Couro Encerado
+  const lUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.35, 5.2, 8), waxCoatMat);
+  lUpperArm.position.y = -2.6;
+  leftShoulder.add(lUpperArm);
+
+  const lElbow = new THREE.Group();
+  lElbow.position.y = -5.2;
+  leftShoulder.add(lElbow);
+
+  // Luva Cirúrgica Alta com Punho Dobrado em Couro Rústico
+  const lForearm = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.2, 4.8, 8), heavyLeatherMat);
+  lForearm.position.y = -2.4;
+  const lGloveCuff = new THREE.Mesh(new THREE.CylinderGeometry(1.65, 1.5, 1.4, 8), heavyLeatherMat);
+  lGloveCuff.position.y = -0.5;
+  lElbow.add(lForearm, lGloveCuff);
+
+  const lHand = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.6, 1.3), heavyLeatherMat);
+  lHand.position.set(0, -5.2, 0);
+  lElbow.add(lHand);
+
+  // Socket para Mão Esquerda
+  const handLSocket = new THREE.Group();
+  handLSocket.position.set(0, -5.4, 0);
+  lElbow.add(handLSocket);
+  anim.handL_socket = handLSocket;
+
+  // =========================================================================
+  // 5. BRAÇO DIREITO & O FRASCO DE ÁCIDO CORROSIVO (PLAGUE VITRIOL FLASK)
+  // =========================================================================
+  const rightShoulder = new THREE.Group();
+  rightShoulder.position.set(5.6, 4.4, 0);
+  torsoGroup.add(rightShoulder);
+  anim.rightArm = rightShoulder;
+
+  const rUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.35, 5.2, 8), waxCoatMat);
+  rUpperArm.position.y = -2.6;
+  rightShoulder.add(rUpperArm);
+
+  const rElbow = new THREE.Group();
+  rElbow.position.y = -5.2;
+  rightShoulder.add(rElbow);
+
+  const rForearm = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.2, 4.8, 8), heavyLeatherMat);
+  rForearm.position.y = -2.4;
+  const rGloveCuff = new THREE.Mesh(new THREE.CylinderGeometry(1.65, 1.5, 1.4, 8), heavyLeatherMat);
+  rGloveCuff.position.y = -0.5;
+  rElbow.add(rForearm, rGloveCuff);
+
+  const rHand = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.6, 1.3), heavyLeatherMat);
+  rHand.position.set(0, -5.2, 0);
+  rElbow.add(rHand);
+
+  // Socket para Mão Direita
+  const handRSocket = new THREE.Group();
+  handRSocket.position.set(0, -5.4, 0);
+  rElbow.add(handRSocket);
+  anim.handR_socket = handRSocket;
+
+  // ── FRASCO DE ÁCIDO CORROSIVO 3D (ORNATE PLAGUE MORTAR FLASK) ─────────────
+  const flaskGroup = new THREE.Group();
+  flaskGroup.position.set(0, 0, 1.2);
+  flaskGroup.rotation.set(0.18, -0.12, 0);
+  handRSocket.add(flaskGroup);
+  anim.weapon = flaskGroup;
+
+  // Bulbo Esférico de Vidro Reforçado
+  const flaskGlobe = new THREE.Mesh(new THREE.SphereGeometry(2.3, 10, 10), alchemicalGlassMat);
+  flaskGroup.add(flaskGlobe);
+
+  // Núcleo Fluido de Ácido Tóxico Luminescente
+  const acidCore = new THREE.Mesh(new THREE.SphereGeometry(1.75, 8, 8), plagueAcidMat);
+  flaskGroup.add(acidCore);
+
+  // Gaiola de Proteção em Latão com Escalas de Medição
+  for (let rAng = 0; rAng < Math.PI; rAng += Math.PI / 3) {
+    const cageRing = new THREE.Mesh(new THREE.TorusGeometry(2.35, 0.14, 6, 10), agedBrassMat);
+    cageRing.rotation.y = rAng;
+    flaskGroup.add(cageRing);
+  }
+
+  // Gargalo do Frasco com Rolha de Cortiça e Pavio Químico
+  const flaskNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 2.2, 8), agedBrassMat);
+  flaskNeck.position.y = 2.4;
+  const corkStopper = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.65, 1.2, 6), heavyLeatherMat);
+  corkStopper.position.y = 3.6;
+  const fuseSpark = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0), plagueAcidMat);
+  fuseSpark.position.y = 4.4;
+  flaskGroup.add(flaskNeck, corkStopper, fuseSpark);
+
+  // =========================================================================
+  // 6. PERNAS, CALÇAS ENCERADAS & BOTAS DE COURO COM FIVELAS
+  // =========================================================================
+  const legGeo = new THREE.CylinderGeometry(1.6, 1.35, 5.6, 8);
+  const bootGeo = new THREE.CylinderGeometry(1.5, 1.3, 5.2, 8);
+  const footGeo = new THREE.BoxGeometry(1.7, 1.4, 3.8);
+
+  // Perna Esquerda
+  const leftLeg = new THREE.Group();
+  leftLeg.position.set(-2.4, 9.6, 0);
+  group.add(leftLeg);
+  anim.leftLeg = leftLeg;
+
+  const lThigh = new THREE.Mesh(legGeo, waxCoatMat);
+  lThigh.position.y = -2.6;
+  leftLeg.add(lThigh);
+
+  const lKnee = new THREE.Group();
+  lKnee.position.y = -5.4;
+  leftLeg.add(lKnee);
+
+  const lCalf = new THREE.Mesh(bootGeo, heavyLeatherMat);
+  lCalf.position.y = -2.6;
+  const lFoot = new THREE.Mesh(footGeo, heavyLeatherMat);
+  lFoot.position.set(0, -5.4, 0.8);
+  const lBootBuckle = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 0.4), agedBrassMat);
+  lBootBuckle.position.set(0, -3.2, 1.4);
+  lKnee.add(lCalf, lFoot, lBootBuckle);
+
+  // Perna Direita
+  const rightLeg = new THREE.Group();
+  rightLeg.position.set(2.4, 9.6, 0);
+  group.add(rightLeg);
+  anim.rightLeg = rightLeg;
+
+  const rThigh = new THREE.Mesh(legGeo, waxCoatMat);
+  rThigh.position.y = -2.6;
+  rightLeg.add(rThigh);
+
+  const rKnee = new THREE.Group();
+  rKnee.position.y = -5.4;
+  rightLeg.add(rKnee);
+
+  const rCalf = new THREE.Mesh(bootGeo, heavyLeatherMat);
+  rCalf.position.y = -2.6;
+  const rFoot = new THREE.Mesh(footGeo, heavyLeatherMat);
+  rFoot.position.set(0, -5.4, 0.8);
+  const rBootBuckle = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 0.4), agedBrassMat);
+  rBootBuckle.position.set(0, -3.2, 1.4);
+  rKnee.add(rCalf, rFoot, rBootBuckle);
+
+  // =========================================================================
+  // 7. EFEITOS DE VAPOR TÓXICO / MIASMA DO DESTILADOR (MIASMA PUFFS)
+  // =========================================================================
+  const puffConfigs = [
+    { x: -1.4, y: 7.5, z: -3.8, scale: 0.65, phase: 0 },
+    { x: -1.6, y: 8.8, z: -4.0, scale: 0.85, phase: 1.5 },
+    { x: -1.2, y: 10.2, z: -4.2, scale: 1.05, phase: 3.0 },
+    { x: -3.6, y: -6.2, z: 1.2, scale: 0.45, phase: 2.1 }, // incensário
+    { x: 5.6, y: -1.2, z: 2.4, scale: 0.40, phase: 4.2 }   // frasco
+  ];
+
+  puffConfigs.forEach(cfg => {
+    const puff = new THREE.Mesh(new THREE.DodecahedronGeometry(cfg.scale, 0), miasmaVaporMat);
+    puff.position.set(cfg.x, cfg.y, cfg.z);
+    torsoGroup.add(puff);
+    anim.miasmaPuffs.push({
+      mesh: puff,
+      baseX: cfg.x,
+      baseY: cfg.y,
+      baseZ: cfg.z,
+      baseScale: cfg.scale,
+      phase: cfg.phase
+    });
+  });
+
+  return group;
+}
 
   // ==========================================
   // 2. ENEMY 3D MODELS & ANIMATIONS

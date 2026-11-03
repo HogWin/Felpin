@@ -3173,10 +3173,43 @@ class UIController {
 
     const updatesData = [
       {
+        version: 'v2.3.0',
+        eraName: 'O Boticário da Morte: Rework Visual 3D do Alquimista da Peste',
+        date: '3 de Novembro de 2026',
+        isLatest: true,
+        summary: 'Rework visual completo em Three.js procedural do Alquimista da Peste (Dr. Corvus Maledictus): modelagem PBR de alta fidelidade com sobretudo de médico em couro encerado, bandoleira com frascos de ácido esmeralda, máscara de corvo em marfim antigo com filtros de purificação em latão, óculos herméticos com lentes esmeralda luminescentes, chapéu clássico de abas largas, alambique portátil com caldeira de cobre e tubos de condensação nas costas, incensário pendurado na cintura e o novo Frasco de Vitríolo Pútrido com gaiola protetora e emissão ativa de vapores tóxicos volumétricos.',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'VISUAL 3D',
+            title: 'Escultura Anatômica de Boticário Sombrio',
+            desc: 'Substituição da antiga geometria rudimentar por uma escultura anatômica gótica detalhada com materiais PBR: couro encerado negro, túnica de linho, fivelas de latão envelhecido e luvas cirúrgicas com punhos dobrados.'
+          },
+          {
+            type: 'feature',
+            badge: 'EQUIPAMENTO',
+            title: 'Alambique Portátil & Máscara de Corvo em Marfim',
+            desc: 'Mochila com caldeira de destilação de cobre, aros de aço, manômetro a vapor e chaminé com emissão de vapores. A máscara possui bico anatômico curvo com válvulas de latão e óculos com correias de fixação.'
+          },
+          {
+            type: 'improvement',
+            badge: 'CINEMÁTICA',
+            title: 'Cinemática de Marcha & Vapores Tóxicos',
+            desc: 'Sincronização de braços independentes na marcha, oscilação do casaco fendido e 5 partículas esmeralda de miasma com movimentação senoidal e rotação suave em tempo real.'
+          },
+          {
+            type: 'feature',
+            badge: 'SHOWCASE 3D',
+            title: 'Showcase 3D Interativo do Alquimista',
+            desc: 'Aplicativo WebGL 3D dedicado com câmera orbital 360°, modos de iluminação (Miasma, Laboratório Noturno, Meia-noite Gótica, Caldeirão), presets de câmera e seletores de animação (Idle, Marcha, Arremesso de Vitríolo).'
+          }
+        ]
+      },
+      {
         version: 'v2.2.0',
         eraName: 'A Caçadora das Sombras: Rework Visual 3D da Arqueira',
         date: '3 de Novembro de 2026',
-        isLatest: true,
+        isLatest: false,
         summary: 'Rework visual completo em Three.js procedural da Arqueira (Lady Vespera), elevando a heroína ao padrão de modelagem anatômica de elite do Cavaleiro: silhueta atlética estilizada, capuz com bico de falcão, olhos esmeralda luminescentes, trança prateada, capa esvoaçante com broche de safira/esmeralda, aljava detalhada com 6 flechas tridimensionais e o Valorian Mechanical Repeater — uma balestra de repetição com roldanas de latão, estribo e alavanca articulada. Inclui sincronização cinemática de disparo com a locomoção e o novo Showcase 3D interativo com controles orbitais de 360°!',
         categories: [
           {
@@ -3529,7 +3562,7 @@ class UIController {
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v2.2.0 (A Caçadora das Sombras: Rework Visual 3D da Arqueira)</strong>
+              <strong class="text-gold">v2.3.0 (O Boticário da Morte: Rework Visual 3D do Alquimista da Peste)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>
