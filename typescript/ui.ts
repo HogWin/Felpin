@@ -1460,6 +1460,20 @@ class UIController {
               ` : ''}
             </div>
 
+            ${cls.id === 'knight' ? `
+            <div style="margin: 10px 0 16px 0; display:flex; justify-content:center;">
+              <a href="knight_showcase.html" target="_blank" class="gothic-btn" style="padding:7px 16px; font-size:0.82rem; text-decoration:none; display:inline-flex; align-items:center; gap:8px; border-color:#d4af37; color:#ffd700; width:fit-content; background:rgba(20,15,5,0.7); box-shadow:0 0 12px rgba(212,175,55,0.25);">
+                🛡️ Inspecionar Cavaleiro no Showcase 3D
+              </a>
+            </div>
+            ` : ''}
+            ${cls.id === 'ranger' ? `
+            <div style="margin: 10px 0 16px 0; display:flex; justify-content:center;">
+              <a href="archer_showcase.html" target="_blank" class="gothic-btn" style="padding:7px 16px; font-size:0.82rem; text-decoration:none; display:inline-flex; align-items:center; gap:8px; border-color:#10b981; color:#34d399; width:fit-content; background:rgba(5,20,15,0.7); box-shadow:0 0 12px rgba(16,185,129,0.25);">
+                🏹 Inspecionar Arqueira no Showcase 3D
+              </a>
+            </div>
+            ` : ''}
             <!-- Seletor de Regime da Expedição (Competitivo vs Livre) -->
             <div class="game-mode-selector-panel">
               <div class="mode-panel-header">
@@ -1708,6 +1722,20 @@ class UIController {
               <span>Arma:</span> <span style="font-size:1.1rem; display:inline-flex;">${w.icon}</span> <strong>${w.name}</strong>
             </div>
             ` : ''}
+
+                        ${c.id === 'knight' ? `
+            <div style="margin: 8px 0;">
+              <a href="knight_showcase.html" target="_blank" onclick="event.stopPropagation();" class="gothic-btn" style="padding:4px 10px; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:5px; border-color:#d4af37; color:#ffd700; width:100%; justify-content:center;">
+                👁️ Ver Showcase 3D
+              </a>
+            </div>
+            ` : (c.id === 'ranger' ? `
+            <div style="margin: 8px 0;">
+              <a href="archer_showcase.html" target="_blank" onclick="event.stopPropagation();" class="gothic-btn" style="padding:4px 10px; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:5px; border-color:#10b981; color:#34d399; width:100%; justify-content:center;">
+                👁️ Ver Showcase 3D
+              </a>
+            </div>
+            ` : '')}
 
             <button class="btn-primary btn-hero-select ${isSelected ? 'active-hero-btn' : (!isUnlocked ? 'btn-hero-locked' : '')}" ${!isUnlocked ? 'disabled' : ''}>
               ${!isUnlocked ? 'Bloqueado por Conquista' : (isSelected ? 'Combatente Selecionado' : 'Escolher Combatente')}
@@ -3174,10 +3202,43 @@ class UIController {
 
     const updatesData = [
       {
+        version: 'v2.2.0',
+        eraName: 'A Caçadora das Sombras: Rework Visual 3D da Arqueira',
+        date: '3 de Novembro de 2026',
+        isLatest: true,
+        summary: 'Rework visual completo em Three.js procedural da Arqueira (Lady Vespera), elevando a heroína ao padrão de modelagem anatômica de elite do Cavaleiro: silhueta atlética estilizada, capuz com bico de falcão, olhos esmeralda luminescentes, trança prateada, capa esvoaçante com broche de safira/esmeralda, aljava detalhada com 6 flechas tridimensionais e o Valorian Mechanical Repeater — uma balestra de repetição com roldanas de latão, estribo e alavanca articulada. Inclui sincronização cinemática de disparo com a locomoção e o novo Showcase 3D interativo com controles orbitais de 360°!',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'VISUAL 3D',
+            title: 'Escultura Procedural de Alta Fidelidade',
+            desc: 'Modelagem 3D procedural completa com materiais PBR: corpete de couro duplo com costuras em ouro, túnica verde floresta em veludo sombrio, cinto duplo tático com fivela de esmeralda, braçadeiras de tiro e ombreiras sobrepostas.'
+          },
+          {
+            type: 'feature',
+            badge: 'BALESTRA 3D',
+            title: 'Valorian Mechanical Repeater Arbalest',
+            desc: 'Substituição da antiga arma simples por uma balestra mecânica pesada com arco recurvo laminado, sistema de polias de latão polido, trilho de disparo com seta entalhada, estribo de armar e coronha de nogueira negra.'
+          },
+          {
+            type: 'improvement',
+            badge: 'CINEMÁTICA',
+            title: 'Sincronização de Disparo & Locomoção Independente',
+            desc: 'Integração de timer cinemático no motor de armas: animação de visada de precisão, recuo de disparo e rearme sem interromper a passada tática dos membros inferiores.'
+          },
+          {
+            type: 'feature',
+            badge: 'SHOWCASE 3D',
+            title: 'Showcase 3D Interativo da Arqueira',
+            desc: 'Aplicativo WebGL 3D dedicado com câmera orbital 360°, modos de iluminação (Luz do Dia, Meia-noite Gótica, Chama do Caldeirão, Místico Esmeralda), presets de câmera e seletores de animação (Idle, Marcha Tática, Disparo de Precisão).'
+          }
+        ]
+      },
+      {
         version: 'v2.1.1',
         eraName: 'Hotfix de Sincronização de Combate & Locomoção',
         date: '2 de Novembro de 2026',
-        isLatest: true,
+        isLatest: false,
         summary: 'Hotfix cinemático refinando a sincronia entre a animação de ataque com a espada e a locomoção do guerreiro: sistema de combo duplo alternado (corte diagonal e talho transversal), postura de guarda firme com o escudo e torção anatômica do tronco em marcha.',
         categories: [
           {
@@ -3497,7 +3558,7 @@ class UIController {
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v2.1.1 (Hotfix de Sincronização de Ataque & Locomoção)</strong>
+              <strong class="text-gold">v2.2.0 (A Caçadora das Sombras: Rework Visual 3D da Arqueira)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>

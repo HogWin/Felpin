@@ -314,6 +314,10 @@ class CrossbowWeapon extends BaseWeapon {
 
   attack(player, enemies, projectiles, particles) {
     window.MedievalSurvivors.sound.playCrossbow();
+    if (player) {
+      player.shootAnimTimer = 0.24;
+      player.shootAnimMax = 0.24;
+    }
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const totalCount = this.count + (player.bonusProjectiles || 0);
     const baseAngle = player.facingAngle || 0;

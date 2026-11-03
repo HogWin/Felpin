@@ -90,10 +90,11 @@ async function runEndToEndTests() {
   }
 
   // TEST 6: Neon Auth JWKS Endpoint
-  if (process.env.NEON_AUTH_JWKS_URL) {
+  const authJwksUrl = process.env.NEON_AUTH_JWKS_URL || (process.env.NEON_AUTH_BASE_URL ? (process.env.NEON_AUTH_BASE_URL + '/.well-known/jwks.json') : 'https://ep-proud-fog-b6nfc99w.neonauth.c-2.sa-east-1.aws.neon.tech/neondb/auth/.well-known/jwks.json');
+  if (authJwksUrl) {
     try {
       const authStatus = await new Promise((resolve, reject) => {
-        https.get(process.env.NEON_AUTH_JWKS_URL, (res) => {
+        https.get(authJwksUrl, (res) => {
           let data = '';
           res.on('data', chunk => data += chunk);
           res.on('end', () => {
