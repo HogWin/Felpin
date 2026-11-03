@@ -657,6 +657,7 @@
   const lElbow = new THREE.Group();
   lElbow.position.y = -5.2;
   leftShoulder.add(lElbow);
+  anim.leftElbow = lElbow;
 
   // Luva Cirúrgica Alta com Punho Dobrado em Couro Rústico
   const lForearm = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.2, 4.8, 8), heavyLeatherMat);
@@ -690,6 +691,7 @@
   const rElbow = new THREE.Group();
   rElbow.position.y = -5.2;
   rightShoulder.add(rElbow);
+  anim.rightElbow = rElbow;
 
   const rForearm = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.2, 4.8, 8), heavyLeatherMat);
   rForearm.position.y = -2.4;
@@ -1212,33 +1214,83 @@
           alchemistAnim.rightArm.rotation.z = 0.12 + Math.cos(walk) * 0.06;
         }
       } else if (currentAnimMode === 'toss') {
-        const tossCycle = (t * 2.2) % 1.0;
+        const tossCycle = (t * 2.0) % 1.0;
         alchemistRoot.position.y = 0;
 
-        if (alchemistAnim.torso) {
-          alchemistAnim.torso.rotation.y = Math.sin(tossCycle * Math.PI * 2) * 0.18;
-        }
+        if (tossCycle < 0.38) {
+          // FASE 1: WINDUP / PREPARAÇÃO
+          const p = tossCycle / 0.38;
+          const easeIn = p * p;
 
-        if (alchemistAnim.rightArm) {
-          if (tossCycle < 0.35) {
-            const p = tossCycle / 0.35;
-            alchemistAnim.rightArm.rotation.x = -p * 1.5;
-            alchemistAnim.rightArm.rotation.z = 0.35 * p;
-          } else {
-            const p = (tossCycle - 0.35) / 0.65;
-            alchemistAnim.rightArm.rotation.x = -1.5 + Math.sin(p * Math.PI) * 2.8;
-            alchemistAnim.rightArm.rotation.z = -0.25 * (1 - p);
+          if (alchemistAnim.rightArm) {
+            alchemistAnim.rightArm.rotation.x = -0.36 + easeIn * 1.35;
+            alchemistAnim.rightArm.rotation.y = -0.12 - easeIn * 0.25;
+            alchemistAnim.rightArm.rotation.z = 0.10 + easeIn * 0.35;
           }
-        }
+          if (alchemistAnim.rightElbow) {
+            alchemistAnim.rightElbow.rotation.x = -easeIn * 1.25;
+          }
+          if (alchemistAnim.torso) {
+            alchemistAnim.torso.rotation.y = easeIn * 0.32;
+            alchemistAnim.torso.rotation.x = -easeIn * 0.08;
+          }
+          if (alchemistAnim.leftArm) {
+            alchemistAnim.leftArm.rotation.x = 0.28 - easeIn * 1.10;
+            alchemistAnim.leftArm.rotation.y = 0.20 + easeIn * 0.25;
+          }
+          if (alchemistAnim.weapon) {
+            alchemistAnim.weapon.scale.set(1, 1, 1);
+          }
+        } else if (tossCycle < 0.65) {
+          // FASE 2: RELEASE / ARREMESSO EXPLOSIVO
+          const p = (tossCycle - 0.38) / 0.27;
+          const easeOut = 1 - Math.pow(1 - p, 3);
 
-        if (alchemistAnim.weapon) {
-          const s = tossCycle < 0.35 ? 1.0 : (tossCycle < 0.7 ? 0.2 : (tossCycle - 0.7) / 0.3);
-          alchemistAnim.weapon.scale.set(s, s, s);
-        }
+          if (alchemistAnim.rightArm) {
+            alchemistAnim.rightArm.rotation.x = 0.99 - easeOut * 2.45;
+            alchemistAnim.rightArm.rotation.y = -0.37 + easeOut * 0.52;
+            alchemistAnim.rightArm.rotation.z = 0.45 - easeOut * 0.55;
+          }
+          if (alchemistAnim.rightElbow) {
+            alchemistAnim.rightElbow.rotation.x = -1.25 + easeOut * 1.15;
+          }
+          if (alchemistAnim.torso) {
+            alchemistAnim.torso.rotation.y = 0.32 - easeOut * 0.68;
+            alchemistAnim.torso.rotation.x = -0.08 + easeOut * 0.20;
+          }
+          if (alchemistAnim.leftArm) {
+            alchemistAnim.leftArm.rotation.x = -0.82 + easeOut * 1.20;
+            alchemistAnim.leftArm.rotation.y = 0.45 - easeOut * 0.25;
+          }
+          if (alchemistAnim.weapon) {
+            const s = p < 0.45 ? 1.0 : Math.max(0, 1.0 - (p - 0.45) / 0.15);
+            alchemistAnim.weapon.scale.set(s, s, s);
+          }
+        } else {
+          // FASE 3: FOLLOW-THROUGH & SACAR NOVO FRASCO
+          const p = (tossCycle - 0.65) / 0.35;
+          const easeOut = 1 - Math.pow(1 - p, 2);
 
-        if (alchemistAnim.leftArm) {
-          alchemistAnim.leftArm.rotation.x = 0.45;
-          alchemistAnim.leftArm.rotation.y = 0.3;
+          if (alchemistAnim.rightArm) {
+            alchemistAnim.rightArm.rotation.x = -1.46 + easeOut * 1.10;
+            alchemistAnim.rightArm.rotation.y = 0.15 - easeOut * 0.27;
+            alchemistAnim.rightArm.rotation.z = -0.10 + easeOut * 0.20;
+          }
+          if (alchemistAnim.rightElbow) {
+            alchemistAnim.rightElbow.rotation.x = -0.10 * (1 - easeOut);
+          }
+          if (alchemistAnim.torso) {
+            alchemistAnim.torso.rotation.y = -0.36 * (1 - easeOut);
+            alchemistAnim.torso.rotation.x = 0.12 * (1 - easeOut);
+          }
+          if (alchemistAnim.leftArm) {
+            alchemistAnim.leftArm.rotation.x = 0.38 - easeOut * 0.10;
+            alchemistAnim.leftArm.rotation.y = 0.20;
+          }
+          if (alchemistAnim.weapon) {
+            const s = p < 0.35 ? 0 : Math.min(1.0, (p - 0.35) / 0.45);
+            alchemistAnim.weapon.scale.set(s, s, s);
+          }
         }
       }
 

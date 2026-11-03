@@ -504,23 +504,85 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         player.tossAnimTimer -= dt;
         const maxT = player.tossAnimMax || 0.38;
         const progress = 1 - Math.max(0, player.tossAnimTimer / maxT);
-        if (anim.rightArm) {
-          if (progress < 0.35) {
-            const p = progress / 0.35;
-            anim.rightArm.rotation.x = -p * 1.5;
-            anim.rightArm.rotation.z = 0.35 * p;
-          } else {
-            const p = (progress - 0.35) / 0.65;
-            anim.rightArm.rotation.x = -1.5 + Math.sin(p * Math.PI) * 2.8;
-            anim.rightArm.rotation.z = -0.25 * (1 - p);
+
+        if (progress < 0.38) {
+          // FASE 1: WINDUP / PREPARAÇÃO (0.00 -> 0.38) - Braço carrega para trás e cotovelo flexiona
+          const p = progress / 0.38;
+          const easeIn = p * p;
+
+          if (anim.rightArm) {
+            anim.rightArm.rotation.x = -0.36 + easeIn * 1.35;
+            anim.rightArm.rotation.y = -0.12 - easeIn * 0.25;
+            anim.rightArm.rotation.z = 0.10 + easeIn * 0.35;
           }
-        }
-        if (anim.weapon) {
-          const scale = progress < 0.35 ? 1.0 : (progress < 0.7 ? 0.2 : (progress - 0.7) / 0.3);
-          anim.weapon.scale.set(scale, scale, scale);
+          if (anim.rightElbow) {
+            anim.rightElbow.rotation.x = -easeIn * 1.25;
+          }
+          if (anim.torso) {
+            anim.torso.rotation.y = easeIn * 0.32;
+            anim.torso.rotation.x = -easeIn * 0.08;
+          }
+          if (anim.leftArm) {
+            anim.leftArm.rotation.x = 0.28 - easeIn * 1.10;
+            anim.leftArm.rotation.y = 0.20 + easeIn * 0.25;
+          }
+          if (anim.weapon) {
+            anim.weapon.scale.set(1, 1, 1);
+          }
+        } else if (progress < 0.65) {
+          // FASE 2: RELEASE / ARREMESSO EXPLOSIVO (0.38 -> 0.65) - Chicoteamento vigoroso à frente
+          const p = (progress - 0.38) / 0.27;
+          const easeOut = 1 - Math.pow(1 - p, 3);
+
+          if (anim.rightArm) {
+            anim.rightArm.rotation.x = 0.99 - easeOut * 2.45;
+            anim.rightArm.rotation.y = -0.37 + easeOut * 0.52;
+            anim.rightArm.rotation.z = 0.45 - easeOut * 0.55;
+          }
+          if (anim.rightElbow) {
+            anim.rightElbow.rotation.x = -1.25 + easeOut * 1.15;
+          }
+          if (anim.torso) {
+            anim.torso.rotation.y = 0.32 - easeOut * 0.68;
+            anim.torso.rotation.x = -0.08 + easeOut * 0.20;
+          }
+          if (anim.leftArm) {
+            anim.leftArm.rotation.x = -0.82 + easeOut * 1.20;
+            anim.leftArm.rotation.y = 0.45 - easeOut * 0.25;
+          }
+          if (anim.weapon) {
+            const s = p < 0.45 ? 1.0 : Math.max(0, 1.0 - (p - 0.45) / 0.15);
+            anim.weapon.scale.set(s, s, s);
+          }
+        } else {
+          // FASE 3: FOLLOW-THROUGH & SACAR NOVO FRASCO (0.65 -> 1.00)
+          const p = (progress - 0.65) / 0.35;
+          const easeOut = 1 - Math.pow(1 - p, 2);
+
+          if (anim.rightArm) {
+            anim.rightArm.rotation.x = -1.46 + easeOut * 1.10;
+            anim.rightArm.rotation.y = 0.15 - easeOut * 0.27;
+            anim.rightArm.rotation.z = -0.10 + easeOut * 0.20;
+          }
+          if (anim.rightElbow) {
+            anim.rightElbow.rotation.x = -0.10 * (1 - easeOut);
+          }
+          if (anim.torso) {
+            anim.torso.rotation.y = -0.36 * (1 - easeOut);
+            anim.torso.rotation.x = 0.12 * (1 - easeOut);
+          }
+          if (anim.leftArm) {
+            anim.leftArm.rotation.x = 0.38 - easeOut * 0.10;
+            anim.leftArm.rotation.y = 0.20;
+          }
+          if (anim.weapon) {
+            const s = p < 0.35 ? 0 : Math.min(1.0, (p - 0.35) / 0.45);
+            anim.weapon.scale.set(s, s, s);
+          }
         }
       } else if (anim.weapon && anim.weapon.scale.x !== 1) {
         anim.weapon.scale.set(1, 1, 1);
+        if (anim.rightElbow && anim.rightElbow.rotation.x !== 0) anim.rightElbow.rotation.x = 0;
       }
 
       // Flash on hit / invulnerability
@@ -2427,6 +2489,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   const lElbow = new THREE.Group();
   lElbow.position.y = -5.2;
   leftShoulder.add(lElbow);
+  anim.leftElbow = lElbow;
 
   // Luva Cirúrgica Alta com Punho Dobrado em Couro Rústico
   const lForearm = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.2, 4.8, 8), heavyLeatherMat);
@@ -2460,6 +2523,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   const rElbow = new THREE.Group();
   rElbow.position.y = -5.2;
   rightShoulder.add(rElbow);
+  anim.rightElbow = rElbow;
 
   const rForearm = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.2, 4.8, 8), heavyLeatherMat);
   rForearm.position.y = -2.4;
