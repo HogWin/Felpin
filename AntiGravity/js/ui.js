@@ -1454,21 +1454,6 @@ class UIController {
               </div>
               ` : ''}
             </div>
-
-            ${cls.id === 'knight' ? `
-            <div style="margin: 10px 0 16px 0; display:flex; justify-content:center;">
-              <a href="knight_showcase.html" target="_blank" class="gothic-btn" style="padding:7px 16px; font-size:0.82rem; text-decoration:none; display:inline-flex; align-items:center; gap:8px; border-color:#d4af37; color:#ffd700; width:fit-content; background:rgba(20,15,5,0.7); box-shadow:0 0 12px rgba(212,175,55,0.25);">
-                🛡️ Inspecionar Cavaleiro no Showcase 3D
-              </a>
-            </div>
-            ` : ''}
-            ${cls.id === 'ranger' ? `
-            <div style="margin: 10px 0 16px 0; display:flex; justify-content:center;">
-              <a href="archer_showcase.html" target="_blank" class="gothic-btn" style="padding:7px 16px; font-size:0.82rem; text-decoration:none; display:inline-flex; align-items:center; gap:8px; border-color:#10b981; color:#34d399; width:fit-content; background:rgba(5,20,15,0.7); box-shadow:0 0 12px rgba(16,185,129,0.25);">
-                🏹 Inspecionar Arqueira no Showcase 3D
-              </a>
-            </div>
-            ` : ''}
             <!-- Seletor de Regime da Expedição (Competitivo vs Livre) -->
             <div class="game-mode-selector-panel">
               <div class="mode-panel-header">
@@ -1717,20 +1702,6 @@ class UIController {
               <span>Arma:</span> <span style="font-size:1.1rem; display:inline-flex;">${w.icon}</span> <strong>${w.name}</strong>
             </div>
             ` : ''}
-
-            ${c.id === 'knight' ? `
-            <div style="margin: 8px 0;">
-              <a href="knight_showcase.html" target="_blank" onclick="event.stopPropagation();" class="gothic-btn" style="padding:4px 10px; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:5px; border-color:#d4af37; color:#ffd700; width:100%; justify-content:center;">
-                👁️ Ver Showcase 3D
-              </a>
-            </div>
-            ` : (c.id === 'ranger' ? `
-            <div style="margin: 8px 0;">
-              <a href="archer_showcase.html" target="_blank" onclick="event.stopPropagation();" class="gothic-btn" style="padding:4px 10px; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:5px; border-color:#10b981; color:#34d399; width:100%; justify-content:center;">
-                👁️ Ver Showcase 3D
-              </a>
-            </div>
-            ` : '')}
 
             <button class="btn-primary btn-hero-select ${isSelected ? 'active-hero-btn' : (!isUnlocked ? 'btn-hero-locked' : '')}" ${!isUnlocked ? 'disabled' : ''}>
               ${!isUnlocked ? 'Bloqueado por Conquista' : (isSelected ? 'Combatente Selecionado' : 'Escolher Combatente')}

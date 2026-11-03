@@ -461,6 +461,19 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         }
       }
 
+            // 2.5 Efeitos Sombrios da Arqueira (Floating Shadow Wisps & Void Flame)
+      if (anim.shadowWisps && anim.shadowWisps.length > 0) {
+        const timeSec = Date.now() * 0.003;
+        for (let i = 0; i < anim.shadowWisps.length; i++) {
+          const w = anim.shadowWisps[i];
+          w.mesh.position.y = w.baseY + Math.sin(timeSec * 2.5 + w.phase) * 0.35;
+          w.mesh.position.x = w.baseX + Math.cos(timeSec * 1.8 + w.phase) * 0.25;
+          w.mesh.rotation.y += 0.03;
+          w.mesh.rotation.z += 0.02;
+          const pulse = w.baseScale * (1 + 0.22 * Math.sin(timeSec * 3.2 + w.phase));
+          w.mesh.scale.set(pulse, pulse * 1.25, pulse);
+        }
+      }
       // 3. Dynamic Overhand Throw Animation (Alchemist flask toss & projectile attacks)
       if (inToss) {
         player.tossAnimTimer -= dt;
@@ -812,476 +825,634 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   // 1.2 ARQUEIRA DAS SOMBRAS (Lady Vespera - Grand Huntress Visual Rework v2.2.0)
   function buildRangerModel(group, anim) {
     anim.isRanger = true;
+    anim.shadowWisps = [];
 
-    // Shaders / Materials com iluminacao PBR refinada, flatShading heroico e suporte para GLSL
-    const forestGreenMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0x184230,
-      roughness: 0.65,
-      flatShading: true
-    }));
-    const darkLeatherMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0x271a12,
-      roughness: 0.78,
-      flatShading: true
-    }));
-    const shadowSilkMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0x10151f,
+    // =========================================================================
+    // PALETA GÓTICA SOMBRIA & AMETISTA ESPECTRAL (SHADOW ASSASSIN PALETTE)
+    // =========================================================================
+    const shadowClothMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x0c0915,       // Meia-noite abissal com matiz violeta profundo
       roughness: 0.82,
       side: THREE.DoubleSide,
       flatShading: true
     }));
-    const valyrianSteelMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0x8fa3b8,
-      metalness: 0.90,
-      roughness: 0.25,
+    const obsidianLeatherMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x14101c,       // Couro de assassina curtido em sombras
+      roughness: 0.72,
       flatShading: true
     }));
-    const darkSteelMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0x1f2733,
+    const deepVioletMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x24143a,       // Seda violeta espectral para forro interno
+      roughness: 0.76,
+      side: THREE.DoubleSide,
+      flatShading: true
+    }));
+    const blackenedSteelMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x181c24,       // Aço negro fosco
       metalness: 0.92,
-      roughness: 0.36,
+      roughness: 0.32,
       flatShading: true
     }));
-    const antiqueGoldMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0xd4af37,
-      emissive: 0x5a4106,
-      emissiveIntensity: 0.22,
-      metalness: 0.94,
-      roughness: 0.22,
+    const darkSilverMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x6b7280,       // Prata sombreada envelhecida para fivelas e ornamentos
+      metalness: 0.88,
+      roughness: 0.28,
       flatShading: true
     }));
-    const spectralEmeraldMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0x10b981,
-      emissive: 0x059669,
-      emissiveIntensity: 0.85,
-      metalness: 0.35,
-      roughness: 0.12
+    const cursedAmethystMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xa855f7,       // Ametista amaldiçoada luminescente
+      emissive: 0x7e22ce,
+      emissiveIntensity: 0.90,
+      metalness: 0.40,
+      roughness: 0.15
     }));
     const paleSkinMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0xdecbbe,
-      roughness: 0.60,
+      color: 0xe0d0c2,       // Tez feminina porcelana gótica suave
+      roughness: 0.55,
       flatShading: true
     }));
-    const silverHairMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0xe2e8f0,
-      roughness: 0.45,
+    const darkLipsMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x541c30,       // Lábios delicados em tom ameixa escuro
+      roughness: 0.50,
       flatShading: true
     }));
-    const featherMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0xf8fafc,
-      roughness: 0.50
+    const ravenHairMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x0a0712,       // Cabelo ébano/corvo com brilho sutil
+      roughness: 0.40,
+      flatShading: true
     }));
     const ebonyWoodMat = createFlashable(new THREE.MeshStandardMaterial({
-      color: 0x2e1e18,
+      color: 0x161118,       // Nogueira negra carbonizada
       roughness: 0.82,
       flatShading: true
     }));
-    const eyeGlowMat = materials.glowingGreen || new THREE.MeshBasicMaterial({ color: 0x34d399 });
+    const shadowFeatherMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x22182e,       // Penugem de corvo das setas
+      roughness: 0.65
+    }));
+    const voidAuraMat = new THREE.MeshBasicMaterial({
+      color: 0x9333ea,
+      transparent: true,
+      opacity: 0.60
+    });
+    const eyeGlowMat = materials.glowingViolet || new THREE.MeshBasicMaterial({ color: 0xc084fc });
 
     anim.materials.push(
-      forestGreenMat, darkLeatherMat, shadowSilkMat, valyrianSteelMat, darkSteelMat,
-      antiqueGoldMat, spectralEmeraldMat, paleSkinMat, silverHairMat, featherMat, ebonyWoodMat
+      shadowClothMat, obsidianLeatherMat, deepVioletMat, blackenedSteelMat,
+      darkSilverMat, cursedAmethystMat, paleSkinMat, darkLipsMat,
+      ravenHairMat, ebonyWoodMat, shadowFeatherMat, voidAuraMat
     );
 
     // =========================================================================
-    // 1. TORSO, CORPETE DE CAÇADORA ÉLFICA & CINTO TÁTICO
+    // 1. TORSO, CORPETE DE ASSASSINA & CINTO TÁTICO
     // =========================================================================
     const torsoGroup = new THREE.Group();
     torsoGroup.position.y = 14.2;
     group.add(torsoGroup);
     anim.torso = torsoGroup;
 
-    // Peitoral Anatômico Esguio com Silhueta em Ampulheta Facetada
-    const chestGeo = new THREE.CylinderGeometry(4.7, 3.4, 9.2, 8);
-    const chestMesh = new THREE.Mesh(chestGeo, forestGreenMat);
+    // Peitoral com Silhueta Feminina em Ampulheta Esguia
+    const chestGeo = new THREE.CylinderGeometry(4.4, 3.2, 9.2, 10);
+    const chestMesh = new THREE.Mesh(chestGeo, shadowClothMat);
     torsoGroup.add(chestMesh);
 
-    // Corpete de Couro Reforçado com Recorte Curvo
-    const corsetGeo = new THREE.CylinderGeometry(4.85, 3.55, 6.2, 8);
-    corsetGeo.translate(0, -0.6, 0);
-    const corsetMesh = new THREE.Mesh(corsetGeo, darkLeatherMat);
+    // Busto Feminino Sutil e Curvatura Esculpida
+    const bustGeo = new THREE.CylinderGeometry(4.65, 4.3, 3.6, 10);
+    bustGeo.translate(0, 1.2, 0.4);
+    torsoGroup.add(new THREE.Mesh(bustGeo, shadowClothMat));
+
+    // Corpete de Couro de Obsidiana com Recorte Anatômico
+    const corsetGeo = new THREE.CylinderGeometry(4.7, 3.4, 5.8, 10);
+    corsetGeo.translate(0, -0.6, 0.1);
+    const corsetMesh = new THREE.Mesh(corsetGeo, obsidianLeatherMat);
     torsoGroup.add(corsetMesh);
 
-    // Costuras Frontais e Amarração Cruzada em Ouro Antigo
+    // Amarração Frontal em Fios de Prata Sombreada
     for (let cIdx = 0; cIdx < 4; cIdx++) {
-      const laceH = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.35, 0.3), antiqueGoldMat);
-      laceH.position.set(0, -2.2 + cIdx * 1.3, 2.9);
+      const laceH = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.3, 0.3), darkSilverMat);
+      laceH.position.set(0, -2.0 + cIdx * 1.25, 2.9);
       torsoGroup.add(laceH);
     }
 
-    // Gorjal Protetor de Pescoço em Couro Batido
-    const gorgetGeo = new THREE.CylinderGeometry(3.6, 4.2, 1.8, 8);
-    gorgetGeo.translate(0, 4.8, 0);
-    torsoGroup.add(new THREE.Mesh(gorgetGeo, darkLeatherMat));
-
-    // Broche de Estrela Élfica Dourada no decote
-    const chestGem = new THREE.Mesh(new THREE.OctahedronGeometry(0.85, 0), spectralEmeraldMat);
-    chestGem.position.set(0, 3.2, 2.95);
-    const chestTrim = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.22, 6, 8), antiqueGoldMat);
-    chestTrim.position.set(0, 3.2, 2.85);
+    // Broche Amaldiçoado no Decote (Gema de Ametista Espectral)
+    const chestGem = new THREE.Mesh(new THREE.OctahedronGeometry(0.85, 0), cursedAmethystMat);
+    chestGem.position.set(0, 3.2, 2.85);
+    const chestTrim = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.2, 6, 8), darkSilverMat);
+    chestTrim.position.set(0, 3.2, 2.75);
     torsoGroup.add(chestGem, chestTrim);
 
-    // Cinto Tático Duplo com Fivela Ornamental
-    const belt = new THREE.Mesh(new THREE.CylinderGeometry(3.8, 3.9, 1.8, 10), darkLeatherMat);
+    // Cinto Tático Duplo com Fivela Ornamental de Prata & Ametista
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(3.7, 3.8, 1.8, 12), obsidianLeatherMat);
     belt.position.y = -3.8;
-    const buckle = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 0.8), antiqueGoldMat);
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 0.8), darkSilverMat);
     buckle.position.set(0, -3.8, 3.2);
-    const buckleGem = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 0), spectralEmeraldMat);
+    const buckleGem = new THREE.Mesh(new THREE.OctahedronGeometry(0.55, 0), cursedAmethystMat);
     buckleGem.position.set(0, -3.8, 3.6);
     torsoGroup.add(belt, buckle, buckleGem);
 
-    // Bolsa Tática de Precisão (Estojo de Cordas e Cera) no flanco direito
+    // Bolsas Táticas de Veneno e Cordas nos Flancos
     const pouchGroup = new THREE.Group();
     pouchGroup.position.set(3.4, -4.0, 0.8);
     pouchGroup.rotation.y = -0.3;
-    const pouchMesh = new THREE.Mesh(new THREE.BoxGeometry(1.9, 2.5, 1.6), darkLeatherMat);
-    const pouchFlap = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.2, 1.7), forestGreenMat);
+    const pouchMesh = new THREE.Mesh(new THREE.BoxGeometry(1.9, 2.4, 1.5), obsidianLeatherMat);
+    const pouchFlap = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.1, 1.6), shadowClothMat);
     pouchFlap.position.set(0, 0.8, 0.05);
-    const pouchClasp = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.5, 0.4), antiqueGoldMat);
-    pouchClasp.position.set(0, 0.2, 0.9);
-    pouchGroup.add(pouchMesh, pouchFlap, pouchClasp);
+    pouchGroup.add(pouchMesh, pouchFlap);
     torsoGroup.add(pouchGroup);
 
-    // Saia de Caça em 4 Abas Divididas (liberdade máxima de movimento)
+    // Frascos de Veneno Espectral (Amaldiçoados) no Cinto Esquerdo
+    const vialGroup = new THREE.Group();
+    vialGroup.position.set(-3.4, -4.0, 0.8);
+    vialGroup.rotation.y = 0.3;
+    const vial1 = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 1.5, 6), cursedAmethystMat);
+    const vialCap1 = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.4, 6), darkSilverMat);
+    vialCap1.position.y = 0.85;
+    vialGroup.add(vial1, vialCap1);
+    torsoGroup.add(vialGroup);
+
+    // Saia de Combate em 4 Abas Fendidas em Seda Sombria
     [-1.7, 1.7].forEach(x => {
       // Abas Frontais
-      const skirtF = new THREE.Mesh(new THREE.BoxGeometry(3.1, 4.4, 0.8), forestGreenMat);
-      skirtF.position.set(x, -6.2, 2.4);
+      const skirtF = new THREE.Mesh(new THREE.BoxGeometry(3.0, 4.4, 0.7), shadowClothMat);
+      skirtF.position.set(x, -6.2, 2.3);
       skirtF.rotation.x = 0.16;
       skirtF.rotation.y = x > 0 ? -0.12 : 0.12;
-      const skirtFTrim = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.6, 0.9), antiqueGoldMat);
+      const skirtFTrim = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.5, 0.8), deepVioletMat);
       skirtFTrim.position.y = -1.9;
       skirtF.add(skirtFTrim);
       torsoGroup.add(skirtF);
 
       // Abas Traseiras
-      const skirtB = new THREE.Mesh(new THREE.BoxGeometry(3.1, 4.6, 0.8), shadowSilkMat);
-      skirtB.position.set(x, -6.3, -2.4);
+      const skirtB = new THREE.Mesh(new THREE.BoxGeometry(3.0, 4.6, 0.7), obsidianLeatherMat);
+      skirtB.position.set(x, -6.3, -2.3);
       skirtB.rotation.x = -0.16;
       skirtB.rotation.y = x > 0 ? 0.12 : -0.12;
       torsoGroup.add(skirtB);
     });
 
     // =========================================================================
-    // 2. CAPUZ DE ESPREITA (SHADOW COWL), ROSTO & OLHOS ESMERALDA
+    // 2. CABEÇA FEMININA REALISTA & CAPUZ SOMBRIO ORGÂNICO (SHADOW COWL)
     // =========================================================================
     const headGroup = new THREE.Group();
-    headGroup.position.y = 7.2;
+    headGroup.position.y = 7.4;
     torsoGroup.add(headGroup);
     anim.head = headGroup;
 
-    // Rosto Élfico Fino sob a Penumbra
-    const face = new THREE.Mesh(new THREE.BoxGeometry(3.4, 3.8, 3.4), paleSkinMat);
-    face.position.set(0, 0, 0.2);
-    headGroup.add(face);
+    // Pescoço Esguio Feminino em Tom Porcelana
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.2, 2.6, 12), paleSkinMat);
+    neck.position.set(0, -1.8, 0.2);
+    headGroup.add(neck);
 
-    // Máscara Facial Tática em Seda Negra Cobrindo Nariz e Boca
-    const mask = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2.0, 1.5), shadowSilkMat);
-    mask.position.set(0, -0.85, 1.6);
-    headGroup.add(mask);
+    // Gargantilha de Veludo Sombrio com Pingente de Ametista
+    const choker = new THREE.Mesh(new THREE.CylinderGeometry(1.22, 1.25, 0.65, 12), shadowClothMat);
+    choker.position.set(0, -1.8, 0.2);
+    const chokerPendant = new THREE.Mesh(new THREE.OctahedronGeometry(0.4, 0), cursedAmethystMat);
+    chokerPendant.position.set(0, -1.8, 1.5);
+    headGroup.add(choker, chokerPendant);
 
-    // Capuz Gótico de Caça com Caimento Traseiro e Bico Frontal
-    const cowlBack = new THREE.Mesh(new THREE.ConeGeometry(4.2, 8.2, 7), forestGreenMat);
-    cowlBack.position.set(0, 1.8, -0.8);
-    cowlBack.rotation.x = -0.32;
-    headGroup.add(cowlBack);
+    // Crânio & Maçãs do Rosto Femininas Esculpidas
+    const craniumGeo = new THREE.SphereGeometry(2.1, 14, 12);
+    craniumGeo.scale(0.92, 1.05, 0.98);
+    const cranium = new THREE.Mesh(craniumGeo, paleSkinMat);
+    cranium.position.set(0, 0.2, 0.2);
+    headGroup.add(cranium);
 
-    // Aba Superior do Capuz Projetada em V Cobrindo a Testa
-    const hoodPeak = new THREE.Mesh(new THREE.BoxGeometry(4.4, 2.4, 4.8), shadowSilkMat);
-    hoodPeak.position.set(0, 1.9, 0.6);
-    hoodPeak.rotation.x = 0.16;
-    headGroup.add(hoodPeak);
+    // Queixo Delicado & Mandíbula Tapered Suave
+    const jawGeo = new THREE.CylinderGeometry(1.85, 1.0, 2.2, 10);
+    jawGeo.translate(0, -0.7, 0.35);
+    const jawMesh = new THREE.Mesh(jawGeo, paleSkinMat);
+    headGroup.add(jawMesh);
 
-    const hoodTrim = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.5, 4.9), antiqueGoldMat);
-    hoodTrim.position.set(0, 1.0, 0.7);
-    hoodTrim.rotation.x = 0.16;
-    headGroup.add(hoodTrim);
+    // Nariz Fino Feminino
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.9, 4), paleSkinMat);
+    nose.position.set(0, 0.15, 2.25);
+    nose.rotation.x = -0.32;
+    headGroup.add(nose);
 
-    // Olhos Esmeralda Místicos Brilhantes (Visão Noturna de Rastreadora)
-    [-1.05, 1.05].forEach(x => {
-      const eye = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.40, 0.35), eyeGlowMat);
-      eye.position.set(x, 0.55, 1.95);
-      headGroup.add(eye);
+    // Lábios Femininos Esculpidos em Tom Ameixa Sombrio
+    const upperLip = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.22, 0.35), darkLipsMat);
+    upperLip.position.set(0, -0.62, 2.05);
+    const lowerLip = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.24, 0.38), darkLipsMat);
+    lowerLip.position.set(0, -0.84, 2.02);
+    headGroup.add(upperLip, lowerLip);
+
+    // Olhos Amendoados Femininos com Eyeliner Gótico e Pupilas Luminescentes
+    [-0.92, 0.92].forEach(x => {
+      // Eyeliner / Sombra Gótica
+      const eyeShadow = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.42, 0.32), shadowClothMat);
+      eyeShadow.position.set(x, 0.50, 1.96);
+      headGroup.add(eyeShadow);
+
+      // Pupila / Íris de Ametista Luminescente (Olhar Hipnótico de Rastreadora)
+      const iris = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.28, 0.36), eyeGlowMat);
+      iris.position.set(x, 0.50, 1.98);
+      headGroup.add(iris);
+
+      // Sobrancelha Arqueada Delicada
+      const brow = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.18, 0.22), ravenHairMat);
+      brow.position.set(x, 0.82, 2.02);
+      brow.rotation.z = x > 0 ? -0.15 : 0.15;
+      headGroup.add(brow);
     });
 
-    // Mecha Lateral de Cabelo Prateado com Presilha Dourada
-    const hairBraid = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.25, 6.2, 6), silverHairMat);
-    hairBraid.position.set(-2.0, -1.8, 1.2);
-    hairBraid.rotation.z = 0.18;
-    const hairClasp = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.6, 6), antiqueGoldMat);
-    hairClasp.position.set(-2.0, -0.2, 1.2);
-    hairClasp.rotation.z = 0.18;
-    headGroup.add(hairBraid, hairClasp);
+    // ── CABELO ÉBANO FEMININO REALISTA (RAVEN SILK HAIR) ──────────────────────
+    // Base do Cabelo Sob o Capuz (Volume Superior)
+    const hairCrownGeo = new THREE.SphereGeometry(2.35, 12, 10);
+    hairCrownGeo.scale(1.0, 1.05, 1.02);
+    const hairCrown = new THREE.Mesh(hairCrownGeo, ravenHairMat);
+    hairCrown.position.set(0, 0.4, 0.0);
+    headGroup.add(hairCrown);
+
+    // Franja Lateral Elegante que emoldura a testa
+    const bangs = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.2, 0.45), ravenHairMat);
+    bangs.position.set(-0.55, 0.85, 1.8);
+    bangs.rotation.z = -0.22;
+    bangs.rotation.y = 0.15;
+    headGroup.add(bangs);
+
+    // Mechas Longas Laterais (Enquadrando Maçãs do Rosto e Descendo pelo Pescoço)
+    [-1.75, 1.75].forEach(x => {
+      const tress = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.18, 5.6, 8), ravenHairMat);
+      tress.position.set(x, -1.6, 1.25);
+      tress.rotation.z = x > 0 ? -0.12 : 0.12;
+      // Anel / Presilha de Prata na Mecha
+      const clasp = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.45, 8), darkSilverMat);
+      clasp.position.set(x, -0.4, 1.25);
+      headGroup.add(tress, clasp);
+    });
+
+    // Massa de Cabelo Traseira Ondulada Descendo pelas Costas
+    const backHairGeo = new THREE.CylinderGeometry(1.5, 2.2, 6.0, 10);
+    backHairGeo.scale(1.15, 1.0, 0.65);
+    const backHair = new THREE.Mesh(backHairGeo, ravenHairMat);
+    backHair.position.set(0, -1.6, -1.2);
+    headGroup.add(backHair);
+
+    // ── CAPUZ SOMBRIO ORGÂNICO (ORGANIC SHADOW COWL & MANTLE) ─────────────────
+    // Cúpula Curva Suave do Capuz (Sem pontas ou cones rígidos)
+    const cowlDomeGeo = new THREE.SphereGeometry(2.85, 14, 12, 0, Math.PI * 2, 0, Math.PI * 0.72);
+    const cowlDome = new THREE.Mesh(cowlDomeGeo, shadowClothMat);
+    cowlDome.position.set(0, 0.6, -0.2);
+    cowlDome.rotation.x = -0.12;
+    headGroup.add(cowlDome);
+
+    // Forro Interno Escuro (Cria Sombra Natural ao Redor do Rosto)
+    const cowlInnerGeo = new THREE.SphereGeometry(2.78, 12, 10, 0, Math.PI * 2, 0, Math.PI * 0.72);
+    const cowlInner = new THREE.Mesh(cowlInnerGeo, deepVioletMat);
+    cowlInner.position.set(0, 0.58, -0.18);
+    cowlInner.rotation.x = -0.12;
+    headGroup.add(cowlInner);
+
+    // Borda Arqueada do Capuz (Torus) emoldurando a face de forma orgânica
+    const cowlArchGeo = new THREE.TorusGeometry(2.65, 0.32, 8, 14, Math.PI * 1.15);
+    const cowlArch = new THREE.Mesh(cowlArchGeo, shadowClothMat);
+    cowlArch.position.set(0, 0.75, 0.6);
+    cowlArch.rotation.x = 0.38;
+    cowlArch.rotation.z = Math.PI * 0.925;
+    headGroup.add(cowlArch);
+
+    // Friso em Prata Sombreada no Bico Superior do Capuz
+    const cowlTrim = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.4), darkSilverMat);
+    cowlTrim.position.set(0, 2.1, 1.45);
+    headGroup.add(cowlTrim);
+
+    // Manto Caído sobre os Ombros (Transição Suave para a Capa)
+    const cowlMantleGeo = new THREE.CylinderGeometry(2.7, 4.3, 3.0, 12, 1, true);
+    const cowlMantle = new THREE.Mesh(cowlMantleGeo, shadowClothMat);
+    cowlMantle.position.set(0, -1.2, -0.2);
+    headGroup.add(cowlMantle);
 
     // =========================================================================
-    // 3. CAPA FLORESTAL ESVOAÇANTE COM BROCHE DE ESMERALDA
+    // 3. CAPA NOTURNA ESVOAÇANTE COM BROCHE AMALDIÇOADO
     // =========================================================================
     const capeGroup = new THREE.Group();
     capeGroup.position.set(0, 4.6, -2.8);
     torsoGroup.add(capeGroup);
     anim.cape = capeGroup;
 
-    // Broche de Ombro com Brasão em Esmeralda e Ouro
-    const broochGroup = new THREE.Group();
-    broochGroup.position.set(-3.2, 0.4, 0.8);
-    const broochBase = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.4, 8), antiqueGoldMat);
-    broochBase.rotation.x = Math.PI / 2;
-    const broochGem = new THREE.Mesh(new THREE.OctahedronGeometry(0.75, 0), spectralEmeraldMat);
-    broochGem.position.z = 0.35;
-    broochGroup.add(broochBase, broochGem);
-    capeGroup.add(broochGroup);
+    // Broche de Ombro com Brasão em Prata e Gema Violeta
+    const capeBrooch = new THREE.Mesh(new THREE.OctahedronGeometry(1.0, 0), cursedAmethystMat);
+    capeBrooch.position.set(0, 0.3, 0.35);
+    const broochFrame = new THREE.Mesh(new THREE.TorusGeometry(1.1, 0.22, 6, 8), darkSilverMat);
+    broochFrame.position.set(0, 0.3, 0.3);
+    capeGroup.add(capeBrooch, broochFrame);
 
-    // Manto Duplo em Caimento Nobre com Forro Escuro
-    const capeGeo = new THREE.PlaneGeometry(9.0, 16.5, 4, 4);
-    capeGeo.translate(0, -8.0, 0);
-    const capeOuter = new THREE.Mesh(capeGeo, forestGreenMat);
-    capeOuter.rotation.x = 0.14;
-    const capeInner = new THREE.Mesh(capeGeo, shadowSilkMat);
-    capeInner.rotation.x = 0.14;
-    capeInner.position.z = 0.1;
-    capeGroup.add(capeOuter, capeInner);
+    // Camada Superior da Capa
+    const capeTop = new THREE.Mesh(new THREE.BoxGeometry(7.2, 8.5, 0.45), shadowClothMat);
+    capeTop.position.set(0, -4.2, 0);
+    capeTop.rotation.x = 0.12;
+    capeGroup.add(capeTop);
 
-    // Barra Recortada da Capa com Borda Dourada
-    const capeBorder = new THREE.Mesh(new THREE.BoxGeometry(9.0, 1.2, 0.5), antiqueGoldMat);
-    capeBorder.position.set(0, -15.8, -0.4);
-    capeBorder.rotation.x = 0.14;
-    capeGroup.add(capeBorder);
+    // Forro Violeta Interior da Capa
+    const capeLining = new THREE.Mesh(new THREE.BoxGeometry(6.8, 8.0, 0.2), deepVioletMat);
+    capeLining.position.set(0, -4.2, 0.25);
+    capeLining.rotation.x = 0.12;
+    capeGroup.add(capeLining);
+
+    // Camada Inferior Esfarrapada / Esvoaçante
+    const capeBottom = new THREE.Mesh(new THREE.BoxGeometry(8.2, 11.5, 0.35), shadowClothMat);
+    capeBottom.position.set(0, -10.0, 0.6);
+    capeBottom.rotation.x = 0.18;
+    capeGroup.add(capeBottom);
 
     // =========================================================================
-    // 4. ALJAVA ARTESANAL TRANSVERSAL & 6 VIROTES ÉLFICOS
+    // 4. ALJAVA ARTESANAL TRANSVERSAL & 6 VIROTES DE SOMBRA
     // =========================================================================
     const quiverGroup = new THREE.Group();
-    quiverGroup.position.set(2.4, 1.8, -3.2);
-    quiverGroup.rotation.z = -0.38;
-    quiverGroup.rotation.y = 0.16;
+    quiverGroup.position.set(-1.8, 2.4, -3.2);
+    quiverGroup.rotation.set(-0.25, 0.20, 0.48);
+    torsoGroup.add(quiverGroup);
 
-    // Tubo da Aljava em Couro de Dragão com Costuras
-    const quiverBody = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.2, 11.5, 8), darkLeatherMat);
+    // Corpo Cilíndrico da Aljava em Couro de Obsidiana
+    const quiverBody = new THREE.Mesh(new THREE.CylinderGeometry(1.65, 1.25, 12.0, 8), obsidianLeatherMat);
     quiverGroup.add(quiverBody);
 
-    // 3 Aros Ornamentais Dourados de Reforço
-    [-4.8, 0, 4.8].forEach(y => {
-      const ring = new THREE.Mesh(new THREE.CylinderGeometry(1.85, 1.85, 0.8, 8), antiqueGoldMat);
+    // Anéis de Reforço em Prata Escura
+    [-3.8, 0, 3.8].forEach(y => {
+      const ring = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 1.75, 0.6, 8), darkSilverMat);
       ring.position.y = y;
       quiverGroup.add(ring);
     });
 
-    // Fundo Reforçado em Aço Escuro
-    const quiverCap = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.8, 8), darkSteelMat);
-    quiverCap.position.y = -5.8;
-    quiverGroup.add(quiverCap);
+    // Correia Diagonal de Suporte Cruzando o Peito
+    const quiverStrap = new THREE.Mesh(new THREE.BoxGeometry(1.2, 14.5, 0.4), obsidianLeatherMat);
+    quiverStrap.position.set(0.6, 0.2, 0);
+    quiverStrap.rotation.set(-0.25, 0.1, 0.48);
+    torsoGroup.add(quiverStrap);
 
-    // Feixe de 6 Flechas Élficas em Leque
-    for (let fIdx = 0; fIdx < 6; fIdx++) {
-      const arrow = new THREE.Group();
-      const angle = (fIdx / 6) * Math.PI * 2;
-      const rad = 0.85;
-      arrow.position.set(Math.cos(angle) * rad, 7.0, Math.sin(angle) * rad);
+    // 6 Flechas / Virotes de Sombra Tridimensionais
+    const arrowOffsets = [
+      [-0.5, 0.4, 6.8], [0.5, 0.4, 7.2], [0, 0.6, 7.6],
+      [-0.5, -0.4, 7.0], [0.5, -0.4, 7.4], [0, -0.6, 7.9]
+    ];
+    arrowOffsets.forEach(([ox, oz, h], aIdx) => {
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 5.0, 6), ebonyWoodMat);
+      shaft.position.set(ox, h, oz);
+      quiverGroup.add(shaft);
 
-      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 7.5, 5), ebonyWoodMat);
-      arrow.add(shaft);
+      // Penas de Corvo da Flecha
+      const fletch = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.6, 0.8), shadowFeatherMat);
+      fletch.position.set(ox, h + 1.8, oz);
+      quiverGroup.add(fletch);
 
-      // Fletching: 1 Especial com Brilho Esmeralda e 5 de Plumas Prateadas
-      const fMat = fIdx === 0 ? spectralEmeraldMat : featherMat;
-      const fletch1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.2, 0.12), fMat);
-      fletch1.position.y = 2.6;
-      fletch1.rotation.y = angle;
-      arrow.add(fletch1);
-
-      quiverGroup.add(arrow);
-    }
-
-    // Talabarte Transversal Cruzando o Peitoral
-    const harness = new THREE.Mesh(new THREE.BoxGeometry(1.4, 12.0, 5.8), darkLeatherMat);
-    harness.position.set(0.6, 0.4, 0);
-    harness.rotation.z = -0.42;
-    const harnessBuckle = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.8, 0.6), antiqueGoldMat);
-    harnessBuckle.position.set(0.6, 1.6, 3.1);
-    harnessBuckle.rotation.z = -0.42;
-    torsoGroup.add(harness, harnessBuckle);
-    torsoGroup.add(quiverGroup);
+      // Ponta de Sombra Encantada com Brilho Violeta
+      const broadhead = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1.0, 4), cursedAmethystMat);
+      broadhead.position.set(ox, h + 2.8, oz);
+      quiverGroup.add(broadhead);
+    });
 
     // =========================================================================
-    // 5. BRAÇO ESQUERDO, OMBREIRA LAMINAR & APOIO DIANTEIRO (Vambrace)
+    // 5. BRAÇO ESQUERDO, OMBREIRA ESCAMADA & GUARDA DIANTEIRA
     // =========================================================================
-    const leftArmGroup = new THREE.Group();
-    leftArmGroup.position.set(-5.8, 3.6, 0);
-    torsoGroup.add(leftArmGroup);
-    anim.leftArm = leftArmGroup;
+    const leftShoulder = new THREE.Group();
+    leftShoulder.position.set(-5.6, 4.4, 0.2);
+    torsoGroup.add(leftShoulder);
+    anim.leftArm = leftShoulder;
 
-    // Ombreira Laminar de Caçadora (Spaulder) em Placas de Aço Escuro com Friso de Ouro
-    const pauldronGroup = new THREE.Group();
-    const pPlate1 = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.8, 2.4, 6), darkSteelMat);
-    pPlate1.rotation.z = Math.PI / 6;
-    const pTrim1 = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.9, 0.7, 6), antiqueGoldMat);
-    pTrim1.rotation.z = Math.PI / 6;
-    pTrim1.position.y = 0.9;
-    pauldronGroup.add(pPlate1, pTrim1);
-    leftArmGroup.add(pauldronGroup);
+    // Ombreira Escamada de Espreita em Placas Negras Sobrepostas
+    const lPauldron = new THREE.Mesh(new THREE.SphereGeometry(2.3, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.65), blackenedSteelMat);
+    lPauldron.position.set(-0.2, 1.2, 0);
+    lPauldron.rotation.z = -0.35;
+    const lPauldronTrim = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.22, 6, 8), darkSilverMat);
+    lPauldronTrim.position.set(-0.2, 0.8, 0);
+    lPauldronTrim.rotation.x = Math.PI / 2;
+    leftShoulder.add(lPauldron, lPauldronTrim);
 
-    // Braço & Manga Verde
-    const armGeo = new THREE.CylinderGeometry(1.35, 1.15, 6.8, 6);
-    armGeo.translate(0, -3.4, 0);
-    leftArmGroup.add(new THREE.Mesh(armGeo, forestGreenMat));
+    // Braço Superior
+    const lUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.25, 5.2, 8), shadowClothMat);
+    lUpperArm.position.y = -2.6;
+    leftShoulder.add(lUpperArm);
 
-    // Braçadeira de Proteção de Tiro (Vambrace) no Antebraço
-    const vambrace = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.2, 4.0, 6), darkLeatherMat);
-    vambrace.position.set(0, -4.6, 0);
-    const vambraceShield = new THREE.Mesh(new THREE.BoxGeometry(0.6, 3.4, 1.8), valyrianSteelMat);
-    vambraceShield.position.set(-0.8, -4.6, 0);
-    leftArmGroup.add(vambrace, vambraceShield);
+    // Cotovelo
+    const lElbow = new THREE.Group();
+    lElbow.position.y = -5.2;
+    leftShoulder.add(lElbow);
 
-    // Socket da Mão Esquerda (para acoplamento dinâmico futuro)
+    // Braçadeira de Tiro em Couro de Obsidiana com Protetor de Corda
+    const lForearm = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.1, 5.0, 8), obsidianLeatherMat);
+    lForearm.position.y = -2.5;
+    const lVambracePlate = new THREE.Mesh(new THREE.BoxGeometry(0.8, 4.0, 1.8), blackenedSteelMat);
+    lVambracePlate.position.set(-0.7, -2.5, 0);
+    lElbow.add(lForearm, lVambracePlate);
+
+    // Mão Esquerda (Luva de Couro Fino)
+    const lHand = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.6, 1.3), obsidianLeatherMat);
+    lHand.position.set(0, -5.4, 0);
+    lElbow.add(lHand);
+
+    // Socket de Ancoragem para Mão Esquerda
     const handLSocket = new THREE.Group();
-    handLSocket.position.set(0, -6.6, 0);
-    leftArmGroup.add(handLSocket);
+    handLSocket.position.set(0, -5.6, 0);
+    lElbow.add(handLSocket);
     anim.handL_socket = handLSocket;
 
-    // Luva de Tiro
-    const gloveL = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.8, 1.5), shadowSilkMat);
-    handLSocket.add(gloveL);
-
     // =========================================================================
-    // 6. BRAÇO DIREITO & A BESTA MECÂNICA DE VALORIA (TACTICAL ARBALEST)
+    // 6. BRAÇO DIREITO & A BESTA MECÂNICA DE VALORIA (SHADOW REPEATER ARBALEST)
     // =========================================================================
-    const rightArmGroup = new THREE.Group();
-    rightArmGroup.position.set(5.8, 3.6, 0);
-    torsoGroup.add(rightArmGroup);
-    anim.rightArm = rightArmGroup;
+    const rightShoulder = new THREE.Group();
+    rightShoulder.position.set(5.6, 4.4, 0.2);
+    torsoGroup.add(rightShoulder);
+    anim.rightArm = rightShoulder;
 
-    // Ombreira Leve em Couro
-    const rPauldron = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.5, 2.0, 6), darkLeatherMat);
-    rPauldron.rotation.z = -Math.PI / 6;
-    rightArmGroup.add(rPauldron);
+    // Ombreira Direita Compacta
+    const rPauldron = new THREE.Mesh(new THREE.SphereGeometry(2.1, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.65), blackenedSteelMat);
+    rPauldron.position.set(0.2, 1.2, 0);
+    rPauldron.rotation.z = 0.35;
+    const rPauldronTrim = new THREE.Mesh(new THREE.TorusGeometry(2.0, 0.20, 6, 8), darkSilverMat);
+    rPauldronTrim.position.set(0.2, 0.8, 0);
+    rPauldronTrim.rotation.x = Math.PI / 2;
+    rightShoulder.add(rPauldron, rPauldronTrim);
 
-    // Braço Direito
-    const rArm = new THREE.Mesh(armGeo, forestGreenMat);
-    rightArmGroup.add(rArm);
+    // Braço Superior Direito
+    const rUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.25, 5.2, 8), shadowClothMat);
+    rUpperArm.position.y = -2.6;
+    rightShoulder.add(rUpperArm);
 
-    // Socket da Mão Direita
+    // Cotovelo Direito
+    const rElbow = new THREE.Group();
+    rElbow.position.y = -5.2;
+    rightShoulder.add(rElbow);
+
+    // Antebraço Direito
+    const rForearm = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.1, 5.0, 8), obsidianLeatherMat);
+    rForearm.position.y = -2.5;
+    rElbow.add(rForearm);
+
+    // Mão Direita (Empunhando o Disparador)
+    const rHand = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.6, 1.3), obsidianLeatherMat);
+    rHand.position.set(0, -5.4, 0);
+    rElbow.add(rHand);
+
+    // Socket de Ancoragem para Mão Direita
     const handRSocket = new THREE.Group();
-    handRSocket.position.set(0, -6.6, 0);
-    rightArmGroup.add(handRSocket);
+    handRSocket.position.set(0, -5.6, 0);
+    rElbow.add(handRSocket);
     anim.handR_socket = handRSocket;
 
-    const gloveR = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.8, 1.5), shadowSilkMat);
-    handRSocket.add(gloveR);
+    // ── VALORIAN SHADOW REPEATER ARBALEST (BALESTRA MECÂNICA SOMBRIA 3D) ─────
+    const crossbowGroup = new THREE.Group();
+    crossbowGroup.position.set(0, 0, 1.8);
+    crossbowGroup.rotation.set(0.25, -0.15, -0.10);
+    handRSocket.add(crossbowGroup);
+    anim.weapon = crossbowGroup;
+
+    // Coronha em Nogueira Negra Carbonizada
+    const stock = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.2, 15.5), ebonyWoodMat);
+    stock.position.set(0, 0, 1.5);
+    crossbowGroup.add(stock);
+
+    // Trilho Superior de Disparo com Canal Rúnico Violeta
+    const flightTrack = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.7, 13.5), blackenedSteelMat);
+    flightTrack.position.set(0, 1.25, 3.2);
+    const runeChamber = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 11.5), cursedAmethystMat);
+    runeChamber.position.set(0, 1.45, 3.2);
+    crossbowGroup.add(flightTrack, runeChamber);
+
+    // Caixa Mecânica da Culatra & Trava de Disparo
+    const receiver = new THREE.Mesh(new THREE.BoxGeometry(2.3, 2.6, 4.4), blackenedSteelMat);
+    receiver.position.set(0, 0.4, -1.0);
+    const cockingLever = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 3.6, 6), darkSilverMat);
+    cockingLever.position.set(1.4, 1.2, -1.0);
+    cockingLever.rotation.z = -0.55;
+    crossbowGroup.add(receiver, cockingLever);
+
+    // Arco Recurvo Duplo em Aço Negro
+    const bowLimbsGroup = new THREE.Group();
+    bowLimbsGroup.position.set(0, 0.8, 8.2);
+    crossbowGroup.add(bowLimbsGroup);
+
+    // Braço Esquerdo do Arco
+    const limbL = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.9, 0.8), blackenedSteelMat);
+    limbL.position.set(-3.2, 0, -0.6);
+    limbL.rotation.y = 0.28;
+    const tipL = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.7, 0.6), blackenedSteelMat);
+    tipL.position.set(-6.2, 0, -1.8);
+    tipL.rotation.y = -0.42;
+
+    // Braço Direito do Arco
+    const limbR = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.9, 0.8), blackenedSteelMat);
+    limbR.position.set(3.2, 0, -0.6);
+    limbR.rotation.y = -0.28;
+    const tipR = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.7, 0.6), blackenedSteelMat);
+    tipR.position.set(6.2, 0, -1.8);
+    tipR.rotation.y = 0.42;
+
+    // Polias Mecânicas (Cams) em Prata Escura
+    const pulleyL = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.45, 10), darkSilverMat);
+    pulleyL.position.set(-7.5, 0, -2.6);
+    pulleyL.rotation.x = Math.PI / 2;
+    const pulleyR = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.45, 10), darkSilverMat);
+    pulleyR.position.set(7.5, 0, -2.6);
+    pulleyR.rotation.x = Math.PI / 2;
+    bowLimbsGroup.add(limbL, tipL, limbR, tipR, pulleyL, pulleyR);
+
+    // Estribo Frontal de Apoio
+    const stirrup = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.28, 6, 8), darkSilverMat);
+    stirrup.position.set(0, 0, 10.0);
+    stirrup.rotation.x = Math.PI / 2;
+    crossbowGroup.add(stirrup);
+
+    // Corda Dupla Tensionada em Fio Negro
+    const bowString = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 14.8, 6), darkSilverMat);
+    bowString.position.set(0, 0.8, 5.6);
+    bowString.rotation.z = Math.PI / 2;
+    crossbowGroup.add(bowString);
+
+    // Virote de Sombra Carregado no Trilho com Ponta Violeta
+    const loadedBolt = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 7.8, 6), ebonyWoodMat);
+    loadedBolt.position.set(0, 1.45, 4.8);
+    loadedBolt.rotation.x = Math.PI / 2;
+    const loadedHead = new THREE.Mesh(new THREE.ConeGeometry(0.42, 1.2, 4), cursedAmethystMat);
+    loadedHead.position.set(0, 1.45, 8.8);
+    loadedHead.rotation.x = Math.PI / 2;
+    crossbowGroup.add(loadedBolt, loadedHead);
 
     // =========================================================================
-    // BESTA MECÂNICA DE REPETIÇÃO (SHADOW ARBALEST 3D REWORK)
+    // 7. PERNAS, GREVAS DE OBSIDIANA & BOTAS ALTAS DE ASSASSINA
     // =========================================================================
-    const bowGroup = new THREE.Group();
-    bowGroup.position.set(0, 0, 3.8);
-    bowGroup.rotation.x = Math.PI / 2;
+    // Perna Esquerda
+    const leftLeg = new THREE.Group();
+    leftLeg.position.set(-2.4, 9.8, 0);
+    group.add(leftLeg);
+    anim.leftLeg = leftLeg;
 
-    // Coronha Ergonômica em Ébano Nobre com Entalhes
-    const stock = new THREE.Mesh(new THREE.BoxGeometry(1.6, 14.0, 2.0), ebonyWoodMat);
-    bowGroup.add(stock);
+    const lThigh = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.4, 5.6, 8), obsidianLeatherMat);
+    lThigh.position.y = -2.6;
+    leftLeg.add(lThigh);
 
-    // Trilho de Disparo Central em Aço Valiriano com Canaleta
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.85, 13.0, 0.5), valyrianSteelMat);
-    rail.position.set(0, 0, 1.1);
-    bowGroup.add(rail);
+    const lKnee = new THREE.Group();
+    lKnee.position.y = -5.4;
+    leftLeg.add(lKnee);
 
-    // Caixa de Engatilhamento & Alavanca em Ouro Antigo
-    const lockBox = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.8, 1.6), antiqueGoldMat);
-    lockBox.position.set(0, -2.5, 0.4);
-    const cockingLever = new THREE.Mesh(new THREE.BoxGeometry(0.5, 3.5, 0.5), darkSteelMat);
-    cockingLever.position.set(0.9, -3.2, 0.8);
-    cockingLever.rotation.x = -0.4;
-    bowGroup.add(lockBox, cockingLever);
+    const lCalf = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.25, 5.4, 8), shadowClothMat);
+    lCalf.position.y = -2.6;
+    const lGreave = new THREE.Mesh(new THREE.BoxGeometry(1.5, 4.6, 1.4), obsidianLeatherMat);
+    lGreave.position.set(0, -2.6, 0.6);
+    const lGreavePlate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 1.5), blackenedSteelMat);
+    lGreavePlate.position.set(0, -1.8, 0.65);
+    lKnee.add(lCalf, lGreave, lGreavePlate);
 
-    // Lâminas do Arco Duplo Composto Recurvado (Prods)
-    [-1, 1].forEach(side => {
-      const limb = new THREE.Mesh(new THREE.BoxGeometry(6.6, 1.4, 1.2), darkSteelMat);
-      limb.position.set(side * 3.5, 5.6, 0.2);
-      limb.rotation.z = side * 0.16;
-      const limbTrim = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.35, 1.3), antiqueGoldMat);
-      limbTrim.position.y = 0.6;
-      limb.add(limbTrim);
-      bowGroup.add(limb);
+    const lFoot = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.3, 3.6), obsidianLeatherMat);
+    lFoot.position.set(0, -5.5, 0.8);
+    lKnee.add(lFoot);
 
-      // Roldanas Mecânicas de Alta Precisão (Cams / Pulley)
-      const pulley = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.55, 10), antiqueGoldMat);
-      pulley.position.set(side * 6.8, 5.1, 0.2);
-      pulley.rotation.x = Math.PI / 2;
-      const pulleyPin = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.7, 6), valyrianSteelMat);
-      pulley.add(pulleyPin);
-      bowGroup.add(pulley);
+    // Perna Direita
+    const rightLeg = new THREE.Group();
+    rightLeg.position.set(2.4, 9.8, 0);
+    group.add(rightLeg);
+    anim.rightLeg = rightLeg;
+
+    const rThigh = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.4, 5.6, 8), obsidianLeatherMat);
+    rThigh.position.y = -2.6;
+    rightLeg.add(rThigh);
+
+    const rKnee = new THREE.Group();
+    rKnee.position.y = -5.4;
+    rightLeg.add(rKnee);
+
+    const rCalf = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.25, 5.4, 8), shadowClothMat);
+    rCalf.position.y = -2.6;
+    const rGreave = new THREE.Mesh(new THREE.BoxGeometry(1.5, 4.6, 1.4), obsidianLeatherMat);
+    rGreave.position.set(0, -2.6, 0.6);
+    const rGreavePlate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 1.5), blackenedSteelMat);
+    rGreavePlate.position.set(0, -1.8, 0.65);
+    rKnee.add(rCalf, rGreave, rGreavePlate);
+
+    const rFoot = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.3, 3.6), obsidianLeatherMat);
+    rFoot.position.set(0, -5.5, 0.8);
+    rKnee.add(rFoot);
+
+    // =========================================================================
+    // 8. EFEITOS SOMBRIOS: PARTÍCULAS / LABAREDAS DE SOMBRA (SHADOW WISPS)
+    // =========================================================================
+    const wispPositions = [
+      { x: -2.8, y: 7.2, z: 0.5, scale: 0.55, phase: 0 },
+      { x: 2.8, y: 7.6, z: 0.5, scale: 0.60, phase: 1.8 },
+      { x: -3.6, y: 3.2, z: -1.2, scale: 0.48, phase: 3.1 },
+      { x: 3.6, y: 3.4, z: -1.2, scale: 0.52, phase: 4.4 },
+      { x: 0.0, y: 9.8, z: -1.8, scale: 0.65, phase: 2.3 },
+      { x: 0.0, y: 1.8, z: 9.6, scale: 0.45, phase: 5.2 } // ponta da balestra
+    ];
+
+    wispPositions.forEach(cfg => {
+      const wGeo = new THREE.OctahedronGeometry(cfg.scale, 0);
+      const wMesh = new THREE.Mesh(wGeo, voidAuraMat);
+      wMesh.position.set(cfg.x, cfg.y, cfg.z);
+      torsoGroup.add(wMesh);
+      anim.shadowWisps.push({
+        mesh: wMesh,
+        baseX: cfg.x,
+        baseY: cfg.y,
+        baseZ: cfg.z,
+        baseScale: cfg.scale,
+        phase: cfg.phase
+      });
     });
 
-    // Estribo Frontal para Recarga em Aço Forjado
-    const stirrup = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.38, 8, 12), valyrianSteelMat);
-    stirrup.position.set(0, 8.0, 0);
-    bowGroup.add(stirrup);
-
-    // Corda Tátil Esticada de Alta Tensão
-    const stringGeo = new THREE.BoxGeometry(12.5, 0.18, 0.18);
-    const bowString = new THREE.Mesh(stringGeo, valyrianSteelMat);
-    bowString.position.set(0, 4.2, 0.8);
-    bowGroup.add(bowString);
-
-    // Virote Élfico Encantado Engatilhado no Trilho
-    const boltGroup = new THREE.Group();
-    boltGroup.position.set(0, 3.2, 1.4);
-    const boltShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 9.0, 6), valyrianSteelMat);
-    boltShaft.rotation.x = Math.PI / 2;
-    const boltTip = new THREE.Mesh(new THREE.ConeGeometry(0.7, 2.2, 6), spectralEmeraldMat);
-    boltTip.position.set(0, 5.2, 0);
-    boltTip.rotation.x = -Math.PI / 2;
-    boltGroup.add(boltShaft, boltTip);
-    bowGroup.add(boltGroup);
-
-    handRSocket.add(bowGroup);
-    anim.weapon = bowGroup;
-
-    // =========================================================================
-    // 7. PERNAS, GREVAS DE COURO REFORÇADO & BOTAS ALTAS DE RASTREADORA
-    // =========================================================================
-    [-2.4, 2.4].forEach((x, idx) => {
-      const legGroup = new THREE.Group();
-      legGroup.position.set(x, 8.8, 0);
-
-      // Coxa com Calça de Caça Escura Ajustada
-      const thighGeo = new THREE.CylinderGeometry(1.6, 1.35, 5.2, 6);
-      thighGeo.translate(0, -2.6, 0);
-      legGroup.add(new THREE.Mesh(thighGeo, shadowSilkMat));
-
-      // Joelheira Articulada em Placa de Couro com Tacha Dourada
-      const poleyn = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.6, 1.0), darkLeatherMat);
-      poleyn.position.set(0, -5.2, 0.8);
-      const poleynRivet = new THREE.Mesh(new THREE.SphereGeometry(0.35, 6, 6), antiqueGoldMat);
-      poleynRivet.position.set(0, 0, 0.5);
-      poleyn.add(poleynRivet);
-      legGroup.add(poleyn);
-
-      // Bota Alta de Caça de Cano Longo
-      const boot = new THREE.Mesh(new THREE.CylinderGeometry(1.45, 1.25, 5.6, 6), darkLeatherMat);
-      boot.position.set(0, -6.8, 0.1);
-      legGroup.add(boot);
-
-      // Biqueira de Aço e Sola Firme
-      const toe = new THREE.Mesh(new THREE.BoxGeometry(1.9, 1.4, 3.4), darkSteelMat);
-      toe.position.set(0, -9.0, 0.9);
-      legGroup.add(toe);
-
-      // Adaga Tática de Emergência na Bota Direita
-      if (idx === 1) {
-        const bootSheath = new THREE.Mesh(new THREE.BoxGeometry(0.7, 3.6, 1.1), darkLeatherMat);
-        bootSheath.position.set(1.4, -6.6, 0.2);
-        const daggerHilt = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 1.6, 6), antiqueGoldMat);
-        daggerHilt.position.set(1.4, -4.4, 0.2);
-        const daggerPommel = new THREE.Mesh(new THREE.OctahedronGeometry(0.4, 0), spectralEmeraldMat);
-        daggerPommel.position.set(1.4, -3.5, 0.2);
-        legGroup.add(bootSheath, daggerHilt, daggerPommel);
-      }
-
-      group.add(legGroup);
-      if (idx === 0) anim.leftLeg = legGroup;
-      else anim.rightLeg = legGroup;
-    });
+    return group;
   }
 
+  // =========================================================================
   // 1.3 FEITICEIRO DAS CINZAS (Pyromancer Model)
   function buildPyromancerModel(group, anim) {
     const robeMat = createFlashable(materials.pyroOrange);
