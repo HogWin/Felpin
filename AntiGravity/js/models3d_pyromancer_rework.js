@@ -172,15 +172,16 @@
     const robeBaseGroup = new THREE.Group();
     robeBaseGroup.position.set(0, -4.2, 0);
     torsoGroup.add(robeBaseGroup);
+    anim.robe = robeBaseGroup;
 
-    // Saia Cone de 8 Faces (Manto Carmesim)
-    const robeGeo = new THREE.CylinderGeometry(3.6, 6.6, 15.5, 8, 1, true);
+    // Saia Cone de 8 Faces (Manto Carmesim) com barra alargada para evitar clipping
+    const robeGeo = new THREE.CylinderGeometry(3.6, 7.6, 15.5, 8, 1, true);
     robeGeo.translate(0, -7.5, 0);
     const robeMesh = new THREE.Mesh(robeGeo, crimsonSilkMat);
     robeBaseGroup.add(robeMesh);
 
     // Forro Interno Âmbar Visível na Fenda da Saia
-    const innerLiningGeo = new THREE.CylinderGeometry(3.5, 6.4, 15.3, 8, 1, true);
+    const innerLiningGeo = new THREE.CylinderGeometry(3.5, 7.4, 15.3, 8, 1, true);
     innerLiningGeo.translate(0, -7.5, 0);
     const innerLiningMesh = new THREE.Mesh(innerLiningGeo, moltenAmberMat);
     innerLiningMesh.scale.set(0.98, 1, 0.98);
@@ -434,22 +435,23 @@
     // =========================================================================
     // 7. PERNAS & BOTAS DE VELUDO E COURO TRATADO
     // =========================================================================
-    [-2.0, 2.0].forEach((x, idx) => {
+    [-1.6, 1.6].forEach((x, idx) => {
       const legGroup = new THREE.Group();
       legGroup.position.set(x, 8.5, 0);
 
-      // Coxa coberta pelo manto
-      const thighGeo = new THREE.CylinderGeometry(1.6, 1.4, 5.0, 6);
+      // Coxa coberta pelo manto (esbelta para evitar qualquer colisao com a saia)
+      const thighGeo = new THREE.CylinderGeometry(1.2, 1.0, 5.0, 6);
       thighGeo.translate(0, -2.5, 0);
       legGroup.add(new THREE.Mesh(thighGeo, charcoalClothMat));
 
       // Bota Medieval de Couro Negro e Fivelas de Bronze
-      const bootGeo = new THREE.CylinderGeometry(1.5, 1.2, 5.5, 6);
-      bootGeo.translate(0, -7.5, 0);
+      const bootGeo = new THREE.CylinderGeometry(1.2, 1.0, 5.2, 6);
+      bootGeo.translate(0, -6.8, 0);
       legGroup.add(new THREE.Mesh(bootGeo, scorchedLeatherMat));
 
-      const shoeGeo = new THREE.BoxGeometry(2.0, 1.5, 3.8);
-      shoeGeo.translate(0, -9.8, 0.8);
+      // Sapato / Bico de Bota que desponta discretamente sob a barra
+      const shoeGeo = new THREE.BoxGeometry(1.6, 1.4, 2.6);
+      shoeGeo.translate(0, -8.8, 0.5);
       legGroup.add(new THREE.Mesh(shoeGeo, scorchedLeatherMat));
 
       group.add(legGroup);
