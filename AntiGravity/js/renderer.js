@@ -622,7 +622,7 @@ class GameRenderer {
     this.updateCamera(player, dt);
 
     // 2. Update Generative Map Chunks around Player
-    if (this.map3D && this.map3D.update) { this.map3D.update(player.x, player.y); }
+    if (this.map3D && this.map3D.update) { this.map3D.update(player.x, player.y, dt); }
 
     // 3. Update Player 3D Mesh
     this.updatePlayerMesh(player, dt);

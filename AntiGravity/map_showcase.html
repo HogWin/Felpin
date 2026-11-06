@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Showcase 3D — Mapa e Reinos Góticos | The Fallen Kingdom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #09060b;
+      font-family: 'Inter', sans-serif;
+      color: #e2e8f0;
+    }
+
+    #viewport-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 40%, #15101f 0%, #0a0710 70%, #030205 100%);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* UI Overlay */
+    .ui-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 24px;
+    }
+
+    .interactive {
+      pointer-events: auto;
+    }
+
+    /* Header Banner */
+    .header-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .title-box {
+      background: rgba(14, 11, 22, 0.88);
+      border: 1px solid #78350f;
+      border-left: 4px solid #f0c05a;
+      backdrop-filter: blur(12px);
+      padding: 14px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      max-width: 480px;
+    }
+
+    .title-tag {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #f0c05a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .title-tag::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #f0c05a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #f0c05a;
+    }
+
+    h1 {
+      font-family: 'Cinzel Decorative', 'Cinzel', serif;
+      font-size: 22px;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #cbd5e1;
+      line-height: 1.4;
+    }
+
+    .badge-realm {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      background: rgba(240, 192, 90, 0.15);
+      border: 1px solid rgba(240, 192, 90, 0.35);
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #f0c05a;
+      margin-top: 6px;
+    }
+
+    /* Top-Right Controls */
+    .top-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .stat-pill {
+      background: rgba(15, 10, 22, 0.85);
+      border: 1px solid rgba(240, 192, 90, 0.25);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .stat-dot {
+      width: 7px;
+      height: 7px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* Sidebar Controls */
+    .sidebar {
+      position: absolute;
+      right: 24px;
+      top: 110px;
+      width: 290px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+      background: rgba(240, 192, 90, 0.3);
+      border-radius: 2px;
+    }
+
+    .panel-card {
+      background: rgba(14, 11, 22, 0.9);
+      border: 1px solid rgba(240, 192, 90, 0.25);
+      backdrop-filter: blur(12px);
+      border-radius: 8px;
+      padding: 12px 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    }
+
+    .panel-header {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #f0c05a;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .btn-group-full {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .btn-control {
+      background: rgba(30, 22, 45, 0.7);
+      border: 1px solid rgba(240, 192, 90, 0.2);
+      color: #cbd5e1;
+      padding: 7px 10px;
+      font-size: 11.5px;
+      font-weight: 500;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 7px;
+      transition: all 0.18s ease;
+      text-align: left;
+    }
+
+    .btn-control:hover {
+      background: rgba(240, 192, 90, 0.15);
+      border-color: rgba(240, 192, 90, 0.5);
+      color: #fff;
+    }
+
+    .btn-control.active {
+      background: linear-gradient(135deg, rgba(240, 192, 90, 0.3), rgba(168, 85, 247, 0.25));
+      border-color: #f0c05a;
+      color: #f0c05a;
+      font-weight: 700;
+      box-shadow: 0 0 10px rgba(240, 192, 90, 0.25);
+    }
+
+    .btn-control-accent {
+      background: linear-gradient(135deg, #78350f, #b45309);
+      border: 1px solid #f0c05a;
+      color: #fff;
+      font-weight: 600;
+      justify-content: center;
+      text-align: center;
+    }
+    .btn-control-accent:hover {
+      background: linear-gradient(135deg, #92400e, #d97706);
+      box-shadow: 0 0 14px rgba(240, 192, 90, 0.4);
+    }
+
+    /* Bottom Bar */
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+    }
+
+    .legend-card {
+      background: rgba(14, 11, 22, 0.88);
+      border: 1px solid rgba(240, 192, 90, 0.2);
+      backdrop-filter: blur(10px);
+      padding: 10px 18px;
+      border-radius: 6px;
+      display: flex;
+      gap: 20px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-item span {
+      color: #f0c05a;
+      font-weight: 600;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-action {
+      background: rgba(14, 11, 22, 0.9);
+      border: 1px solid rgba(240, 192, 90, 0.3);
+      color: #e2e8f0;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-action:hover {
+      background: rgba(240, 192, 90, 0.15);
+      border-color: #f0c05a;
+      color: #f0c05a;
+    }
+    .btn-action.active {
+      background: rgba(240, 192, 90, 0.25);
+      border-color: #f0c05a;
+      color: #f0c05a;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="viewport-container">
+    <canvas id="webgl-canvas"></canvas>
+  </div>
+
+  <div class="ui-layer">
+
+    <!-- Top Header -->
+    <div class="header-banner">
+      <div class="title-box interactive">
+        <div class="title-tag">The Fallen Kingdom — Inspetor 3D de Cenário</div>
+        <h1 id="biome-title">Ruínas de Valoria</h1>
+        <div class="subtitle" id="biome-subtitle">Antiga Cidadela dos Reis Caídos & Colunatas em Ruínas</div>
+        <div class="badge-realm" id="biome-props-badge">🏛️ ~420 Elementos Procedurais em 3200x3200</div>
+      </div>
+
+      <div class="top-controls interactive">
+        <div class="stat-pill">
+          <div class="stat-dot"></div>
+          <span id="fps-text">60 FPS</span>
+        </div>
+        <div class="stat-pill" style="font-size: 11px; color: #cbd5e1;">
+          <span>Semente:</span>
+          <strong class="text-gold" id="seed-text">#123456</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Controls -->
+    <div class="sidebar interactive">
+
+      <!-- Painel de Biomas -->
+      <div class="panel-card">
+        <div class="panel-header">🗺️ Seleção de Biomas</div>
+        <div class="btn-group-full">
+          <button class="btn-control active" id="biome-ruins" onclick="switchBiome('ruins')">
+            🏛️ <span>Ruínas de Valoria</span>
+          </button>
+          <button class="btn-control" id="biome-necropolis" onclick="switchBiome('necropolis')">
+            💀 <span>Necrópole Imperial</span>
+          </button>
+          <button class="btn-control" id="biome-forest" onclick="switchBiome('forest')">
+            🌲 <span>Floresta das Sombras</span>
+          </button>
+          <button class="btn-control" id="biome-crimson" onclick="switchBiome('crimson')">
+            🏰 <span>Fortaleza Carmesim</span>
+          </button>
+          <button class="btn-control btn-control-accent" onclick="randomizeSeed()" style="margin-top: 4px;">
+            🎲 <span>Gerar Novo Layout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Presets de Câmera -->
+      <div class="panel-card">
+        <div class="panel-header">🎥 Foco & Landmark</div>
+        <div class="btn-group">
+          <button class="btn-control active" id="cam-overview" onclick="focusCamera('overview')">🦅 Visão Aérea</button>
+          <button class="btn-control" id="cam-plaza" onclick="focusCamera('plaza')">👑 Praça Central</button>
+          <button class="btn-control" id="cam-arch" onclick="focusCamera('arch')">🏛️ Arco Gótico</button>
+          <button class="btn-control" id="cam-cathedral" onclick="focusCamera('cathedral')">⛪ Paredes Nave</button>
+          <button class="btn-control" id="cam-colonnade" onclick="focusCamera('colonnade')">🏛️ Colunata</button>
+          <button class="btn-control" id="cam-mausoleum" onclick="focusCamera('mausoleum')">💀 Mausoléu</button>
+          <button class="btn-control" id="cam-fountain" onclick="focusCamera('fountain')">⛲ Fonte Gótica</button>
+          <button class="btn-control" id="cam-gallows" onclick="focusCamera('gallows')">⛓️ Forca & Gaiola</button>
+          <button class="btn-control" id="cam-megalith" onclick="focusCamera('megalith')">🪨 Megalito</button>
+          <button class="btn-control" id="cam-memorial" onclick="focusCamera('memorial')">🗡️ Memorial</button>
+        </div>
+      </div>
+
+      <!-- Modos de Iluminação -->
+      <div class="panel-card">
+        <div class="panel-header">💡 Atmosfera & Luz</div>
+        <div class="btn-group">
+          <button class="btn-control active" id="light-royal" onclick="setLighting('royal')">🌕 Luar Real</button>
+          <button class="btn-control" id="light-midnight" onclick="setLighting('midnight')">🌑 Meia-Noite</button>
+          <button class="btn-control" id="light-blood" onclick="setLighting('blood')">🩸 Lua Sangue</button>
+          <button class="btn-control" id="light-forge" onclick="setLighting('forge')">🔥 Braseiro</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+      <div class="legend-card interactive">
+        <div class="legend-item">🖱️ <span>Botão Esquerdo:</span> Girar Órbita 360°</div>
+        <div class="legend-item">🖱️ <span>Scroll:</span> Zoom Câmera</div>
+        <div class="legend-item">🖱️ <span>Botão Direito / WASD:</span> Deslocar / Voar</div>
+      </div>
+
+      <div class="action-buttons interactive">
+        <button class="btn-action active" id="toggle-turntable" onclick="toggleTurntable()">
+          🔄 Rotação Órbita
+        </button>
+        <button class="btn-action" id="toggle-wireframe" onclick="toggleWireframe()">
+          📐 Wireframe
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Three.js Engine & Map System -->
+  <script src="js/three.min.js"></script>
+  <script src="js/map3d.js"></script>
+
+  <script>
+    // Inicialização da Cena 3D Three.js
+    const canvas = document.getElementById('webgl-canvas');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0712);
+    scene.fog = new THREE.FogExp2(0x0a0712, 0.00065);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 4000);
+    camera.position.set(0, 180, 320);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    // Iluminação Global
+    const ambientLight = new THREE.AmbientLight(0x5a526c, 0.70);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xc8d2ff, 1.2);
+    dirLight.position.set(150, 280, 200);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 50;
+    dirLight.shadow.camera.far = 1200;
+    dirLight.shadow.bias = -0.0005;
+    scene.add(dirLight);
+
+    const fillLight = new THREE.DirectionalLight(0x6b21a8, 0.6);
+    fillLight.position.set(-150, 100, -150);
+    scene.add(fillLight);
+
+    // Sistema de Mapa Procedural
+    const mapSystem = new window.MedievalSurvivors.GenerativeMap3D(scene);
+    let runInfo = mapSystem.generateNewRun();
+
+    // Controle de Câmera Orbital Suave
+    let targetAzimuth = 0.45;
+    let currentAzimuth = 0.45;
+    let targetPolar = 1.15;
+    let currentPolar = 1.15;
+    let targetDistance = 320;
+    let currentDistance = 320;
+    const targetLookAt = new THREE.Vector3(0, 15, 0);
+    const currentLookAt = new THREE.Vector3(0, 15, 0);
+
+    let isDragging = false;
+    let isRightDragging = false;
+    let prevMouseX = 0;
+    let prevMouseY = 0;
+    let isTurntableActive = true;
+    let isWireframeActive = false;
+
+    // Teclas pressionadas para navegação WASD
+    const keysDown = {};
+    window.addEventListener('keydown', e => { keysDown[e.key.toLowerCase()] = true; });
+    window.addEventListener('keyup', e => { keysDown[e.key.toLowerCase()] = false; });
+
+    canvas.addEventListener('mousedown', e => {
+      if (e.button === 0) isDragging = true;
+      if (e.button === 2) isRightDragging = true;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+      isRightDragging = false;
+    });
+
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    canvas.addEventListener('mousemove', e => {
+      const deltaX = e.clientX - prevMouseX;
+      const deltaY = e.clientY - prevMouseY;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+
+      if (isDragging) {
+        targetAzimuth -= deltaX * 0.006;
+        targetPolar = Math.max(0.08, Math.min(Math.PI / 2 - 0.02, targetPolar - deltaY * 0.006));
+      } else if (isRightDragging) {
+        // Pan no plano XZ
+        const forward = new THREE.Vector3(-Math.sin(currentAzimuth), 0, -Math.cos(currentAzimuth));
+        const right = new THREE.Vector3(Math.cos(currentAzimuth), 0, -Math.sin(currentAzimuth));
+        targetLookAt.addScaledVector(right, -deltaX * (targetDistance * 0.002));
+        targetLookAt.addScaledVector(forward, deltaY * (targetDistance * 0.002));
+      }
+    });
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      targetDistance = Math.max(30, Math.min(1400, targetDistance + e.deltaY * 0.6));
+    }, { passive: false });
+
+    // Alternar Bioma
+    window.switchBiome = function(biomeId) {
+      document.querySelectorAll('[id^="biome-"]').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('biome-' + biomeId);
+      if (btn) btn.classList.add('active');
+
+      const biomes = [
+        { id: 'ruins', title: 'Ruínas de Valoria', subtitle: 'Antiga Cidadela dos Reis Caídos & Colunatas em Ruínas', badge: '🏛️ ~420 Elementos Procedurais em 3200x3200' },
+        { id: 'necropolis', title: 'Necrópole Imperial', subtitle: 'Catacumbas Antigas, Mausoléus & Jazigos Profanados', badge: '💀 ~440 Elementos Procedurais & Névoa Rasteira' },
+        { id: 'forest', title: 'Floresta das Sombras', subtitle: 'Bosque Amaldiçoado pela Névoa Eterna & Círculos Megalíticos', badge: '🌲 ~410 Elementos Procedurais & Menires Druídicos' },
+        { id: 'crimson', title: 'Fortaleza Carmesim', subtitle: 'Bastião das Sombras, Forcas de Guerra & Altares de Sangue', badge: '🏰 ~430 Elementos Procedurais & Pátios de Execução' }
+      ];
+
+      const bData = biomes.find(b => b.id === biomeId) || biomes[0];
+      document.getElementById('biome-title').innerText = bData.title;
+      document.getElementById('biome-subtitle').innerText = bData.subtitle;
+      document.getElementById('biome-props-badge').innerText = bData.badge;
+
+      // Forçar o bioma escolhido no gerador
+      const biomeObj = mapSystem.currentBiome = mapSystem.currentBiome || {};
+      const found = [
+        { id: 'ruins', fogColor: 0x181324, ambientColor: 0x5a526c, dirLightColor: 0xc8d2ff },
+        { id: 'necropolis', fogColor: 0x06120e, ambientColor: 0x142620, dirLightColor: 0x6ca39a },
+        { id: 'forest', fogColor: 0x071107, ambientColor: 0x162615, dirLightColor: 0x769b78 },
+        { id: 'crimson', fogColor: 0x271216, ambientColor: 0x66363c, dirLightColor: 0xffc2b0 }
+      ].find(b => b.id === biomeId);
+
+      // Re-gerar mapa com esse bioma
+      mapSystem.clear();
+      mapSystem.seed = Math.floor(Math.random() * 999999) + 1;
+      mapSystem.prng = (function(s) {
+        let st = s >>> 0;
+        return function() {
+          st = (st + 0x6D2B79F5) >>> 0;
+          let t = Math.imul(st ^ (st >>> 15), 1 | st);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      })(mapSystem.seed);
+
+      const realBiomes = [
+        {
+          id: 'ruins', name: 'Ruínas de Valoria', subtitle: 'Antiga Cidadela dos Reis Caídos', icon: '🏛️',
+          fogColor: 0x181324, fogDensity: 0.00065, ambientColor: 0x5a526c, dirLightColor: 0xc8d2ff, dirLightIntensity: 0.65,
+          groundTones: ['#282236', '#342b44', '#1e1a2b', '#3e3450'], mortarColor: '#120f1b',
+          landmarkProps: ['gothic_arch', 'colonnade', 'cathedral_wall', 'imperial_mausoleum', 'ancient_fountain'],
+          mediumProps: ['pillar', 'broken_pillar', 'brazier', 'sarcophagus', 'wayside_shrine', 'battlefield_memorial', 'street_lamp'],
+          clutterProps: ['rubble_pile', 'fallen_pillar', 'bone_pile', 'banner_post', 'tombstone']
+        },
+        {
+          id: 'necropolis', name: 'Necrópole Imperial', subtitle: 'Catacumbas Antigas e Mausoléus Profanados', icon: '💀',
+          fogColor: 0x06120e, fogDensity: 0.0008, ambientColor: 0x142620, dirLightColor: 0x6ca39a, dirLightIntensity: 0.32,
+          groundTones: ['#0b1614', '#10201d', '#07100e', '#162824'], mortarColor: '#040b09',
+          landmarkProps: ['imperial_mausoleum', 'graveyard_plot', 'cathedral_wall', 'gothic_arch'],
+          mediumProps: ['tombstone', 'sarcophagus', 'brazier_green', 'crypt_pillar', 'gargoyle_pedestal', 'street_lamp_green', 'wayside_shrine'],
+          clutterProps: ['bone_pile', 'rubble_pile', 'tombstone', 'ground_mist']
+        },
+        {
+          id: 'forest', name: 'Floresta das Sombras', subtitle: 'Bosque Amaldiçoado pela Névoa Eterna', icon: '🌲',
+          fogColor: 0x071107, fogDensity: 0.0008, ambientColor: 0x162615, dirLightColor: 0x769b78, dirLightIntensity: 0.30,
+          groundTones: ['#0c170b', '#112210', '#071107', '#172b16'], mortarColor: '#040b04',
+          landmarkProps: ['megalith_circle', 'colonnade', 'ancient_fountain', 'gothic_arch'],
+          mediumProps: ['dead_tree', 'stone_menhir', 'fence', 'brazier', 'wayside_shrine', 'barricade', 'street_lamp'],
+          clutterProps: ['rubble_pile', 'fallen_pillar', 'ground_mist', 'bone_pile']
+        },
+        {
+          id: 'crimson', name: 'Fortaleza do Carrasco Carmesim', subtitle: 'Bastião das Sombras e Cinzas', icon: '🏰',
+          fogColor: 0x271216, fogDensity: 0.0007, ambientColor: 0x66363c, dirLightColor: 0xffc2b0, dirLightIntensity: 0.65,
+          groundTones: ['#321b1f', '#422429', '#241316', '#4e2c32'], mortarColor: '#170a0d',
+          landmarkProps: ['gallows_gibbet', 'cathedral_wall', 'colonnade', 'gothic_arch'],
+          mediumProps: ['barricade', 'brazier_red', 'altar_blood', 'bone_pile', 'crypt_pillar', 'gargoyle_pedestal', 'battlefield_memorial'],
+          clutterProps: ['rubble_pile', 'banner_post', 'fallen_pillar', 'bone_pile']
+        }
+      ];
+
+      mapSystem.currentBiome = realBiomes.find(b => b.id === biomeId) || realBiomes[0];
+      mapSystem.groundTexture = mapSystem.createProceduralGroundTexture(mapSystem.currentBiome);
+      mapSystem.groundBumpTexture = mapSystem.createProceduralBumpTexture();
+      mapSystem.groundMaterial = new THREE.MeshStandardMaterial({
+        map: mapSystem.groundTexture,
+        bumpMap: mapSystem.groundBumpTexture,
+        bumpScale: 1.35,
+        roughness: 0.82,
+        metalness: 0.12
+      });
+      mapSystem.buildBoundedArena();
+
+      // Atualizar iluminação do bioma
+      scene.fog.color.setHex(mapSystem.currentBiome.fogColor);
+      ambientLight.color.setHex(mapSystem.currentBiome.ambientColor);
+      dirLight.color.setHex(mapSystem.currentBiome.dirLightColor);
+      document.getElementById('seed-text').innerText = '#' + mapSystem.seed;
+    };
+
+    window.randomizeSeed = function() {
+      switchBiome(mapSystem.currentBiome ? mapSystem.currentBiome.id : 'ruins');
+    };
+
+    // Foco de Câmera
+    window.focusCamera = function(preset) {
+      document.querySelectorAll('[id^="cam-"]').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('cam-' + preset);
+      if (btn) btn.classList.add('active');
+
+      if (preset === 'overview') {
+        targetLookAt.set(0, 15, 0);
+        targetDistance = 450;
+        targetPolar = 1.15;
+      } else if (preset === 'plaza') {
+        targetLookAt.set(0, 8, 0);
+        targetDistance = 140;
+        targetPolar = 1.25;
+      } else {
+        // Encontrar o prop exato do tipo solicitado no interiorProps
+        if (mapSystem && mapSystem.interiorProps) {
+          const typeMap = {
+            arch: 'gothic_arch',
+            cathedral: 'cathedral_wall',
+            colonnade: 'colonnade',
+            mausoleum: 'imperial_mausoleum',
+            fountain: 'ancient_fountain',
+            gallows: 'gallows_gibbet',
+            megalith: 'megalith_circle',
+            memorial: 'battlefield_memorial'
+          };
+          const targetType = typeMap[preset];
+          let found = null;
+          for (let p of mapSystem.interiorProps) {
+            if (p._propType === targetType) {
+              found = p;
+              break;
+            }
+          }
+          if (found) {
+            targetLookAt.copy(found.position);
+            targetLookAt.y = 15;
+            targetDistance = (preset === 'cathedral' || preset === 'colonnade' || preset === 'mausoleum') ? 95 : 75;
+            targetPolar = 1.28;
+          }
+        }
+      }
+    };
+
+    // Iluminação
+    window.setLighting = function(mode) {
+      document.querySelectorAll('[id^="light-"]').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('light-' + mode);
+      if (btn) btn.classList.add('active');
+
+      if (mode === 'royal') {
+        ambientLight.color.setHex(0x5a526c);
+        ambientLight.intensity = 0.70;
+        dirLight.color.setHex(0xc8d2ff);
+        dirLight.intensity = 1.2;
+      } else if (mode === 'midnight') {
+        ambientLight.color.setHex(0x18102a);
+        ambientLight.intensity = 0.40;
+        dirLight.color.setHex(0x4c3575);
+        dirLight.intensity = 0.7;
+      } else if (mode === 'blood') {
+        ambientLight.color.setHex(0x4a1820);
+        ambientLight.intensity = 0.65;
+        dirLight.color.setHex(0xff3344);
+        dirLight.intensity = 1.4;
+      } else if (mode === 'forge') {
+        ambientLight.color.setHex(0x3d1a08);
+        ambientLight.intensity = 0.55;
+        dirLight.color.setHex(0xf97316);
+        dirLight.intensity = 1.3;
+      }
+    };
+
+    window.toggleTurntable = function() {
+      isTurntableActive = !isTurntableActive;
+      document.getElementById('toggle-turntable').classList.toggle('active', isTurntableActive);
+    };
+
+    window.toggleWireframe = function() {
+      isWireframeActive = !isWireframeActive;
+      document.getElementById('toggle-wireframe').classList.toggle('active', isWireframeActive);
+      if (mapSystem && mapSystem.materials) {
+        Object.values(mapSystem.materials).forEach(m => {
+          m.wireframe = isWireframeActive;
+        });
+      }
+    };
+
+    // Render Loop
+    let lastTime = performance.now();
+    let frameCount = 0;
+    let lastFpsUpdate = performance.now();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const now = performance.now();
+      const dt = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
+
+      frameCount++;
+      if (now - lastFpsUpdate > 500) {
+        const fps = Math.round((frameCount * 1000) / (now - lastFpsUpdate));
+        document.getElementById('fps-text').innerText = fps + ' FPS';
+        frameCount = 0;
+        lastFpsUpdate = now;
+      }
+
+      // WASD Movimentação Livre da Câmera
+      const moveSpeed = (keysDown['shift'] ? 300 : 120) * dt;
+      const forward = new THREE.Vector3(-Math.sin(currentAzimuth), 0, -Math.cos(currentAzimuth));
+      const right = new THREE.Vector3(Math.cos(currentAzimuth), 0, -Math.sin(currentAzimuth));
+
+      if (keysDown['w'] || keysDown['arrowup']) targetLookAt.addScaledVector(forward, moveSpeed);
+      if (keysDown['s'] || keysDown['arrowdown']) targetLookAt.addScaledVector(forward, -moveSpeed);
+      if (keysDown['d'] || keysDown['arrowright']) targetLookAt.addScaledVector(right, moveSpeed);
+      if (keysDown['a'] || keysDown['arrowleft']) targetLookAt.addScaledVector(right, -moveSpeed);
+
+      // Rotação Turntable
+      if (isTurntableActive && !isDragging) {
+        targetAzimuth += dt * 0.08;
+      }
+
+      // Interpolação suave de Câmera
+      currentAzimuth += (targetAzimuth - currentAzimuth) * 0.1;
+      currentPolar += (targetPolar - currentPolar) * 0.1;
+      currentDistance += (targetDistance - currentDistance) * 0.1;
+      currentLookAt.lerp(targetLookAt, 0.1);
+
+      camera.position.x = currentLookAt.x + currentDistance * Math.sin(currentPolar) * Math.sin(currentAzimuth);
+      camera.position.y = currentLookAt.y + currentDistance * Math.cos(currentPolar);
+      camera.position.z = currentLookAt.z + currentDistance * Math.sin(currentPolar) * Math.cos(currentAzimuth);
+      camera.lookAt(currentLookAt);
+
+      // Atualizar o Mapa em torno do foco da câmera
+      if (mapSystem && mapSystem.update) {
+        mapSystem.update(currentLookAt.x, currentLookAt.z, dt);
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+  </script>
+</body>
+</html>

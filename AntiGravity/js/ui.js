@@ -3168,10 +3168,55 @@ class UIController {
 
     const updatesData = [
       {
+        version: 'v2.4.0',
+        eraName: 'O Reino Renascido: Grande Rework Visual 3D do Cenário, Ruínas & Biomas',
+        date: '6 de Novembro de 2026',
+        isLatest: true,
+        summary: 'Reformulação monumental do ambiente 3D procedural e arquitetura gótica de Valoria: novo relevo tátil com mapa de Bump procedural em 1024x1024; pavimentação de alta fidelidade com lajotas de pedra desgastadas, micro-fissuras, musgo e roseta central de catedral; distribuição densa de mais de 420 estruturas e escombros pelo mapa em grade de 16 setores geográficos (eliminando toda sensação de vazio); monumentos arquitetônicos imponentes (Arcos Góticos com pontas lavradas e lanternas penduradas, Colunatas em Ruínas com dentilos, Paredes de Nave de Catedral com janelas ogivais de traceria e vitrais radiantes cobalto/rubi, Mausoléus com sarcófago interno e tocheiros, Fontes Antigas com spouts de leão e jatos de água, Forcas com gaiolas de gibbet oscilantes ao vento, Círculos Megalíticos com runas druídicas pulsantes e Santuários de Estrada com velas de cera acesas); Praça Central da Cidadela com plataforma octogonal, estrela dourada de 8 pontas, 4 monumentos guardiões com braseiros cerimoniais e estandartes heráldicos reais com física de vento; além de névoa rasteira volumétrica animada e o novo Showcase 3D Interativo do Mapa!',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'CENÁRIO 3D',
+            title: 'Monumentos & Arquitetura Gótica Imponente',
+            desc: 'Implementação de marcos monumentais proceduralmente esculpidos em Three.js: Arcos Góticos ogivais com lanternas de ferro, Colunatas imperiais sobre estilóbatas com entablamento de dentilos, Paredes de Catedral com vitrais góticos coloridos e arcobotantes, Mausoléus com sarcófagos visíveis e tocheiros, e Fontes octogonais com spouts de leão e cascatas d\'água.'
+          },
+          {
+            type: 'feature',
+            badge: 'CINEMÁTICA',
+            title: 'Animações Ambientais & Cinemática de Vento',
+            desc: 'O mundo agora ganha vida: chamas de tochas e braseiros tremulam organicamente em tempo real, estandartes heráldicos ondulam com física senoidal de vento, a gaiola de gibbet da forca balança na brisa, fontes d\'água ondulam e runas druídicas respiram com pulso etéreo.'
+          },
+          {
+            type: 'feature',
+            badge: 'AMBIENTAÇÃO',
+            title: 'Praça Central da Cidadela & Santuário',
+            desc: 'A área de início agora é uma praça fortificada monumental: tablado octogonal elevado com embutimento de ouro, selo de obsidiana com estrela dourada de 8 pontas, 4 pilares guardiões com braseiros de bronze, bancos de pedra com descansos de braço e estandartes heráldicos esvoaçantes.'
+          },
+          {
+            type: 'improvement',
+            badge: 'DENSIDADE',
+            title: 'Preenchimento Denso Anti-Vazio & Frustum Culling',
+            desc: 'Aumento colossal de ~70 props para mais de 420 elementos distribuídos em 16 setores geográficos (marcos, médios e micro-detalhes como escombros, tambores caídos e memoriais), mantendo 60 FPS cravados via matrizes congeladas e distância de renderização dinâmica de 750 unidades.'
+          },
+          {
+            type: 'feature',
+            badge: 'PAVIMENTO',
+            title: 'Piso de Catedral em 1024x1024 & Bump Map Tátil',
+            desc: 'Nova textura procedural com mapa de relevo Bump Map dedicado: ranhuras profundas de argamassa, chanfros elevados nas lajotas, fraturas naturais e roseta gótica sombreada, complementada por camadas de névoa rasteira com ondulação suave.'
+          },
+          {
+            type: 'feature',
+            badge: 'SHOWCASE 3D',
+            title: 'Showcase 3D Interativo de Mapas & Biomas',
+            desc: 'Visualizador 3D dedicado com câmera orbital 360°, voo livre WASD, alternador ao vivo entre os 4 biomas (Ruínas, Necrópole, Floresta e Fortaleza Carmesim), modos de iluminação e inspetor de landmarks.'
+          }
+        ]
+      },
+      {
         version: 'v2.3.0',
         eraName: 'O Boticário da Morte: Rework Visual 3D do Alquimista da Peste',
         date: '3 de Novembro de 2026',
-        isLatest: true,
+        isLatest: false,
         summary: 'Rework visual completo em Three.js procedural do Alquimista da Peste (Dr. Corvus Maledictus): modelagem PBR de alta fidelidade com sobretudo de médico em couro encerado, bandoleira com frascos de ácido esmeralda, máscara de corvo em marfim antigo com filtros de purificação em latão, óculos herméticos com lentes esmeralda luminescentes, chapéu clássico de abas largas, alambique portátil com caldeira de cobre e tubos de condensação nas costas, incensário pendurado na cintura e o novo Frasco de Vitríolo Pútrido com gaiola protetora e emissão ativa de vapores tóxicos volumétricos.',
         categories: [
           {
@@ -3557,7 +3602,7 @@ class UIController {
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v2.3.0 (O Boticário da Morte: Rework Visual 3D do Alquimista da Peste)</strong>
+              <strong class="text-gold">v2.4.0 (O Reino Renascido: Grande Rework Visual 3D do Cenário, Ruínas & Biomas)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>

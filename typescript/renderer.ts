@@ -1,8 +1,3 @@
-/// <reference path="./types.d.ts" />
-/**
- * The Fallen Kingdom - renderer.ts (TypeScript Source)
- */
-
 /**
  * Medieval Survivors - 3D WebGL Game Renderer (Three.js)
  * Full 3D Isometric Engine with Dynamic Lighting, Procedural Generative Maps, and 3D Characters.
@@ -627,7 +622,7 @@ class GameRenderer {
     this.updateCamera(player, dt);
 
     // 2. Update Generative Map Chunks around Player
-    if (this.map3D && this.map3D.update) { this.map3D.update(player.x, player.y); }
+    if (this.map3D && this.map3D.update) { this.map3D.update(player.x, player.y, dt); }
 
     // 3. Update Player 3D Mesh
     this.updatePlayerMesh(player, dt);
@@ -1554,3 +1549,4 @@ class GameRenderer {
 
 window.MedievalSurvivors = window.MedievalSurvivors || {};
 window.MedievalSurvivors.GameRenderer = GameRenderer;
+
