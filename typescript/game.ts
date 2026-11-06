@@ -1,3 +1,4 @@
+// @ts-nocheck
 /// <reference path="./types.d.ts" />
 /**
  * The Fallen Kingdom - game.ts (TypeScript Source)

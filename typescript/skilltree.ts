@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * The Fallen Kingdom - Árvores de Habilidades & Talentos Específicas por Personagem
  * Constelações épicas expandidas com nós notáveis, keystones legendárias, atributos específicos

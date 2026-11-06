@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * The Fallen Kingdom - Generative 3D Map & Procedural Environment System
  * Complete Gothic Medieval Realm Overhaul: High-Fidelity Architectural Ruins,

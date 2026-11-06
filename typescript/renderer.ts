@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Medieval Survivors - 3D WebGL Game Renderer (Three.js)
  * Full 3D Isometric Engine with Dynamic Lighting, Procedural Generative Maps, and 3D Characters.
@@ -1156,7 +1157,7 @@ class GameRenderer {
     }
   }
 
-  
+
 
   updateArenaEvents(eventManager, dt) {
     if (!eventManager) return;

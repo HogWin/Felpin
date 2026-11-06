@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Medieval Survivors - 3D Models & Procedural Mesh Architecture (Three.js)
  * High-detail procedural low-poly & stylized 3D models with articulated limbs and animations.

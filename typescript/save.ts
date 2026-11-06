@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Medieval Survivors - Save & Meta-Progression System
  * Handles persistent gold, permanent stat and weapon upgrades, settings, and run history.

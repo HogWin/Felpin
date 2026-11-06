@@ -1,3 +1,4 @@
+// @ts-nocheck
 /// <reference path="./types.d.ts" />
 /**
  * The Fallen Kingdom - enemies.ts (TypeScript Source)

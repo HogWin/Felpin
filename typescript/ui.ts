@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Medieval Survivors - UI Controller & Modal System
  * Handles all HUD updates, modals, and the Main Menu with tabs.

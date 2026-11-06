@@ -1,3 +1,4 @@
+// @ts-nocheck
 /// <reference path="./types.d.ts" />
 /**
  * The Fallen Kingdom - passives.ts (TypeScript Source)

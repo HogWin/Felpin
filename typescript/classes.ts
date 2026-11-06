@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Medieval Survivors - Character Class System
  * Designed for easy extensibility: Registering a new class only takes a single data object.

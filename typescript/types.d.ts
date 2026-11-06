@@ -134,3 +134,8 @@ declare namespace MedievalSurvivors {
 
 declare let THREE: any;
 
+interface Window {
+  MedievalSurvivors: any;
+  THREE: any;
+}
+

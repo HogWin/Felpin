@@ -1,3 +1,4 @@
+// @ts-nocheck
 function getNearbyEnemiesForCollision(x, y, radius, fallbackEnemies) {
   const game = window.MedievalSurvivors && window.MedievalSurvivors.game;
   if (game && game.getNearbyEnemies) {

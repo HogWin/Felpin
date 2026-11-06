@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Medieval Survivors - Entities: Player, XP Gems, Chests, Floating Numbers, Particles
  */

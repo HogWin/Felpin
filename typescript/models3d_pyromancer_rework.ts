@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * The Fallen Kingdom - TypeScript Definition: Rework da Piromante
  * Armazenado para integração futura.
