@@ -4166,6 +4166,13 @@ body, html {
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.tree-node text {
+  user-select: none;
+  pointer-events: none;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Android Emoji', sans-serif;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
 .tree-node:hover {
   filter: brightness(1.25);
 }

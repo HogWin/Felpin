@@ -87,6 +87,16 @@ class Player {
     this.baseCritChance = classDef.id === 'assassin' ? 0.25 : 0.05;
     this.critMultiplier = classDef.id === 'assassin' ? 2.5 : 1.5;
 
+    // Skill Tree Class-Specific Scaling Perks
+    this.thornsReflection = 0;
+    this.phoenixRebirth = false;
+    this._phoenixRebirthUsed = false;
+    this.swordBoost = 0;
+    this.bowPierce = 0;
+    this.fireExplosion = 0;
+    this.holyAuraBonus = 0;
+    this.plagueAreaBonus = 0;
+
     // Initialize starting weapon
     const startingWep = window.MedievalSurvivors.weapons.create(classDef.startingWeapon);
     if (startingWep) {
@@ -257,14 +267,46 @@ class Player {
       window.MedievalSurvivors.game.renderer.triggerShake(4, 0.18);
     }
 
-    // Dark Knight perk: Retaliação de Espinhos
-    if (this.classDef.id === 'dark_knight' && window.MedievalSurvivors.game) {
+    // Thorns Reflection: Dark Knight perk or Skill Tree thornsReflection bonus
+    if ((this.classDef.id === 'dark_knight' || (this.thornsReflection && this.thornsReflection > 0)) && window.MedievalSurvivors.game) {
       this.triggerThornBurst(reduced, window.MedievalSurvivors.game);
     }
 
     if (this.hp <= 0) {
-      this.hp = 0;
-      this.alive = false;
+      // Skill Tree: Phoenix Rebirth (Pyromancer Keystone)
+      if (this.phoenixRebirth && !this._phoenixRebirthUsed) {
+        this._phoenixRebirthUsed = true;
+        this.hp = Math.round(this.maxHp * 0.5);
+        this.invulnerableTimer = 3.0;
+        if (window.MedievalSurvivors.game) {
+          const g = window.MedievalSurvivors.game;
+          if (g.particles && g.particles.createExplosionWave) {
+            g.particles.createExplosionWave(this.x, this.y, 140, '#f39c12');
+            g.particles.createExplosionWave(this.x, this.y, 80, '#e74c3c');
+          }
+          if (g.addFloatingText) {
+            g.addFloatingText(this.x, this.y - 30, 'RENASCIMENTO DA FÊNIX! 🔥', '#f39c12', true);
+          }
+          if (g.enemies) {
+            for (let i = 0, len = g.enemies.length; i < len; i++) {
+              const e = g.enemies[i];
+              if (!e.alive) continue;
+              const dx = e.x - this.x;
+              const dy = e.y - this.y;
+              if (dx * dx + dy * dy <= 160 * 160) {
+                const dist = Math.hypot(dx, dy) || 1;
+                e.takeDamage(150, dx / dist, dy / dist, 25);
+              }
+            }
+          }
+          if (window.MedievalSurvivors.sound && window.MedievalSurvivors.sound.playSanctuaryComplete) {
+            window.MedievalSurvivors.sound.playSanctuaryComplete();
+          }
+        }
+      } else {
+        this.hp = 0;
+        this.alive = false;
+      }
     }
 
     return reduced;
@@ -272,8 +314,9 @@ class Player {
 
   triggerThornBurst(damageTaken, game) {
     if (!game || !game.enemies) return;
-    const thornDamage = Math.round(25 + damageTaken * 1.5);
-    const radius = 95;
+    const reflectionMultiplier = 1.0 + (this.thornsReflection || 0);
+    const thornDamage = Math.round((25 + damageTaken * 1.5) * reflectionMultiplier);
+    const radius = 95 + Math.round((this.thornsReflection || 0) * 40);
     for (let i = 0, len = game.enemies.length; i < len; i++) {
       const e = game.enemies[i];
       if (!e.alive) continue;
@@ -285,7 +328,7 @@ class Player {
       }
     }
     if (game.particles && game.particles.createExplosionWave) {
-      game.particles.createExplosionWave(this.x, this.y, 45, '#e74c3c');
+      game.particles.createExplosionWave(this.x, this.y, radius * 0.5, '#e74c3c');
     }
     if (game.renderer && game.renderer.triggerShake) {
       game.renderer.triggerShake(6, 0.25);

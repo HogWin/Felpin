@@ -1,12 +1,7 @@
-/// <reference path="./types.d.ts" />
-/**
- * The Fallen Kingdom - skilltree.ts (TypeScript Source)
- */
-
 /**
  * The Fallen Kingdom - Árvores de Habilidades & Talentos Específicas por Personagem
- * Cada classe possui sua própria constelação de talentos dedicada, com bônus e keystones cruciais.
- * Todas as árvores são acessíveis na mesma página através de botões de alternância.
+ * Constelações épicas expandidas com nós notáveis, keystones legendárias, atributos específicos
+ * de escalonamento por classe, custo gradual em Éter Ancestral e glifos/símbolos visuais.
  */
 (function() {
   'use strict';
@@ -15,7 +10,7 @@
   "knight": {
     "id": "knight",
     "name": "Cavaleiro Real",
-    "subtitle": "Bastião da Cidadela, Armadura & Maestria com Espadas",
+    "subtitle": "Bastião da Cidadela, Armadura Pesada & Maestria com Espadas",
     "icon": "🛡️",
     "color": "#f1c40f",
     "originId": "knight_orig",
@@ -25,7 +20,7 @@
         "name": "Fortaleza de Aço",
         "color": "#e74c3c",
         "icon": "🛡️",
-        "subtitle": "Armadura Pesada, Escudo & Redução de Dano"
+        "subtitle": "Armadura Pesada, Espinhos & Redução de Dano"
       },
       "blades": {
         "id": "blades",
@@ -40,6 +35,13 @@
         "color": "#c0392b",
         "icon": "❤️",
         "subtitle": "Vida Titânica, Regeneração & Segundo Fôlego"
+      },
+      "valor": {
+        "id": "valor",
+        "name": "Baluarte da Honra",
+        "color": "#d35400",
+        "icon": "👑",
+        "subtitle": "Ímã de Ouro, Cooldown & Glória da Coroa"
       }
     },
     "nodes": [
@@ -49,2783 +51,3807 @@
         "name": "Coração de Aço",
         "branch": "center",
         "tier": "origin",
-        "x": 500,
-        "y": 500,
+        "x": 900,
+        "y": 900,
         "cost": 0,
         "reqBranchCount": 0,
         "connects": [],
         "stats": {},
+        "icon": "👑",
+        "badge": "ORIGEM",
         "statText": "Centelha da Constelação de Cavaleiro Real",
         "description": "O juramento sagrado do Cavaleiro de Valoria: proteger os indefesos com escudo inquebrável e lâmina nobre."
       },
       {
-        "id": "knight_fortress_1",
+        "id": "knight_fort_1",
         "classId": "knight",
         "name": "Placas Reforçadas",
         "branch": "fortress",
         "tier": "minor",
-        "x": 500,
-        "y": 420,
-        "cost": 45,
+        "x": 900,
+        "y": 780,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "knight_orig"
         ],
         "stats": {
-          "armor": 1.0
+          "armor": 1.5
         },
-        "statText": "+1 de Armadura",
-        "description": "Forja de ferro nobre concede defesa física básica."
+        "icon": "🛡️",
+        "badge": "DEFESA",
+        "statText": "+1.5 Armadura",
+        "description": "Forja básica de aço nobre para mitigar impactos."
       },
       {
-        "id": "knight_fortress_2",
+        "id": "knight_fort_2",
         "classId": "knight",
         "name": "Malha Entrelaçada",
         "branch": "fortress",
         "tier": "minor",
-        "x": 440,
-        "y": 340,
-        "cost": 70,
+        "x": 840,
+        "y": 700,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "knight_fortress_1"
+          "knight_fort_1"
         ],
         "stats": {
-          "armor": 0.5,
-          "maxHp": 10
+          "armor": 1,
+          "maxHp": 20
         },
-        "statText": "+0.5 Armadura, +10 HP Máximo",
-        "description": "Reduz ferimentos e absorve o impacto de golpes de monstros."
+        "icon": "🛡️",
+        "badge": "DEFESA",
+        "statText": "+1.0 Armadura, +20 HP Máximo",
+        "description": "Malha fina de aço absorve ferimentos graves."
       },
       {
-        "id": "knight_fortress_3",
+        "id": "knight_fort_3",
         "classId": "knight",
         "name": "Guarda Sagrada",
         "branch": "fortress",
         "tier": "minor",
-        "x": 560,
-        "y": 340,
-        "cost": 70,
+        "x": 960,
+        "y": 700,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "knight_fortress_1"
+          "knight_fort_1"
         ],
         "stats": {
-          "maxHp": 15,
-          "hpRegen": 0.3
+          "maxHp": 30,
+          "hpRegen": 0.4
         },
-        "statText": "+15 HP Máximo, +0.3 HP Regen/s",
-        "description": "A fé dos ancestrais renova o fôlego do combatente."
+        "icon": "❤️",
+        "badge": "VITALIDADE",
+        "statText": "+30 HP Máximo, +0.4 HP Regen/s",
+        "description": "Fé ancestral concedendo resistência física."
       },
       {
-        "id": "knight_fortress_not",
+        "id": "knight_fort_4",
+        "classId": "knight",
+        "name": "Carapaça Gótica",
+        "branch": "fortress",
+        "tier": "minor",
+        "x": 800,
+        "y": 620,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_fort_2"
+        ],
+        "stats": {
+          "armor": 2,
+          "maxHp": 25
+        },
+        "icon": "🛡️",
+        "badge": "DEFESA",
+        "statText": "+2.0 Armadura, +25 HP Máximo",
+        "description": "Placas caneladas desenhadas para desviar estilhaços."
+      },
+      {
+        "id": "knight_fort_5",
+        "classId": "knight",
+        "name": "Espinhos de Ferro",
+        "branch": "fortress",
+        "tier": "minor",
+        "x": 1000,
+        "y": 620,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_fort_3"
+        ],
+        "stats": {
+          "thornsReflection": 20,
+          "armor": 1.5
+        },
+        "icon": "🌵",
+        "badge": "RETALIAÇÃO",
+        "statText": "+20 Retaliação de Espinhos, +1.5 Armadura",
+        "description": "Cravos forjados que ferem monstros ao atacarem o cavaleiro."
+      },
+      {
+        "id": "knight_fort_not",
         "classId": "knight",
         "name": "Bastião Impenetrável",
         "branch": "fortress",
         "tier": "notable",
-        "x": 500,
-        "y": 255,
-        "cost": 180,
+        "x": 900,
+        "y": 560,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "knight_fortress_2",
-          "knight_fortress_3"
+          "knight_fort_4",
+          "knight_fort_5"
         ],
         "stats": {
-          "armor": 2.5,
-          "maxHp": 25
+          "armor": 4,
+          "maxHp": 60,
+          "thornsReflection": 25
         },
-        "statText": "+2.5 Armadura, +25 HP Máximo",
+        "icon": "🛡️",
+        "badge": "NOTÁVEL",
+        "statText": "+4.0 Armadura, +60 HP Máx, +25 Espinhos",
         "description": "NOTÁVEL: Uma muralha viva capaz de suportar as investidas dos maiores colossos."
       },
       {
-        "id": "knight_fortress_key",
+        "id": "knight_fort_6",
         "classId": "knight",
-        "name": "Fortaleza Imóvel",
+        "name": "Muralha dos Reis",
         "branch": "fortress",
-        "tier": "keystone",
-        "x": 500,
-        "y": 150,
-        "cost": 450,
+        "tier": "minor",
+        "x": 860,
+        "y": 460,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "knight_fortress_not"
+          "knight_fort_not"
         ],
         "stats": {
-          "armor": 6.0,
-          "maxHp": 60,
-          "colossusPact": true
+          "armor": 3.5,
+          "maxHp": 50
         },
-        "statText": "+6 Armadura, +60 HP Máximo, Barreira Sacra",
-        "description": "PEDRA ANGULAR: Reduz todo o dano físico sofrido em 35% e concede imunidade a atordoamento."
+        "icon": "🛡️",
+        "badge": "DEFESA",
+        "statText": "+3.5 Armadura, +50 HP Máximo",
+        "description": "Camada dupla de couraça dos campeões de Valoria."
       },
       {
-        "id": "knight_blades_1",
+        "id": "knight_fort_7",
+        "classId": "knight",
+        "name": "Armadura Punitiva",
+        "branch": "fortress",
+        "tier": "minor",
+        "x": 940,
+        "y": 460,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "knight_fort_not"
+        ],
+        "stats": {
+          "thornsReflection": 45,
+          "armor": 2.5
+        },
+        "icon": "🌵",
+        "badge": "RETALIAÇÃO",
+        "statText": "+45 Retaliação de Espinhos, +2.5 Armadura",
+        "description": "Contra-ataque cortante automático em cada golpe sofrido."
+      },
+      {
+        "id": "knight_fort_key",
+        "classId": "knight",
+        "name": "Bastião Colossal",
+        "branch": "fortress",
+        "tier": "keystone",
+        "x": 900,
+        "y": 340,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "knight_fort_6",
+          "knight_fort_7"
+        ],
+        "stats": {
+          "armor": 8,
+          "maxHp": 120,
+          "colossusPact": true
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+8 Armadura, +120 HP, Pacto do Colosso",
+        "description": "PEDRA ANGULAR: Converte 50% de toda a sua Armadura em regeneração contínua de HP por segundo!"
+      },
+      {
+        "id": "knight_blad_1",
         "classId": "knight",
         "name": "Lâmina Afiada",
         "branch": "blades",
         "tier": "minor",
-        "x": 580,
-        "y": 560,
-        "cost": 45,
+        "x": 1020,
+        "y": 900,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "knight_orig"
         ],
         "stats": {
-          "damageMult": 0.08,
-          "swordBoost": 0.1
+          "swordBoost": 0.12,
+          "damageMult": 0.05
         },
-        "statText": "+8% Dano com Espadas",
-        "description": "Afiação de elite amplia os arcos cortantes da espada."
+        "icon": "⚔️",
+        "badge": "ESGRIMA",
+        "statText": "+12% Dano de Espadas, +5% Dano Geral",
+        "description": "Afiação esmerilhada em pedra de amolar de alta qualidade."
       },
       {
-        "id": "knight_blades_2",
+        "id": "knight_blad_2",
         "classId": "knight",
         "name": "Arco Amplo",
         "branch": "blades",
         "tier": "minor",
-        "x": 660,
-        "y": 500,
-        "cost": 70,
+        "x": 1100,
+        "y": 840,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "knight_blades_1"
+          "knight_blad_1"
         ],
         "stats": {
-          "areaMult": 0.15
+          "areaMult": 0.18
         },
-        "statText": "+15% Área de Corte da Espada",
-        "description": "Varredura ampla decepa hordas inteiras à sua frente."
+        "icon": "💥",
+        "badge": "AMPLITUDE",
+        "statText": "+18% Área de Corte da Espada",
+        "description": "Varredura circular que alcança hordas mais distantes."
       },
       {
-        "id": "knight_blades_3",
+        "id": "knight_blad_3",
         "classId": "knight",
         "name": "Peso do Aço",
         "branch": "blades",
         "tier": "minor",
-        "x": 660,
-        "y": 620,
-        "cost": 70,
+        "x": 1100,
+        "y": 960,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "knight_blades_1"
+          "knight_blad_1"
         ],
         "stats": {
-          "damageMult": 0.1,
-          "critChance": 0.05
+          "critChance": 0.06,
+          "damageMult": 0.08
         },
-        "statText": "+10% Dano Global, +5% Chance Crítica",
-        "description": "Golpes pesados encontram as fraquezas dos monstros."
+        "icon": "🎯",
+        "badge": "CRÍTICO",
+        "statText": "+6% Chance Crítica, +8% Dano Geral",
+        "description": "Golpes certeiros encontram as frestas nas carapaças inimigas."
       },
       {
-        "id": "knight_blades_not",
+        "id": "knight_blad_4",
+        "classId": "knight",
+        "name": "Fissura Cortante",
+        "branch": "blades",
+        "tier": "minor",
+        "x": 1180,
+        "y": 800,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_blad_2"
+        ],
+        "stats": {
+          "areaMult": 0.22,
+          "swordBoost": 0.15
+        },
+        "icon": "💥",
+        "badge": "AMPLITUDE",
+        "statText": "+22% Área de Corte, +15% Dano de Espadas",
+        "description": "O peso da lâmina cria um vácuo destrutivo no ar."
+      },
+      {
+        "id": "knight_blad_5",
+        "classId": "knight",
+        "name": "Golpe da Ruína",
+        "branch": "blades",
+        "tier": "minor",
+        "x": 1180,
+        "y": 1000,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_blad_3"
+        ],
+        "stats": {
+          "critChance": 0.08,
+          "critDamage": 0.35
+        },
+        "icon": "🎯",
+        "badge": "LETALIDADE",
+        "statText": "+8% Chance Crítica, +35% Dano Crítico",
+        "description": "Acertos críticos causam devastação avassaladora."
+      },
+      {
+        "id": "knight_blad_not",
         "classId": "knight",
         "name": "Vendaval de Aço",
         "branch": "blades",
         "tier": "notable",
-        "x": 745,
-        "y": 560,
-        "cost": 180,
+        "x": 1240,
+        "y": 900,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "knight_blades_2",
-          "knight_blades_3"
+          "knight_blad_4",
+          "knight_blad_5"
         ],
         "stats": {
-          "areaMult": 0.25,
-          "damageMult": 0.2,
-          "swordBoost": 0.2
+          "areaMult": 0.3,
+          "swordBoost": 0.25,
+          "critChance": 0.1
         },
-        "statText": "+25% Área e +20% Dano de Espadas",
-        "description": "NOTÁVEL: Cada golpe de espada cria um vácuo mortal de cortes em cadeia."
+        "icon": "⚔️",
+        "badge": "NOTÁVEL",
+        "statText": "+30% Área, +25% Dano Espada, +10% Crítico",
+        "description": "NOTÁVEL: Cada golpe de espada cria vórtices cortantes que fatiam hordas inteiras."
       },
       {
-        "id": "knight_blades_key",
+        "id": "knight_blad_6",
         "classId": "knight",
-        "name": "Corte do Juízo Real",
+        "name": "Lacerador dos Caídos",
         "branch": "blades",
-        "tier": "keystone",
-        "x": 850,
-        "y": 560,
-        "cost": 450,
+        "tier": "minor",
+        "x": 1340,
+        "y": 860,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "knight_blades_not"
+          "knight_blad_not"
         ],
         "stats": {
-          "critDamage": 0.4,
-          "shockwaveOnCrit": true
+          "swordBoost": 0.35,
+          "areaMult": 0.2
         },
-        "statText": "Ondas de Choque Sagradas & +40% Dano Crítico",
-        "description": "PEDRA ANGULAR: Golpes de espada desferem ondas de choque sagradas que aniquilam monstros distantes."
+        "icon": "⚔️",
+        "badge": "ESGRIMA",
+        "statText": "+35% Dano de Espadas, +20% Área",
+        "description": "Maestria nobre em desferir golpes limpos e fatais."
       },
       {
-        "id": "knight_vitality_1",
+        "id": "knight_blad_7",
         "classId": "knight",
-        "name": "Vigor Nobre",
+        "name": "Impacto Devastador",
+        "branch": "blades",
+        "tier": "minor",
+        "x": 1340,
+        "y": 940,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "knight_blad_not"
+        ],
+        "stats": {
+          "critChance": 0.12,
+          "critDamage": 0.5
+        },
+        "icon": "🎯",
+        "badge": "LETALIDADE",
+        "statText": "+12% Chance Crítica, +50% Dano Crítico",
+        "description": "Transfixa as carnes pútridas com precisão letal."
+      },
+      {
+        "id": "knight_blad_key",
+        "classId": "knight",
+        "name": "Fenda Sísmica",
+        "branch": "blades",
+        "tier": "keystone",
+        "x": 1460,
+        "y": 900,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "knight_blad_6",
+          "knight_blad_7"
+        ],
+        "stats": {
+          "swordBoost": 0.5,
+          "shockwaveOnCrit": true
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+50% Dano Espada, Ondas de Choque em Críticos",
+        "description": "PEDRA ANGULAR: Todo golpe crítico com espada desencadeia uma fenda sísmica com ondas de choque devastadoras!"
+      },
+      {
+        "id": "knight_vit_1",
+        "classId": "knight",
+        "name": "Sangue Nobre",
         "branch": "vitality",
         "tier": "minor",
-        "x": 420,
-        "y": 560,
-        "cost": 45,
+        "x": 900,
+        "y": 1020,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "knight_orig"
         ],
         "stats": {
-          "maxHp": 15
-        },
-        "statText": "+15 HP Máximo",
-        "description": "Linhagem real de guerreiros lendários."
-      },
-      {
-        "id": "knight_vitality_2",
-        "classId": "knight",
-        "name": "Determinação",
-        "branch": "vitality",
-        "tier": "minor",
-        "x": 340,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "knight_vitality_1"
-        ],
-        "stats": {
+          "maxHp": 30,
           "hpRegen": 0.4
         },
-        "statText": "+0.4 HP Regen/s",
-        "description": "Regeneração celular constante mesmo no calor da batalha."
+        "icon": "❤️",
+        "badge": "VITALIDADE",
+        "statText": "+30 HP Máximo, +0.4 HP Regen/s",
+        "description": "Linhagem real de combatentes imunes à fadiga."
       },
       {
-        "id": "knight_vitality_3",
+        "id": "knight_vit_2",
         "classId": "knight",
-        "name": "Vontade Inabalável",
+        "name": "Vigor Inquebrável",
         "branch": "vitality",
         "tier": "minor",
-        "x": 340,
-        "y": 620,
-        "cost": 70,
+        "x": 840,
+        "y": 1100,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "knight_vitality_1"
+          "knight_vit_1"
         ],
         "stats": {
-          "maxHp": 20,
+          "maxHp": 45
+        },
+        "icon": "❤️",
+        "badge": "VITALIDADE",
+        "statText": "+45 HP Máximo",
+        "description": "Corpo esculpido para suportar ferimentos brutais."
+      },
+      {
+        "id": "knight_vit_3",
+        "classId": "knight",
+        "name": "Regeneração Celular",
+        "branch": "vitality",
+        "tier": "minor",
+        "x": 960,
+        "y": 1100,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_vit_1"
+        ],
+        "stats": {
+          "hpRegen": 0.7
+        },
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+0.7 HP Regen/s",
+        "description": "O sangue fecha cortes superficiais quase instantaneamente."
+      },
+      {
+        "id": "knight_vit_4",
+        "classId": "knight",
+        "name": "Coração de Titã",
+        "branch": "vitality",
+        "tier": "minor",
+        "x": 800,
+        "y": 1180,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_vit_2"
+        ],
+        "stats": {
+          "maxHp": 65,
           "speedMult": 0.05
         },
-        "statText": "+20 HP Máximo, +5% Vel. Movimento",
-        "description": "Determinação que impede o colapso nas horas mais sombrias."
+        "icon": "❤️",
+        "badge": "VITALIDADE",
+        "statText": "+65 HP Máximo, +5% Velocidade",
+        "description": "Músculos robustos bombeando energia vital constante."
       },
       {
-        "id": "knight_vitality_not",
+        "id": "knight_vit_5",
         "classId": "knight",
-        "name": "Sangue dos Campeões",
+        "name": "Fôlego Rápido",
+        "branch": "vitality",
+        "tier": "minor",
+        "x": 1000,
+        "y": 1180,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_vit_3"
+        ],
+        "stats": {
+          "hpRegen": 1.2,
+          "maxHp": 25
+        },
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+1.2 HP Regen/s, +25 HP Máximo",
+        "description": "Respiração rítmica marcial restaurando as forças."
+      },
+      {
+        "id": "knight_vit_not",
+        "classId": "knight",
+        "name": "Reserva dos Reis",
         "branch": "vitality",
         "tier": "notable",
-        "x": 255,
-        "y": 560,
-        "cost": 180,
+        "x": 900,
+        "y": 1240,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "knight_vitality_2",
-          "knight_vitality_3"
+          "knight_vit_4",
+          "knight_vit_5"
         ],
         "stats": {
-          "maxHp": 40,
-          "hpRegen": 0.6
+          "maxHp": 110,
+          "hpRegen": 1.8
         },
-        "statText": "+40 HP Máximo, +0.6 HP Regen/s",
-        "description": "NOTÁVEL: Vitalidade lendária capaz de suportar as catacumbas mais profundas."
+        "icon": "❤️",
+        "badge": "NOTÁVEL",
+        "statText": "+110 HP Máximo, +1.8 HP Regen/s",
+        "description": "NOTÁVEL: Uma fonte inesgotável de vigor vital que mantém o guerreiro sempre de pé."
       },
       {
-        "id": "knight_vitality_key",
+        "id": "knight_vit_6",
         "classId": "knight",
-        "name": "Segundo Fôlego",
+        "name": "Vitalidade Monolítica",
         "branch": "vitality",
-        "tier": "keystone",
-        "x": 150,
-        "y": 560,
-        "cost": 450,
+        "tier": "minor",
+        "x": 860,
+        "y": 1340,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "knight_vitality_not"
+          "knight_vit_not"
         ],
         "stats": {
-          "maxHp": 50,
-          "secondWind": true
+          "maxHp": 140,
+          "armor": 1.5
         },
-        "statText": "Cura de Emergência de 50% HP & Vigor Eterno",
-        "description": "PEDRA ANGULAR: Ao cair abaixo de 30% de vida, regenera 50% do HP instantaneamente (uma vez por run)."
+        "icon": "❤️",
+        "badge": "VITALIDADE",
+        "statText": "+140 HP Máximo, +1.5 Armadura",
+        "description": "Massa corporal densa e resistente a sangramentos."
+      },
+      {
+        "id": "knight_vit_7",
+        "classId": "knight",
+        "name": "Regeneração Divina",
+        "branch": "vitality",
+        "tier": "minor",
+        "x": 940,
+        "y": 1340,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "knight_vit_not"
+        ],
+        "stats": {
+          "hpRegen": 2.5,
+          "maxHp": 60
+        },
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+2.5 HP Regen/s, +60 HP Máximo",
+        "description": "Bênção viva que regenera ferimentos durante o próprio combate."
+      },
+      {
+        "id": "knight_vit_key",
+        "classId": "knight",
+        "name": "Segundo Fôlego Régio",
+        "branch": "vitality",
+        "tier": "keystone",
+        "x": 900,
+        "y": 1460,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "knight_vit_6",
+          "knight_vit_7"
+        ],
+        "stats": {
+          "maxHp": 220,
+          "hpRegen": 4
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+220 HP Máximo, +4.0 HP Regen/s",
+        "description": "PEDRA ANGULAR: Saúde titanicamente inabalável capaz de regenerar mesmo sob chuvas incessantes de golpes!"
+      },
+      {
+        "id": "knight_val_1",
+        "classId": "knight",
+        "name": "Vontade de Ferro",
+        "branch": "valor",
+        "tier": "minor",
+        "x": 780,
+        "y": 900,
+        "cost": 30,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_orig"
+        ],
+        "stats": {
+          "armor": 1,
+          "damageMult": 0.06
+        },
+        "icon": "🛡️",
+        "badge": "HONRA",
+        "statText": "+1.0 Armadura, +6% Dano Geral",
+        "description": "Determinação inabalável frente à escuridão."
+      },
+      {
+        "id": "knight_val_2",
+        "classId": "knight",
+        "name": "Presença Magnética",
+        "branch": "valor",
+        "tier": "minor",
+        "x": 700,
+        "y": 840,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_val_1"
+        ],
+        "stats": {
+          "magnetRadius": 0.3,
+          "goldMult": 0.12
+        },
+        "icon": "🧲",
+        "badge": "UTILIDADE",
+        "statText": "+30% Raio de Ímã, +12% Ouro",
+        "description": "A imponência régia atrai tesouros e gemas distantes."
+      },
+      {
+        "id": "knight_val_3",
+        "classId": "knight",
+        "name": "Postura Marcial",
+        "branch": "valor",
+        "tier": "minor",
+        "x": 700,
+        "y": 960,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_val_1"
+        ],
+        "stats": {
+          "cooldownReduc": 0.08
+        },
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-8% Recarga de Armas",
+        "description": "Economia de movimentos acelera os ataques sucessivos."
+      },
+      {
+        "id": "knight_val_4",
+        "classId": "knight",
+        "name": "Atração Real",
+        "branch": "valor",
+        "tier": "minor",
+        "x": 620,
+        "y": 800,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_val_2"
+        ],
+        "stats": {
+          "magnetRadius": 0.45,
+          "xpMult": 0.15
+        },
+        "icon": "🧲",
+        "badge": "UTILIDADE",
+        "statText": "+45% Raio de Ímã, +15% XP",
+        "description": "Atrai gemas de experiência com velocidade triplicada."
+      },
+      {
+        "id": "knight_val_5",
+        "classId": "knight",
+        "name": "Aceleração Tática",
+        "branch": "valor",
+        "tier": "minor",
+        "x": 620,
+        "y": 1000,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_val_3"
+        ],
+        "stats": {
+          "cooldownReduc": 0.12,
+          "speedMult": 0.06
+        },
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-12% Recarga de Armas, +6% Velocidade",
+        "description": "Passos firmes e postura ofensiva veloz."
+      },
+      {
+        "id": "knight_val_not",
+        "classId": "knight",
+        "name": "Suserano de Valoria",
+        "branch": "valor",
+        "tier": "notable",
+        "x": 560,
+        "y": 900,
+        "cost": 160,
+        "reqBranchCount": 2,
+        "connects": [
+          "knight_val_4",
+          "knight_val_5"
+        ],
+        "stats": {
+          "magnetRadius": 0.6,
+          "cooldownReduc": 0.15,
+          "goldMult": 0.25
+        },
+        "icon": "👑",
+        "badge": "NOTÁVEL",
+        "statText": "+60% Ímã, -15% Recarga, +25% Ouro",
+        "description": "NOTÁVEL: Presença régia que comanda o ritmo do campo de batalha e recolhe os espólios da vitória."
+      },
+      {
+        "id": "knight_val_6",
+        "classId": "knight",
+        "name": "Bastião das Bandeiras",
+        "branch": "valor",
+        "tier": "minor",
+        "x": 460,
+        "y": 860,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "knight_val_not"
+        ],
+        "stats": {
+          "armor": 3,
+          "goldMult": 0.3,
+          "xpMult": 0.2
+        },
+        "icon": "🛡️",
+        "badge": "HONRA",
+        "statText": "+3.0 Armadura, +30% Ouro, +20% XP",
+        "description": "Estandartes de glória inspiram determinação e prosperidade."
+      },
+      {
+        "id": "knight_val_7",
+        "classId": "knight",
+        "name": "Golpes Rápidos",
+        "branch": "valor",
+        "tier": "minor",
+        "x": 460,
+        "y": 940,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "knight_val_not"
+        ],
+        "stats": {
+          "cooldownReduc": 0.18,
+          "swordBoost": 0.2
+        },
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-18% Recarga de Armas, +20% Dano Espada",
+        "description": "Cadência relâmpago de golpes que não dá trégua aos carniceiros."
+      },
+      {
+        "id": "knight_val_key",
+        "classId": "knight",
+        "name": "Glória Eterna da Coroa",
+        "branch": "valor",
+        "tier": "keystone",
+        "x": 340,
+        "y": 900,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "knight_val_6",
+          "knight_val_7"
+        ],
+        "stats": {
+          "magnetRadius": 1,
+          "cooldownReduc": 0.25,
+          "goldMult": 0.5,
+          "xpMult": 0.35
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+100% Ímã, -25% Recarga, +50% Ouro, +35% XP",
+        "description": "PEDRA ANGULAR: A majestade da Coroa manifestada: atrai recursos da tela inteira e ataca em ritmo ininterrupto!"
+      },
+      {
+        "id": "knight_bridge_NW",
+        "classId": "knight",
+        "name": "Guarda em Movimento",
+        "branch": "fortress",
+        "tier": "minor",
+        "x": 740,
+        "y": 740,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_fort_2",
+          "knight_val_2"
+        ],
+        "stats": {
+          "armor": 1.5,
+          "speedMult": 0.08
+        },
+        "icon": "🛡️",
+        "badge": "SINERGIA",
+        "statText": "+1.5 Armadura, +8% Velocidade",
+        "description": "Ponte Marcial: Marcha com armadura pesada sem perder a agilidade."
+      },
+      {
+        "id": "knight_bridge_NE",
+        "classId": "knight",
+        "name": "Fúria Defensiva",
+        "branch": "blades",
+        "tier": "minor",
+        "x": 1060,
+        "y": 740,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_fort_3",
+          "knight_blad_2"
+        ],
+        "stats": {
+          "armor": 1.5,
+          "swordBoost": 0.18
+        },
+        "icon": "⚔️",
+        "badge": "SINERGIA",
+        "statText": "+1.5 Armadura, +18% Dano Espadas",
+        "description": "Ponte Marcial: O escudo protege enquanto a espada desfere golpes brutais."
+      },
+      {
+        "id": "knight_bridge_SE",
+        "classId": "knight",
+        "name": "Golpes Vitalizantes",
+        "branch": "vitality",
+        "tier": "minor",
+        "x": 1060,
+        "y": 1060,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_blad_3",
+          "knight_vit_3"
+        ],
+        "stats": {
+          "maxHp": 45,
+          "damageMult": 0.12
+        },
+        "icon": "❤️",
+        "badge": "SINERGIA",
+        "statText": "+45 HP Máximo, +12% Dano Geral",
+        "description": "Ponte Marcial: A vitalidade nobre potencializa a força dos cortes."
+      },
+      {
+        "id": "knight_bridge_SW",
+        "classId": "knight",
+        "name": "Vigor Inesgotável",
+        "branch": "valor",
+        "tier": "minor",
+        "x": 740,
+        "y": 1060,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "knight_val_3",
+          "knight_vit_2"
+        ],
+        "stats": {
+          "hpRegen": 0.8,
+          "magnetRadius": 0.35
+        },
+        "icon": "🌿",
+        "badge": "SINERGIA",
+        "statText": "+0.8 HP Regen/s, +35% Raio Ímã",
+        "description": "Ponte Marcial: Resistência lendária que converte presença em poder."
       }
     ]
   },
   "ranger": {
     "id": "ranger",
     "name": "Arqueira das Sombras",
-    "subtitle": "Patrulheira dos Bosques Malditos, Perfuração & Cadência",
+    "subtitle": "Balística Élfica, Perfuração de Projéteis & Precisão Letal",
     "icon": "🏹",
     "color": "#2ecc71",
     "originId": "ranger_orig",
     "branches": {
       "ballistics": {
         "id": "ballistics",
-        "name": "Balística Sombria",
+        "name": "Balística Élfica",
         "color": "#27ae60",
-        "icon": "🎯",
-        "subtitle": "Projéteis Múltiplos, Perfuração & Velocidade"
-      },
-      "sniping": {
-        "id": "sniping",
-        "name": "Pontaria Cirúrgica",
-        "color": "#16a085",
         "icon": "🏹",
-        "subtitle": "Acertos Críticos, Dano à Distância & Estilhaços"
+        "subtitle": "Projéteis Extras, Perfuração & Velocidade de Disparo"
       },
-      "wind": {
-        "id": "wind",
-        "name": "Passos do Vento",
-        "color": "#2ecc71",
-        "icon": "💨",
-        "subtitle": "Velocidade Tática, Esquiva & Coleta Sombria"
+      "marksmanship": {
+        "id": "marksmanship",
+        "name": "Precisão Letal",
+        "color": "#e67e22",
+        "icon": "🎯",
+        "subtitle": "Chance Crítica, Dano Crítico & Sangramento"
+      },
+      "agility": {
+        "id": "agility",
+        "name": "Passo Fantasma",
+        "color": "#1abc9c",
+        "icon": "⚡",
+        "subtitle": "Velocidade de Movimento, Wind Surge & Kiting"
+      },
+      "shadows": {
+        "id": "shadows",
+        "name": "Manto da Penumbra",
+        "color": "#9b59b6",
+        "icon": "🌑",
+        "subtitle": "Ricochete Sombrio, Alcance & Execução"
       }
     },
     "nodes": [
       {
         "id": "ranger_orig",
         "classId": "ranger",
-        "name": "Olho de Falcão",
+        "name": "Olho do Falcão",
         "branch": "center",
         "tier": "origin",
-        "x": 500,
-        "y": 500,
+        "x": 900,
+        "y": 900,
         "cost": 0,
         "reqBranchCount": 0,
         "connects": [],
         "stats": {},
-        "statText": "Centelha da Constelação de Arqueira das Sombras",
-        "description": "Visão além do alcance: a Patrulheira das Sombras rastreia presas na escuridão sem jamais errar um disparo."
+        "icon": "🏹",
+        "badge": "ORIGEM",
+        "statText": "Centelha da Constelação da Arqueira",
+        "description": "A bênção das florestas antigas: disparos que não erram e passos silenciosos nas trevas."
       },
       {
-        "id": "ranger_ballistics_1",
+        "id": "ranger_bal_1",
         "classId": "ranger",
-        "name": "Disparos Rápidos",
+        "name": "Pontas Farpadas",
         "branch": "ballistics",
         "tier": "minor",
-        "x": 500,
-        "y": 420,
-        "cost": 45,
+        "x": 900,
+        "y": 780,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "ranger_orig"
         ],
         "stats": {
-          "cooldownReduc": 0.08
-        },
-        "statText": "-8% Tempo de Recarga da Besta",
-        "description": "Mecanismo de repetição forjado pelos elfos silvestres."
-      },
-      {
-        "id": "ranger_ballistics_2",
-        "classId": "ranger",
-        "name": "Flecha Transpassante",
-        "branch": "ballistics",
-        "tier": "minor",
-        "x": 440,
-        "y": 340,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "ranger_ballistics_1"
-        ],
-        "stats": {
           "bowPierce": 1,
-          "damageMult": 0.05
+          "damageMult": 0.06
         },
-        "statText": "Projéteis perfuram +1 alvo adicional",
-        "description": "Pontas de aço negro atravessam escudos e armaduras."
+        "icon": "🏹",
+        "badge": "PERFURAÇÃO",
+        "statText": "+1 Perfuração de Flechas, +6% Dano",
+        "description": "Flechas laminadas que atravessam os primeiros alvos."
       },
       {
-        "id": "ranger_ballistics_3",
+        "id": "ranger_bal_2",
         "classId": "ranger",
-        "name": "Tensão do Arco",
+        "name": "Corda de Tendão",
         "branch": "ballistics",
         "tier": "minor",
-        "x": 560,
-        "y": 340,
-        "cost": 70,
+        "x": 840,
+        "y": 700,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "ranger_ballistics_1"
+          "ranger_bal_1"
         ],
         "stats": {
-          "damageMult": 0.08,
-          "projSpeed": 0.15
+          "cooldownReduc": 0.08,
+          "bowPierce": 1
         },
-        "statText": "+15% Velocidade de Projétil, +8% Dano",
-        "description": "Disparos supersônicos que não dão tempo de reação aos monstros."
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-8% Recarga de Arco, +1 Perfuração",
+        "description": "Tensão perfeita no arco aumenta a cadência dos tiros."
       },
       {
-        "id": "ranger_ballistics_not",
+        "id": "ranger_bal_3",
         "classId": "ranger",
-        "name": "Chuva de Flechas",
+        "name": "Disparo Duplo",
         "branch": "ballistics",
-        "tier": "notable",
-        "x": 500,
-        "y": 255,
-        "cost": 180,
-        "reqBranchCount": 2,
+        "tier": "minor",
+        "x": 960,
+        "y": 700,
+        "cost": 50,
+        "reqBranchCount": 0,
         "connects": [
-          "ranger_ballistics_2",
-          "ranger_ballistics_3"
+          "ranger_bal_1"
         ],
         "stats": {
           "extraProjectiles": 1
         },
-        "statText": "+1 Projétil Adicional permanente",
-        "description": "NOTÁVEL: Cada disparo dispara um dardo adicional em leque."
+        "icon": "🏹",
+        "badge": "MULTIDISPARO",
+        "statText": "+1 Flecha Adicional",
+        "description": "Nocka duas flechas simultaneamente em cada puxada."
       },
       {
-        "id": "ranger_ballistics_key",
+        "id": "ranger_bal_4",
         "classId": "ranger",
-        "name": "Salva Infinita",
+        "name": "Haste de Ébano",
         "branch": "ballistics",
-        "tier": "keystone",
-        "x": 500,
-        "y": 150,
-        "cost": 450,
+        "tier": "minor",
+        "x": 800,
+        "y": 620,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_bal_2"
+        ],
+        "stats": {
+          "bowPierce": 2,
+          "damageMult": 0.12
+        },
+        "icon": "🏹",
+        "badge": "PERFURAÇÃO",
+        "statText": "+2 Perfuração de Flechas, +12% Dano",
+        "description": "Madeira ultradensa perfura carapaças de ossos e ferro."
+      },
+      {
+        "id": "ranger_bal_5",
+        "classId": "ranger",
+        "name": "Aljava de Prata",
+        "branch": "ballistics",
+        "tier": "minor",
+        "x": 1000,
+        "y": 620,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_bal_3"
+        ],
+        "stats": {
+          "extraProjectiles": 1,
+          "cooldownReduc": 0.06
+        },
+        "icon": "🏹",
+        "badge": "MULTIDISPARO",
+        "statText": "+1 Flecha Adicional, -6% Recarga",
+        "description": "Capacidade expandida para chuvas de flechas."
+      },
+      {
+        "id": "ranger_bal_not",
+        "classId": "ranger",
+        "name": "Saraivada Imperial",
+        "branch": "ballistics",
+        "tier": "notable",
+        "x": 900,
+        "y": 560,
+        "cost": 160,
+        "reqBranchCount": 2,
+        "connects": [
+          "ranger_bal_4",
+          "ranger_bal_5"
+        ],
+        "stats": {
+          "extraProjectiles": 1,
+          "bowPierce": 2,
+          "cooldownReduc": 0.12
+        },
+        "icon": "🏹",
+        "badge": "NOTÁVEL",
+        "statText": "+1 Flecha, +2 Perfuração, -12% Recarga",
+        "description": "NOTÁVEL: O arco canta uma canção de morte, obscurecendo o céu com flechas."
+      },
+      {
+        "id": "ranger_bal_6",
+        "classId": "ranger",
+        "name": "Disparo Penetrante",
+        "branch": "ballistics",
+        "tier": "minor",
+        "x": 860,
+        "y": 460,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "ranger_ballistics_not"
+          "ranger_bal_not"
+        ],
+        "stats": {
+          "bowPierce": 3,
+          "damageMult": 0.2
+        },
+        "icon": "🏹",
+        "badge": "PERFURAÇÃO",
+        "statText": "+3 Perfuração de Flechas, +20% Dano",
+        "description": "Força de tração monumental transfixa fileiras de monstros."
+      },
+      {
+        "id": "ranger_bal_7",
+        "classId": "ranger",
+        "name": "Tempestade de Flechas",
+        "branch": "ballistics",
+        "tier": "minor",
+        "x": 940,
+        "y": 460,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "ranger_bal_not"
+        ],
+        "stats": {
+          "extraProjectiles": 2
+        },
+        "icon": "🏹",
+        "badge": "MULTIDISPARO",
+        "statText": "+2 Flechas Adicionais por Disparo",
+        "description": "Saturação de projéteis cobrindo todo o cone frontal."
+      },
+      {
+        "id": "ranger_bal_key",
+        "classId": "ranger",
+        "name": "Chuva de Flechas Perfurantes",
+        "branch": "ballistics",
+        "tier": "keystone",
+        "x": 900,
+        "y": 340,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "ranger_bal_6",
+          "ranger_bal_7"
         ],
         "stats": {
           "extraProjectiles": 2,
-          "bowPierce": 3
+          "bowPierce": 6,
+          "damageMult": 0.35
         },
-        "statText": "+2 Projéteis Adicionais & Perfuração Total",
-        "description": "PEDRA ANGULAR: Dispara 2 projéteis extras que perfuram até 3 inimigos sem perder força."
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+2 Flechas, +6 Perfuração, +35% Dano",
+        "description": "PEDRA ANGULAR: Seus disparos atravessam hordas inteiras de ponta a ponta sem perder ímpeto!"
       },
       {
-        "id": "ranger_sniping_1",
+        "id": "ranger_mark_1",
         "classId": "ranger",
-        "name": "Foco Mortal",
-        "branch": "sniping",
+        "name": "Foco Letal",
+        "branch": "marksmanship",
         "tier": "minor",
-        "x": 580,
-        "y": 560,
-        "cost": 45,
+        "x": 1020,
+        "y": 900,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "ranger_orig"
         ],
         "stats": {
-          "critChance": 0.06
+          "critChance": 0.08,
+          "critDamage": 0.25
         },
-        "statText": "+6% Chance de Acerto Crítico",
-        "description": "Cálculo milimétrico da trajetória do disparo."
+        "icon": "🎯",
+        "badge": "CRÍTICO",
+        "statText": "+8% Chance Crítica, +25% Dano Crítico",
+        "description": "Visão aguçada que localiza os pontos vitais dos carniceiros."
       },
       {
-        "id": "ranger_sniping_2",
+        "id": "ranger_mark_2",
         "classId": "ranger",
-        "name": "Ponta Farpada",
-        "branch": "sniping",
+        "name": "Coração Aberto",
+        "branch": "marksmanship",
         "tier": "minor",
-        "x": 660,
-        "y": 500,
-        "cost": 70,
+        "x": 1100,
+        "y": 840,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "ranger_sniping_1"
-        ],
-        "stats": {
-          "critDamage": 0.3
-        },
-        "statText": "+30% Dano de Acerto Crítico",
-        "description": "Fisgas de metal dilaceram carne e ossos no impacto."
-      },
-      {
-        "id": "ranger_sniping_3",
-        "classId": "ranger",
-        "name": "Alvo Marcado",
-        "branch": "sniping",
-        "tier": "minor",
-        "x": 660,
-        "y": 620,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "ranger_sniping_1"
+          "ranger_mark_1"
         ],
         "stats": {
           "critChance": 0.08,
           "damageMult": 0.1
         },
-        "statText": "+8% Chance Crítica, +10% Dano",
-        "description": "Monstros marcados recebem dano devastador."
+        "icon": "🎯",
+        "badge": "CRÍTICO",
+        "statText": "+8% Chance Crítica, +10% Dano Geral",
+        "description": "Golpes diretos no núcleo dos monstros."
       },
       {
-        "id": "ranger_sniping_not",
+        "id": "ranger_mark_3",
         "classId": "ranger",
-        "name": "Tiro no Coração",
-        "branch": "sniping",
-        "tier": "notable",
-        "x": 745,
-        "y": 560,
-        "cost": 180,
-        "reqBranchCount": 2,
+        "name": "Hemorragia Profunda",
+        "branch": "marksmanship",
+        "tier": "minor",
+        "x": 1100,
+        "y": 960,
+        "cost": 50,
+        "reqBranchCount": 0,
         "connects": [
-          "ranger_sniping_2",
-          "ranger_sniping_3"
+          "ranger_mark_1"
         ],
         "stats": {
-          "critChance": 0.15,
-          "critDamage": 0.45
+          "critDamage": 0.4
         },
-        "statText": "+15% Chance Crítica, +45% Dano Crítico",
-        "description": "NOTÁVEL: Acertos críticos se tornam rotina letal no campo de batalha."
+        "icon": "💥",
+        "badge": "LETALIDADE",
+        "statText": "+40% Dano Crítico",
+        "description": "Ferimentos rasgados que causam sangramentos atrozes."
       },
       {
-        "id": "ranger_sniping_key",
+        "id": "ranger_mark_4",
         "classId": "ranger",
-        "name": "Balística Estilhaçante",
-        "branch": "sniping",
-        "tier": "keystone",
-        "x": 850,
-        "y": 560,
-        "cost": 450,
-        "reqBranchCount": 3,
+        "name": "Mira Cirúrgica",
+        "branch": "marksmanship",
+        "tier": "minor",
+        "x": 1180,
+        "y": 800,
+        "cost": 80,
+        "reqBranchCount": 0,
         "connects": [
-          "ranger_sniping_not"
+          "ranger_mark_2"
+        ],
+        "stats": {
+          "critChance": 0.1,
+          "critDamage": 0.3
+        },
+        "icon": "🎯",
+        "badge": "CRÍTICO",
+        "statText": "+10% Chance Crítica, +30% Dano Crítico",
+        "description": "Cálculo milimétrico mesmo em disparos em movimento."
+      },
+      {
+        "id": "ranger_mark_5",
+        "classId": "ranger",
+        "name": "Ponta Oca",
+        "branch": "marksmanship",
+        "tier": "minor",
+        "x": 1180,
+        "y": 1000,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_mark_3"
         ],
         "stats": {
           "critDamage": 0.5,
-          "shockwaveOnCrit": true
+          "damageMult": 0.12
         },
-        "statText": "Explosões de Estilhaços nos Críticos",
-        "description": "PEDRA ANGULAR: Flechas críticas explodem em estilhaços perfurantes causando 120% dano em área."
+        "icon": "💥",
+        "badge": "LETALIDADE",
+        "statText": "+50% Dano Crítico, +12% Dano Geral",
+        "description": "A ponta deforma dentro do alvo multiplicando o dano."
       },
       {
-        "id": "ranger_wind_1",
+        "id": "ranger_mark_not",
+        "classId": "ranger",
+        "name": "Disparo da Sentença",
+        "branch": "marksmanship",
+        "tier": "notable",
+        "x": 1240,
+        "y": 900,
+        "cost": 160,
+        "reqBranchCount": 2,
+        "connects": [
+          "ranger_mark_4",
+          "ranger_mark_5"
+        ],
+        "stats": {
+          "critChance": 0.15,
+          "critDamage": 0.6
+        },
+        "icon": "🎯",
+        "badge": "NOTÁVEL",
+        "statText": "+15% Chance Crítica, +60% Dano Crítico",
+        "description": "NOTÁVEL: Cada tiro crítico soa como uma execução sumária."
+      },
+      {
+        "id": "ranger_mark_6",
+        "classId": "ranger",
+        "name": "Olho do Assassino",
+        "branch": "marksmanship",
+        "tier": "minor",
+        "x": 1340,
+        "y": 860,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "ranger_mark_not"
+        ],
+        "stats": {
+          "critChance": 0.15,
+          "damageMult": 0.2
+        },
+        "icon": "🎯",
+        "badge": "CRÍTICO",
+        "statText": "+15% Chance Crítica, +20% Dano Geral",
+        "description": "Identificação instantânea das fraquezas de chefes e elites."
+      },
+      {
+        "id": "ranger_mark_7",
+        "classId": "ranger",
+        "name": "Crueldade Élfica",
+        "branch": "marksmanship",
+        "tier": "minor",
+        "x": 1340,
+        "y": 940,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "ranger_mark_not"
+        ],
+        "stats": {
+          "critDamage": 0.8
+        },
+        "icon": "💥",
+        "badge": "LETALIDADE",
+        "statText": "+80% Dano Crítico",
+        "description": "Críticos atingem proporções devastadoras."
+      },
+      {
+        "id": "ranger_mark_key",
+        "classId": "ranger",
+        "name": "Olho do Vácuo",
+        "branch": "marksmanship",
+        "tier": "keystone",
+        "x": 1460,
+        "y": 900,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "ranger_mark_6",
+          "ranger_mark_7"
+        ],
+        "stats": {
+          "critChance": 0.25,
+          "critDamage": 1.2
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+25% Crítico, +120% Dano Crítico",
+        "description": "PEDRA ANGULAR: Seus acertos críticos atingem o ápice da letalidade, explodindo alvos fragilizados!"
+      },
+      {
+        "id": "ranger_agi_1",
         "classId": "ranger",
         "name": "Passos Ligeiros",
-        "branch": "wind",
+        "branch": "agility",
         "tier": "minor",
-        "x": 420,
-        "y": 560,
-        "cost": 45,
+        "x": 900,
+        "y": 1020,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "ranger_orig"
         ],
         "stats": {
-          "speedMult": 0.08
+          "speedMult": 0.1
         },
-        "statText": "+8% Velocidade de Movimento",
-        "description": "Passadas silenciosas como a brisa entre as árvores."
+        "icon": "⚡",
+        "badge": "CELERIDADE",
+        "statText": "+10% Velocidade de Movimento",
+        "description": "Botas de couro leve que voam sobre a terra ensanguentada."
       },
       {
-        "id": "ranger_wind_2",
+        "id": "ranger_agi_2",
         "classId": "ranger",
-        "name": "Ímã Silvestre",
-        "branch": "wind",
+        "name": "Esquiva Graciosa",
+        "branch": "agility",
         "tier": "minor",
-        "x": 340,
-        "y": 500,
-        "cost": 70,
+        "x": 840,
+        "y": 1100,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "ranger_wind_1"
-        ],
-        "stats": {
-          "magnetRadius": 0.25
-        },
-        "statText": "+25% Raio de Coleta de XP",
-        "description": "O vento atrai essências e almas caídas para o herói."
-      },
-      {
-        "id": "ranger_wind_3",
-        "classId": "ranger",
-        "name": "Instinto Selvagem",
-        "branch": "wind",
-        "tier": "minor",
-        "x": 340,
-        "y": 620,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "ranger_wind_1"
+          "ranger_agi_1"
         ],
         "stats": {
           "speedMult": 0.08,
-          "cooldownReduc": 0.06
+          "maxHp": 20
         },
-        "statText": "+8% Velocidade, -6% Recarga",
-        "description": "Reflexos aguçados de sobrevivente das florestas."
+        "icon": "⚡",
+        "badge": "CELERIDADE",
+        "statText": "+8% Velocidade, +20 HP Máximo",
+        "description": "Reflexos que evitam os cantos da arena."
       },
       {
-        "id": "ranger_wind_not",
+        "id": "ranger_agi_3",
         "classId": "ranger",
-        "name": "Vento Veloz",
-        "branch": "wind",
+        "name": "Giro do Vento",
+        "branch": "agility",
+        "tier": "minor",
+        "x": 960,
+        "y": 1100,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_agi_1"
+        ],
+        "stats": {
+          "speedMult": 0.08,
+          "cooldownReduc": 0.08
+        },
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "+8% Velocidade, -8% Recarga",
+        "description": "Disparar enquanto recua sem perder velocidade."
+      },
+      {
+        "id": "ranger_agi_4",
+        "classId": "ranger",
+        "name": "Vento da Estepe",
+        "branch": "agility",
+        "tier": "minor",
+        "x": 800,
+        "y": 1180,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_agi_2"
+        ],
+        "stats": {
+          "speedMult": 0.12,
+          "magnetRadius": 0.3
+        },
+        "icon": "⚡",
+        "badge": "CELERIDADE",
+        "statText": "+12% Velocidade, +30% Ímã",
+        "description": "Criação de correntes de ar que atraem gemas em alta velocidade."
+      },
+      {
+        "id": "ranger_agi_5",
+        "classId": "ranger",
+        "name": "Kiting Perfeito",
+        "branch": "agility",
+        "tier": "minor",
+        "x": 1000,
+        "y": 1180,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_agi_3"
+        ],
+        "stats": {
+          "speedMult": 0.12,
+          "damageMult": 0.1
+        },
+        "icon": "⚡",
+        "badge": "CELERIDADE",
+        "statText": "+12% Velocidade, +10% Dano Geral",
+        "description": "Manter distância ideal amplifica o dano infligido."
+      },
+      {
+        "id": "ranger_agi_not",
+        "classId": "ranger",
+        "name": "Passo Fantasma",
+        "branch": "agility",
         "tier": "notable",
-        "x": 255,
-        "y": 560,
-        "cost": 180,
+        "x": 900,
+        "y": 1240,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "ranger_wind_2",
-          "ranger_wind_3"
+          "ranger_agi_4",
+          "ranger_agi_5"
+        ],
+        "stats": {
+          "speedMult": 0.18,
+          "cooldownReduc": 0.12,
+          "magnetRadius": 0.4
+        },
+        "icon": "⚡",
+        "badge": "NOTÁVEL",
+        "statText": "+18% Velocidade, -12% Recarga, +40% Ímã",
+        "description": "NOTÁVEL: Uma silhueta esquiva que desliza pelas hordas sem ser tocada."
+      },
+      {
+        "id": "ranger_agi_6",
+        "classId": "ranger",
+        "name": "Brisa Intocável",
+        "branch": "agility",
+        "tier": "minor",
+        "x": 860,
+        "y": 1340,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "ranger_agi_not"
         ],
         "stats": {
           "speedMult": 0.15,
-          "xpMult": 0.15
+          "maxHp": 35
         },
-        "statText": "+15% Velocidade de Movimento, +15% XP",
-        "description": "NOTÁVEL: Permite reposicionamento veloz constante no combate."
+        "icon": "⚡",
+        "badge": "CELERIDADE",
+        "statText": "+15% Velocidade, +35 HP Máximo",
+        "description": "Aceleração instantânea ao menor sinal de perigo."
       },
       {
-        "id": "ranger_wind_key",
+        "id": "ranger_agi_7",
         "classId": "ranger",
-        "name": "Dança das Sombras",
-        "branch": "wind",
-        "tier": "keystone",
-        "x": 150,
-        "y": 560,
-        "cost": 450,
+        "name": "Corredor das Sombras",
+        "branch": "agility",
+        "tier": "minor",
+        "x": 940,
+        "y": 1340,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "ranger_wind_not"
+          "ranger_agi_not"
         ],
         "stats": {
-          "speedMult": 0.2,
+          "speedMult": 0.15,
+          "damageMult": 0.18
+        },
+        "icon": "⚡",
+        "badge": "CELERIDADE",
+        "statText": "+15% Velocidade, +18% Dano Geral",
+        "description": "O impulso da corrida é transferido diretamente para as flechas."
+      },
+      {
+        "id": "ranger_agi_key",
+        "classId": "ranger",
+        "name": "Passo Espectral do Vento",
+        "branch": "agility",
+        "tier": "keystone",
+        "x": 900,
+        "y": 1460,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "ranger_agi_6",
+          "ranger_agi_7"
+        ],
+        "stats": {
+          "speedMult": 0.3,
           "windSurge": true
         },
-        "statText": "+20% Vel. Movimento & Surto Mortal",
-        "description": "PEDRA ANGULAR: Concede velocidade contínua extrema; abater monstros ativa surto de +35% velocidade."
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+30% Velocidade, Wind Surge",
+        "description": "PEDRA ANGULAR: Converte 50% de todo o seu bônus de velocidade de movimento em DANO ADICIONAL nos projéteis!"
+      },
+      {
+        "id": "ranger_sha_1",
+        "classId": "ranger",
+        "name": "Capa da Penumbra",
+        "branch": "shadows",
+        "tier": "minor",
+        "x": 780,
+        "y": 900,
+        "cost": 30,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_orig"
+        ],
+        "stats": {
+          "damageMult": 0.08,
+          "areaMult": 0.1
+        },
+        "icon": "🌑",
+        "badge": "SOMBRAS",
+        "statText": "+8% Dano Geral, +10% Área",
+        "description": "Tecido élfico camufla intenções e amplia a área de impacto."
+      },
+      {
+        "id": "ranger_sha_2",
+        "classId": "ranger",
+        "name": "Extensão Noturna",
+        "branch": "shadows",
+        "tier": "minor",
+        "x": 700,
+        "y": 840,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_sha_1"
+        ],
+        "stats": {
+          "magnetRadius": 0.35,
+          "xpMult": 0.12
+        },
+        "icon": "🧲",
+        "badge": "UTILIDADE",
+        "statText": "+35% Raio de Ímã, +12% XP",
+        "description": "Sombras rasteiras colhem as gemas esquecidas."
+      },
+      {
+        "id": "ranger_sha_3",
+        "classId": "ranger",
+        "name": "Glaives Fantasmagóricas",
+        "branch": "shadows",
+        "tier": "minor",
+        "x": 700,
+        "y": 960,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_sha_1"
+        ],
+        "stats": {
+          "damageMult": 0.12,
+          "critChance": 0.05
+        },
+        "icon": "🗡️",
+        "badge": "SOMBRAS",
+        "statText": "+12% Dano Geral, +5% Crítico",
+        "description": "Lâminas espectrais acompanham a trajetória dos disparos."
+      },
+      {
+        "id": "ranger_sha_4",
+        "classId": "ranger",
+        "name": "Colheita de Almas",
+        "branch": "shadows",
+        "tier": "minor",
+        "x": 620,
+        "y": 800,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_sha_2"
+        ],
+        "stats": {
+          "xpMult": 0.2,
+          "goldMult": 0.15
+        },
+        "icon": "💰",
+        "badge": "RECURSOS",
+        "statText": "+20% XP, +15% Ouro",
+        "description": "Monstros abatidos no escuro cedem mais recursos."
+      },
+      {
+        "id": "ranger_sha_5",
+        "classId": "ranger",
+        "name": "Veneno Sombrio",
+        "branch": "shadows",
+        "tier": "minor",
+        "x": 620,
+        "y": 1000,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_sha_3"
+        ],
+        "stats": {
+          "damageMult": 0.18,
+          "cooldownReduc": 0.08
+        },
+        "icon": "🧪",
+        "badge": "DEBUFF",
+        "statText": "+18% Dano Geral, -8% Recarga",
+        "description": "Extrato de fungos das cavernas que corrói os alvos."
+      },
+      {
+        "id": "ranger_sha_not",
+        "classId": "ranger",
+        "name": "Glaive da Penumbra",
+        "branch": "shadows",
+        "tier": "notable",
+        "x": 560,
+        "y": 900,
+        "cost": 160,
+        "reqBranchCount": 2,
+        "connects": [
+          "ranger_sha_4",
+          "ranger_sha_5"
+        ],
+        "stats": {
+          "damageMult": 0.25,
+          "critChance": 0.1,
+          "extraProjectiles": 1
+        },
+        "icon": "🌑",
+        "badge": "NOTÁVEL",
+        "statText": "+25% Dano, +10% Crítico, +1 Projétil",
+        "description": "NOTÁVEL: Disparos liberam foices espectrais adicionais na escuridão."
+      },
+      {
+        "id": "ranger_sha_6",
+        "classId": "ranger",
+        "name": "Manto do Abismo",
+        "branch": "shadows",
+        "tier": "minor",
+        "x": 460,
+        "y": 860,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "ranger_sha_not"
+        ],
+        "stats": {
+          "magnetRadius": 0.6,
+          "xpMult": 0.25
+        },
+        "icon": "🧲",
+        "badge": "UTILIDADE",
+        "statText": "+60% Raio de Ímã, +25% XP",
+        "description": "Vórtice sombrio que absorve gemas e ouro de longe."
+      },
+      {
+        "id": "ranger_sha_7",
+        "classId": "ranger",
+        "name": "Lâmina da Meia-Noite",
+        "branch": "shadows",
+        "tier": "minor",
+        "x": 460,
+        "y": 940,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "ranger_sha_not"
+        ],
+        "stats": {
+          "damageMult": 0.3,
+          "critDamage": 0.4
+        },
+        "icon": "🗡️",
+        "badge": "SOMBRAS",
+        "statText": "+30% Dano Geral, +40% Dano Crítico",
+        "description": "Golpes traiçoeiros que dilaceram chefes na penumbra."
+      },
+      {
+        "id": "ranger_sha_key",
+        "classId": "ranger",
+        "name": "Ceifadora da Escuridão",
+        "branch": "shadows",
+        "tier": "keystone",
+        "x": 340,
+        "y": 900,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "ranger_sha_6",
+          "ranger_sha_7"
+        ],
+        "stats": {
+          "damageMult": 0.45,
+          "extraProjectiles": 2,
+          "critChance": 0.15
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+45% Dano, +2 Flechas, +15% Crítico",
+        "description": "PEDRA ANGULAR: O Manto das Trevas se funde à arqueira, disparando rajadas contínuas de lâminas espectrais!"
+      },
+      {
+        "id": "ranger_bridge_NW",
+        "classId": "ranger",
+        "name": "Tiro na Corrida",
+        "branch": "ballistics",
+        "tier": "minor",
+        "x": 740,
+        "y": 740,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_bal_2",
+          "ranger_sha_2"
+        ],
+        "stats": {
+          "speedMult": 0.08,
+          "bowPierce": 1
+        },
+        "icon": "🏹",
+        "badge": "SINERGIA",
+        "statText": "+8% Velocidade, +1 Perfuração",
+        "description": "Ponte: Disparos perfurantes sem desacelerar a marcha."
+      },
+      {
+        "id": "ranger_bridge_NE",
+        "classId": "ranger",
+        "name": "Flecha Perfurante Letal",
+        "branch": "marksmanship",
+        "tier": "minor",
+        "x": 1060,
+        "y": 740,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_bal_3",
+          "ranger_mark_2"
+        ],
+        "stats": {
+          "critChance": 0.08,
+          "extraProjectiles": 1
+        },
+        "icon": "🎯",
+        "badge": "SINERGIA",
+        "statText": "+8% Chance Crítica, +1 Flecha",
+        "description": "Ponte: Múltiplas flechas simultâneas com alta taxa de acerto crítico."
+      },
+      {
+        "id": "ranger_bridge_SE",
+        "classId": "ranger",
+        "name": "Golpe Veloz Crítico",
+        "branch": "agility",
+        "tier": "minor",
+        "x": 1060,
+        "y": 1060,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_mark_3",
+          "ranger_agi_3"
+        ],
+        "stats": {
+          "speedMult": 0.1,
+          "critDamage": 0.35
+        },
+        "icon": "⚡",
+        "badge": "SINERGIA",
+        "statText": "+10% Velocidade, +35% Dano Crítico",
+        "description": "Ponte: Velocidade aplicada diretamente à violência do impacto crítico."
+      },
+      {
+        "id": "ranger_bridge_SW",
+        "classId": "ranger",
+        "name": "Passo nas Trevas",
+        "branch": "shadows",
+        "tier": "minor",
+        "x": 740,
+        "y": 1060,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "ranger_sha_3",
+          "ranger_agi_2"
+        ],
+        "stats": {
+          "speedMult": 0.08,
+          "damageMult": 0.12
+        },
+        "icon": "🌑",
+        "badge": "SINERGIA",
+        "statText": "+8% Velocidade, +12% Dano Geral",
+        "description": "Ponte: Deslocamento espectral pelas sombras da arena."
       }
     ]
   },
   "pyromancer": {
     "id": "pyromancer",
-    "name": "Feiticeiro das Cinzas",
-    "subtitle": "Mestre da Chama Purificadora, Bombardeios & Incineração",
+    "name": "Feiticeira das Cinzas",
+    "subtitle": "Inferno Magmático, Explosões Arcanas & Renascimento da Fênix",
     "icon": "🔥",
     "color": "#e67e22",
     "originId": "pyromancer_orig",
     "branches": {
+      "inferno": {
+        "id": "inferno",
+        "name": "Inferno Primordial",
+        "color": "#d35400",
+        "icon": "🔥",
+        "subtitle": "Dano de Fogo, Área de Detonação & Purgatório"
+      },
+      "sorcery": {
+        "id": "sorcery",
+        "name": "Arcanismo Ígneo",
+        "color": "#e74c3c",
+        "icon": "🔮",
+        "subtitle": "Bolas de Fogo Extras, Recarga Acelerada & Ignição"
+      },
+      "phoenix": {
+        "id": "phoenix",
+        "name": "Ascensão da Fênix",
+        "color": "#f39c12",
+        "icon": "🦅",
+        "subtitle": "Renascimento em Chamas, Escudo de Brasas & Vigor"
+      },
       "cataclysm": {
         "id": "cataclysm",
-        "name": "Cataclismo de Fogo",
-        "color": "#d35400",
-        "icon": "🌋",
-        "subtitle": "Dano de Fogo, Área Gigantesca & Purgatório"
-      },
-      "haste": {
-        "id": "haste",
-        "name": "Haste Arcana",
-        "color": "#e67e22",
-        "icon": "⚡",
-        "subtitle": "Redução Drástica de Recarga & Salvas de Magia"
-      },
-      "alchemy": {
-        "id": "alchemy",
-        "name": "Alquimia das Cinzas",
-        "color": "#f39c12",
-        "icon": "⚗️",
-        "subtitle": "Ouro das Brasas, Absorção Espiritual & Renascimento"
+        "name": "Cataclismo Solar",
+        "color": "#c0392b",
+        "icon": "💥",
+        "subtitle": "Explosões em Cadeia, Duração & Supernovas"
       }
     },
     "nodes": [
       {
         "id": "pyromancer_orig",
         "classId": "pyromancer",
-        "name": "Centelha Primordial",
+        "name": "Coração de Magma",
         "branch": "center",
         "tier": "origin",
-        "x": 500,
-        "y": 500,
+        "x": 900,
+        "y": 900,
         "cost": 0,
         "reqBranchCount": 0,
         "connects": [],
         "stats": {},
-        "statText": "Centelha da Constelação de Feiticeiro das Cinzas",
-        "description": "O calor infinito da forja cósmica arde nas veias do Feiticeiro das Cinzas, aguardando o momento da erupção."
+        "icon": "🔥",
+        "badge": "ORIGEM",
+        "statText": "Centelha da Constelação da Piromante",
+        "description": "A essência do fogo eterno: queimar o mal até não restar nada além de cinzas frias."
       },
       {
-        "id": "pyromancer_cataclysm_1",
+        "id": "pyro_inf_1",
         "classId": "pyromancer",
-        "name": "Cinzas Ardentes",
-        "branch": "cataclysm",
+        "name": "Brasa Viva",
+        "branch": "inferno",
         "tier": "minor",
-        "x": 500,
-        "y": 420,
-        "cost": 45,
+        "x": 900,
+        "y": 780,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "pyromancer_orig"
         ],
         "stats": {
-          "damageMult": 0.1,
-          "fireExplosion": 0.12
+          "fireExplosion": 15,
+          "damageMult": 0.08
         },
-        "statText": "+10% Dano de Fogo & Chamas",
-        "description": "Chamas arcanas consomem matéria viva instantaneamente."
+        "icon": "🔥",
+        "badge": "FOGO",
+        "statText": "+15 Raio de Explosão, +8% Dano",
+        "description": "Chamas mais vorazes que expandem a detonação das labaredas."
       },
       {
-        "id": "pyromancer_cataclysm_2",
+        "id": "pyro_inf_2",
         "classId": "pyromancer",
-        "name": "Labareda Expansiva",
-        "branch": "cataclysm",
+        "name": "Onda de Calor",
+        "branch": "inferno",
         "tier": "minor",
-        "x": 440,
-        "y": 340,
-        "cost": 70,
+        "x": 840,
+        "y": 700,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "pyromancer_cataclysm_1"
+          "pyro_inf_1"
         ],
         "stats": {
-          "areaMult": 0.18
+          "areaMult": 0.15,
+          "fireExplosion": 10
         },
-        "statText": "+18% Área de Impacto do Fogo",
-        "description": "Explosões maiores engolem mais monstros a cada frasco arremessado."
+        "icon": "💥",
+        "badge": "ÁREA",
+        "statText": "+15% Área Geral, +10 Raio de Fogo",
+        "description": "Calor radiante que queima monstros adjacentes."
       },
       {
-        "id": "pyromancer_cataclysm_3",
+        "id": "pyro_inf_3",
         "classId": "pyromancer",
-        "name": "Calor Infernal",
-        "branch": "cataclysm",
+        "name": "Incêndio Voraz",
+        "branch": "inferno",
         "tier": "minor",
-        "x": 560,
-        "y": 340,
-        "cost": 70,
+        "x": 960,
+        "y": 700,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "pyromancer_cataclysm_1"
+          "pyro_inf_1"
         ],
         "stats": {
-          "damageMult": 0.15,
-          "burnDuration": 0.12
+          "damageMult": 0.15
         },
-        "statText": "+15% Dano de Fogo, +12% Duração",
-        "description": "O solo permanece em brasa, incinerando quem ousar pisar."
+        "icon": "🔥",
+        "badge": "FOGO",
+        "statText": "+15% Dano Geral das Chamas",
+        "description": "Temperatura magmática que incinera carnes zumbis."
       },
       {
-        "id": "pyromancer_cataclysm_not",
+        "id": "pyro_inf_4",
         "classId": "pyromancer",
-        "name": "Supernova Arcana",
-        "branch": "cataclysm",
+        "name": "Erupção Vulcânica",
+        "branch": "inferno",
+        "tier": "minor",
+        "x": 800,
+        "y": 620,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_inf_2"
+        ],
+        "stats": {
+          "fireExplosion": 25,
+          "areaMult": 0.2
+        },
+        "icon": "💥",
+        "badge": "ÁREA",
+        "statText": "+25 Raio de Explosão, +20% Área",
+        "description": "Cada explosão assemelha-se a uma fissura vulcânica."
+      },
+      {
+        "id": "pyro_inf_5",
+        "classId": "pyromancer",
+        "name": "Combustão Espontânea",
+        "branch": "inferno",
+        "tier": "minor",
+        "x": 1000,
+        "y": 620,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_inf_3"
+        ],
+        "stats": {
+          "damageMult": 0.22,
+          "critChance": 0.06
+        },
+        "icon": "🔥",
+        "badge": "FOGO",
+        "statText": "+22% Dano, +6% Chance Crítica",
+        "description": "Monstros inflamam espontaneamente ao se aproximarem."
+      },
+      {
+        "id": "pyro_inf_not",
+        "classId": "pyromancer",
+        "name": "Fornalha das Cinzas",
+        "branch": "inferno",
         "tier": "notable",
-        "x": 500,
-        "y": 255,
-        "cost": 180,
+        "x": 900,
+        "y": 560,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "pyromancer_cataclysm_2",
-          "pyromancer_cataclysm_3"
+          "pyro_inf_4",
+          "pyro_inf_5"
         ],
         "stats": {
-          "areaMult": 0.3,
-          "damageMult": 0.25,
-          "fireExplosion": 0.25
+          "fireExplosion": 35,
+          "areaMult": 0.28,
+          "damageMult": 0.25
         },
-        "statText": "+30% Área e +25% Dano de Fogo",
-        "description": "NOTÁVEL: As poças e explosões de fogo dobram de tamanho e poder de destruição."
+        "icon": "🔥",
+        "badge": "NOTÁVEL",
+        "statText": "+35 Raio de Fogo, +28% Área, +25% Dano",
+        "description": "NOTÁVEL: As labaredas cobrem quadrantes inteiros do campo de batalha com fogo líquido."
       },
       {
-        "id": "pyromancer_cataclysm_key",
+        "id": "pyro_inf_6",
         "classId": "pyromancer",
-        "name": "Fogo do Purgatório",
-        "branch": "cataclysm",
-        "tier": "keystone",
-        "x": 500,
-        "y": 150,
-        "cost": 450,
+        "name": "Línguas do Inferno",
+        "branch": "inferno",
+        "tier": "minor",
+        "x": 860,
+        "y": 460,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "pyromancer_cataclysm_not"
+          "pyro_inf_not"
         ],
         "stats": {
-          "damageMult": 0.35,
-          "areaMult": 0.25,
-          "purgatoryFire": true
+          "fireExplosion": 30,
+          "damageMult": 0.3
         },
-        "statText": "Poças de Fogo Eterno com Vórtice Gravitacional",
-        "description": "PEDRA ANGULAR: Chamas purificadoras atraem inimigos para o vórtice e causam dano contínuo triplo."
+        "icon": "🔥",
+        "badge": "FOGO",
+        "statText": "+30 Raio de Explosão, +30% Dano",
+        "description": "Chamas inteligentes que buscam novos alvos ao redor."
       },
       {
-        "id": "pyromancer_haste_1",
+        "id": "pyro_inf_7",
         "classId": "pyromancer",
-        "name": "Canalização Veloz",
-        "branch": "haste",
+        "name": "Magma Concentrado",
+        "branch": "inferno",
         "tier": "minor",
-        "x": 580,
-        "y": 560,
-        "cost": 45,
+        "x": 940,
+        "y": 460,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "pyro_inf_not"
+        ],
+        "stats": {
+          "areaMult": 0.35,
+          "damageMult": 0.25
+        },
+        "icon": "💥",
+        "badge": "ÁREA",
+        "statText": "+35% Área, +25% Dano Geral",
+        "description": "A densidade do fogo derrete escudos e armaduras pesadas."
+      },
+      {
+        "id": "pyro_inf_key",
+        "classId": "pyromancer",
+        "name": "Purgatório de Cinzas",
+        "branch": "inferno",
+        "tier": "keystone",
+        "x": 900,
+        "y": 340,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "pyro_inf_6",
+          "pyro_inf_7"
+        ],
+        "stats": {
+          "fireExplosion": 50,
+          "damageMult": 0.5,
+          "purgatoryFire": true
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+50 Raio Fogo, +50% Dano, Purgatório",
+        "description": "PEDRA ANGULAR: Monstros mortos pelo fogo deixam poças de magma fervente que continuam incinerando inimigos!"
+      },
+      {
+        "id": "pyro_sorc_1",
+        "classId": "pyromancer",
+        "name": "Canalização Ígnea",
+        "branch": "sorcery",
+        "tier": "minor",
+        "x": 1020,
+        "y": 900,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "pyromancer_orig"
-        ],
-        "stats": {
-          "cooldownReduc": 0.08
-        },
-        "statText": "-8% Tempo de Recarga Global",
-        "description": "Gestos e encantamentos executados com fluidez sobrenatural."
-      },
-      {
-        "id": "pyromancer_haste_2",
-        "classId": "pyromancer",
-        "name": "Ímpeto da Pira",
-        "branch": "haste",
-        "tier": "minor",
-        "x": 660,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "pyromancer_haste_1"
         ],
         "stats": {
           "cooldownReduc": 0.08,
-          "damageMult": 0.05
+          "damageMult": 0.06
         },
-        "statText": "-8% Recarga, +10% Vel. Ataque",
-        "description": "Ritmo acelerado de conjuração contínua."
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-8% Recarga de Magias, +6% Dano",
+        "description": "Fluxo arcano acelerado no cajado de cinzas."
       },
       {
-        "id": "pyromancer_haste_3",
+        "id": "pyro_sorc_2",
         "classId": "pyromancer",
-        "name": "Fluxo Ardente",
-        "branch": "haste",
+        "name": "Bolas de Fogo Gêmeas",
+        "branch": "sorcery",
         "tier": "minor",
-        "x": 660,
-        "y": 620,
-        "cost": 70,
+        "x": 1100,
+        "y": 840,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "pyromancer_haste_1"
+          "pyro_sorc_1"
+        ],
+        "stats": {
+          "extraProjectiles": 1
+        },
+        "icon": "🔮",
+        "badge": "PROJÉTEIS",
+        "statText": "+1 Bola de Fogo Adicional",
+        "description": "Conjuração duplicada a cada lançamento do cajado."
+      },
+      {
+        "id": "pyro_sorc_3",
+        "classId": "pyromancer",
+        "name": "Incandescência",
+        "branch": "sorcery",
+        "tier": "minor",
+        "x": 1100,
+        "y": 960,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_sorc_1"
         ],
         "stats": {
           "cooldownReduc": 0.1,
-          "magnetRadius": 0.1
+          "speedMult": 0.05
         },
-        "statText": "-10% Recarga, +10% Raio de Coleta",
-        "description": "A energia mágica reverbera ao redor do feiticeiro."
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-10% Recarga de Magias, +5% Velocidade",
+        "description": "Aceleração mágica contínua do lançamento de esferas."
       },
       {
-        "id": "pyromancer_haste_not",
+        "id": "pyro_sorc_4",
         "classId": "pyromancer",
-        "name": "Sobrecarga Mágica",
-        "branch": "haste",
+        "name": "Trindade Magmática",
+        "branch": "sorcery",
+        "tier": "minor",
+        "x": 1180,
+        "y": 800,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_sorc_2"
+        ],
+        "stats": {
+          "extraProjectiles": 1,
+          "damageMult": 0.12
+        },
+        "icon": "🔮",
+        "badge": "PROJÉTEIS",
+        "statText": "+1 Bola de Fogo, +12% Dano",
+        "description": "Três orbes incandescentes lançadas em leque."
+      },
+      {
+        "id": "pyro_sorc_5",
+        "classId": "pyromancer",
+        "name": "Fluidez das Brasas",
+        "branch": "sorcery",
+        "tier": "minor",
+        "x": 1180,
+        "y": 1000,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_sorc_3"
+        ],
+        "stats": {
+          "cooldownReduc": 0.14,
+          "magnetRadius": 0.25
+        },
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-14% Recarga de Magias, +25% Ímã",
+        "description": "O calor atrai as energias místicas do campo de batalha."
+      },
+      {
+        "id": "pyro_sorc_not",
+        "classId": "pyromancer",
+        "name": "Convocação das Chamas",
+        "branch": "sorcery",
         "tier": "notable",
-        "x": 745,
-        "y": 560,
-        "cost": 180,
+        "x": 1240,
+        "y": 900,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "pyromancer_haste_2",
-          "pyromancer_haste_3"
+          "pyro_sorc_4",
+          "pyro_sorc_5"
         ],
         "stats": {
-          "cooldownReduc": 0.16
+          "extraProjectiles": 1,
+          "cooldownReduc": 0.18,
+          "damageMult": 0.2
         },
-        "statText": "-16% Tempo de Recarga Global",
-        "description": "NOTÁVEL: Magias e frascos são lançados em ritmo frenético incessante."
+        "icon": "🔮",
+        "badge": "NOTÁVEL",
+        "statText": "+1 Projétil, -18% Recarga, +20% Dano",
+        "description": "NOTÁVEL: Rajadas incessantes de fogo místico iluminam a escuridão da cidadela."
       },
       {
-        "id": "pyromancer_haste_key",
+        "id": "pyro_sorc_6",
         "classId": "pyromancer",
-        "name": "Ignição em Cadeia",
-        "branch": "haste",
-        "tier": "keystone",
-        "x": 850,
-        "y": 560,
-        "cost": 450,
+        "name": "Chuva de Meteoros",
+        "branch": "sorcery",
+        "tier": "minor",
+        "x": 1340,
+        "y": 860,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "pyromancer_haste_not"
+          "pyro_sorc_not"
         ],
         "stats": {
-          "cooldownReduc": 0.12,
-          "chainIgnite": true
+          "extraProjectiles": 2
         },
-        "statText": "Detonação de Cadáveres Incinerados",
-        "description": "PEDRA ANGULAR: Monstros mortos por fogo explodem em uma reação em cadeia espalhando mais chamas."
+        "icon": "🔮",
+        "badge": "PROJÉTEIS",
+        "statText": "+2 Bolas de Fogo Adicionais",
+        "description": "Saturação arcana que oblitera enxames inteiros de esqueletos."
       },
       {
-        "id": "pyromancer_alchemy_1",
+        "id": "pyro_sorc_7",
         "classId": "pyromancer",
-        "name": "Brasas Áureas",
-        "branch": "alchemy",
+        "name": "Velocidade da Luz",
+        "branch": "sorcery",
         "tier": "minor",
-        "x": 420,
-        "y": 560,
-        "cost": 45,
+        "x": 1340,
+        "y": 940,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "pyro_sorc_not"
+        ],
+        "stats": {
+          "cooldownReduc": 0.2,
+          "damageMult": 0.25
+        },
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-20% Recarga de Magias, +25% Dano",
+        "description": "Lançamento quase instantâneo de magias de destruição."
+      },
+      {
+        "id": "pyro_sorc_key",
+        "classId": "pyromancer",
+        "name": "Supernova Arcana",
+        "branch": "sorcery",
+        "tier": "keystone",
+        "x": 1460,
+        "y": 900,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "pyro_sorc_6",
+          "pyro_sorc_7"
+        ],
+        "stats": {
+          "extraProjectiles": 2,
+          "cooldownReduc": 0.25,
+          "damageMult": 0.4
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+2 Projéteis, -25% Recarga, +40% Dano",
+        "description": "PEDRA ANGULAR: Metralhadora arcana de fogo primordial em cascata incessante!"
+      },
+      {
+        "id": "pyro_phoe_1",
+        "classId": "pyromancer",
+        "name": "Calor Protetor",
+        "branch": "phoenix",
+        "tier": "minor",
+        "x": 900,
+        "y": 1020,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "pyromancer_orig"
         ],
         "stats": {
-          "goldMult": 0.12
+          "maxHp": 25,
+          "hpRegen": 0.3
         },
-        "statText": "+12% Ganho de Ouro",
-        "description": "Transforma poeira de monstros em ouro puro."
+        "icon": "❤️",
+        "badge": "DEFESA",
+        "statText": "+25 HP Máximo, +0.3 HP Regen/s",
+        "description": "O calor do corpo cauteriza ferimentos leves."
       },
       {
-        "id": "pyromancer_alchemy_2",
+        "id": "pyro_phoe_2",
         "classId": "pyromancer",
-        "name": "Chama Sábia",
-        "branch": "alchemy",
+        "name": "Escudo de Brasas",
+        "branch": "phoenix",
         "tier": "minor",
-        "x": 340,
-        "y": 500,
-        "cost": 70,
+        "x": 840,
+        "y": 1100,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "pyromancer_alchemy_1"
+          "pyro_phoe_1"
         ],
         "stats": {
-          "xpMult": 0.12
+          "armor": 1.5,
+          "thornsReflection": 15
         },
-        "statText": "+12% Ganho de Experiência",
-        "description": "Sabedoria ancestral extraída da queima das almas."
+        "icon": "🛡️",
+        "badge": "DEFESA",
+        "statText": "+1.5 Armadura, +15 Espinhos de Fogo",
+        "description": "Barreira de ar quente que queima quem toca na feiticeira."
       },
       {
-        "id": "pyromancer_alchemy_3",
+        "id": "pyro_phoe_3",
         "classId": "pyromancer",
-        "name": "Escudo Térmico",
-        "branch": "alchemy",
+        "name": "Vigor Solar",
+        "branch": "phoenix",
         "tier": "minor",
-        "x": 340,
-        "y": 620,
-        "cost": 70,
+        "x": 960,
+        "y": 1100,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "pyromancer_alchemy_1"
+          "pyro_phoe_1"
         ],
         "stats": {
-          "maxHp": 15,
-          "armor": 1.0
+          "maxHp": 40,
+          "hpRegen": 0.6
         },
-        "statText": "+15 HP Máximo, +1 Armadura",
-        "description": "Barreira de ar quente que desvia golpes inimigos."
+        "icon": "❤️",
+        "badge": "VITALIDADE",
+        "statText": "+40 HP Máximo, +0.6 HP Regen/s",
+        "description": "Vitalidade alimentada pela combustão dos inimigos mortos."
       },
       {
-        "id": "pyromancer_alchemy_not",
+        "id": "pyro_phoe_4",
         "classId": "pyromancer",
-        "name": "Transmutação Solar",
-        "branch": "alchemy",
+        "name": "Chama Regenerativa",
+        "branch": "phoenix",
+        "tier": "minor",
+        "x": 800,
+        "y": 1180,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_phoe_2"
+        ],
+        "stats": {
+          "hpRegen": 1.2,
+          "maxHp": 30
+        },
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+1.2 HP Regen/s, +30 HP Máximo",
+        "description": "Cicatrização acelerada durante o combate."
+      },
+      {
+        "id": "pyro_phoe_5",
+        "classId": "pyromancer",
+        "name": "Aura do Pássaro de Fogo",
+        "branch": "phoenix",
+        "tier": "minor",
+        "x": 1000,
+        "y": 1180,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_phoe_3"
+        ],
+        "stats": {
+          "armor": 2.5,
+          "speedMult": 0.08
+        },
+        "icon": "🦅",
+        "badge": "AGILIDADE",
+        "statText": "+2.5 Armadura, +8% Velocidade",
+        "description": "Passos etéreos envoltos por penas de chama viva."
+      },
+      {
+        "id": "pyro_phoe_not",
+        "classId": "pyromancer",
+        "name": "Coração da Fênix",
+        "branch": "phoenix",
         "tier": "notable",
-        "x": 255,
-        "y": 560,
-        "cost": 180,
+        "x": 900,
+        "y": 1240,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "pyromancer_alchemy_2",
-          "pyromancer_alchemy_3"
+          "pyro_phoe_4",
+          "pyro_phoe_5"
         ],
         "stats": {
-          "goldMult": 0.25,
-          "xpMult": 0.18
+          "maxHp": 80,
+          "hpRegen": 2,
+          "armor": 3
         },
-        "statText": "+25% Ouro, +18% XP",
-        "description": "NOTÁVEL: Riqueza e experiência aceleradas em cada expedição."
+        "icon": "🦅",
+        "badge": "NOTÁVEL",
+        "statText": "+80 HP Máx, +2.0 HP Regen, +3.0 Armadura",
+        "description": "NOTÁVEL: O sangue arde como o fogo de uma fênix imortal."
       },
       {
-        "id": "pyromancer_alchemy_key",
+        "id": "pyro_phoe_6",
         "classId": "pyromancer",
-        "name": "Fênix Imortal",
-        "branch": "alchemy",
-        "tier": "keystone",
-        "x": 150,
-        "y": 560,
-        "cost": 450,
+        "name": "Plumagem de Fogo",
+        "branch": "phoenix",
+        "tier": "minor",
+        "x": 860,
+        "y": 1340,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "pyromancer_alchemy_not"
+          "pyro_phoe_not"
         ],
         "stats": {
-          "maxHp": 30,
+          "maxHp": 100,
+          "thornsReflection": 35
+        },
+        "icon": "🛡️",
+        "badge": "DEFESA",
+        "statText": "+100 HP Máximo, +35 Espinhos",
+        "description": "Retaliação flamejante violenta contra agressores."
+      },
+      {
+        "id": "pyro_phoe_7",
+        "classId": "pyromancer",
+        "name": "Vida Incandescente",
+        "branch": "phoenix",
+        "tier": "minor",
+        "x": 940,
+        "y": 1340,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "pyro_phoe_not"
+        ],
+        "stats": {
+          "hpRegen": 3,
+          "maxHp": 50
+        },
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+3.0 HP Regen/s, +50 HP Máximo",
+        "description": "Recuperação de vitalidade mesmo sob os golpes mais pesados."
+      },
+      {
+        "id": "pyro_phoe_key",
+        "classId": "pyromancer",
+        "name": "Renascimento da Fênix",
+        "branch": "phoenix",
+        "tier": "keystone",
+        "x": 900,
+        "y": 1460,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "pyro_phoe_6",
+          "pyro_phoe_7"
+        ],
+        "stats": {
+          "maxHp": 150,
           "phoenixRebirth": true
         },
-        "statText": "Renascimento das Cinzas com 50% HP",
-        "description": "PEDRA ANGULAR: Ao sofrer golpe fatal, aniquila monstros em 360° e renasce imediatamente com metade da vida."
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+150 HP Máx, Renascimento da Fênix",
+        "description": "PEDRA ANGULAR: Ao sofrer dano fatal, libere uma supernova colossal que limpa a tela e ressuscite com 50% de HP!"
+      },
+      {
+        "id": "pyro_cat_1",
+        "classId": "pyromancer",
+        "name": "Faíscas da Ruína",
+        "branch": "cataclysm",
+        "tier": "minor",
+        "x": 780,
+        "y": 900,
+        "cost": 30,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyromancer_orig"
+        ],
+        "stats": {
+          "critChance": 0.06,
+          "damageMult": 0.08
+        },
+        "icon": "🎯",
+        "badge": "CRÍTICO",
+        "statText": "+6% Chance Crítica, +8% Dano",
+        "description": "Faíscas instáveis que detonam com força desmedida."
+      },
+      {
+        "id": "pyro_cat_2",
+        "classId": "pyromancer",
+        "name": "Magnetismo Ígneo",
+        "branch": "cataclysm",
+        "tier": "minor",
+        "x": 700,
+        "y": 840,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_cat_1"
+        ],
+        "stats": {
+          "magnetRadius": 0.35,
+          "goldMult": 0.15
+        },
+        "icon": "🧲",
+        "badge": "UTILIDADE",
+        "statText": "+35% Raio de Ímã, +15% Ouro",
+        "description": "Cinzas magnetizadas atraem o ouro dos caídos."
+      },
+      {
+        "id": "pyro_cat_3",
+        "classId": "pyromancer",
+        "name": "Estilhaços Quentes",
+        "branch": "cataclysm",
+        "tier": "minor",
+        "x": 700,
+        "y": 960,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_cat_1"
+        ],
+        "stats": {
+          "critDamage": 0.35,
+          "areaMult": 0.12
+        },
+        "icon": "💥",
+        "badge": "CRÍTICO",
+        "statText": "+35% Dano Crítico, +12% Área",
+        "description": "Estilhaços incandescentes cortam as carnes próximas."
+      },
+      {
+        "id": "pyro_cat_4",
+        "classId": "pyromancer",
+        "name": "Transmutação em Cinzas",
+        "branch": "cataclysm",
+        "tier": "minor",
+        "x": 620,
+        "y": 800,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_cat_2"
+        ],
+        "stats": {
+          "xpMult": 0.2,
+          "goldMult": 0.2
+        },
+        "icon": "💰",
+        "badge": "RECURSOS",
+        "statText": "+20% XP, +20% Ouro",
+        "description": "Monstros reduzidos a cinzas rendem gemas puras."
+      },
+      {
+        "id": "pyro_cat_5",
+        "classId": "pyromancer",
+        "name": "Ignição Crítica",
+        "branch": "cataclysm",
+        "tier": "minor",
+        "x": 620,
+        "y": 1000,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_cat_3"
+        ],
+        "stats": {
+          "critChance": 0.1,
+          "critDamage": 0.4
+        },
+        "icon": "🎯",
+        "badge": "CRÍTICO",
+        "statText": "+10% Chance Crítica, +40% Dano Crítico",
+        "description": "Críticos flamejantes provocam explosões secundárias."
+      },
+      {
+        "id": "pyro_cat_not",
+        "classId": "pyromancer",
+        "name": "Vórtice Incandescente",
+        "branch": "cataclysm",
+        "tier": "notable",
+        "x": 560,
+        "y": 900,
+        "cost": 160,
+        "reqBranchCount": 2,
+        "connects": [
+          "pyro_cat_4",
+          "pyro_cat_5"
+        ],
+        "stats": {
+          "critChance": 0.15,
+          "critDamage": 0.6,
+          "areaMult": 0.25
+        },
+        "icon": "💥",
+        "badge": "NOTÁVEL",
+        "statText": "+15% Crítico, +60% Dano Crítico, +25% Área",
+        "description": "NOTÁVEL: As labaredas entram em colapso gravitacional antes de explodir."
+      },
+      {
+        "id": "pyro_cat_6",
+        "classId": "pyromancer",
+        "name": "Fogo Branco",
+        "branch": "cataclysm",
+        "tier": "minor",
+        "x": 460,
+        "y": 860,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "pyro_cat_not"
+        ],
+        "stats": {
+          "damageMult": 0.35,
+          "critDamage": 0.5
+        },
+        "icon": "🔥",
+        "badge": "FOGO",
+        "statText": "+35% Dano, +50% Dano Crítico",
+        "description": "Temperatura máxima onde o fogo atinge coloração branca pura."
+      },
+      {
+        "id": "pyro_cat_7",
+        "classId": "pyromancer",
+        "name": "Magnetismo Cósmico",
+        "branch": "cataclysm",
+        "tier": "minor",
+        "x": 460,
+        "y": 940,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "pyro_cat_not"
+        ],
+        "stats": {
+          "magnetRadius": 0.7,
+          "xpMult": 0.3
+        },
+        "icon": "🧲",
+        "badge": "UTILIDADE",
+        "statText": "+70% Raio de Ímã, +30% XP",
+        "description": "Puxa todas as gemas da arena na esteira das chamas."
+      },
+      {
+        "id": "pyro_cat_key",
+        "classId": "pyromancer",
+        "name": "Cataclismo Solar",
+        "branch": "cataclysm",
+        "tier": "keystone",
+        "x": 340,
+        "y": 900,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "pyro_cat_6",
+          "pyro_cat_7"
+        ],
+        "stats": {
+          "critChance": 0.2,
+          "critDamage": 1,
+          "areaMult": 0.4
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+20% Crítico, +100% Dano Crítico, +40% Área",
+        "description": "PEDRA ANGULAR: O ápice do poder da feiticeira: críticos geram tempestades cósmicas de fogo destrutivo!"
+      },
+      {
+        "id": "pyro_bridge_NW",
+        "classId": "pyromancer",
+        "name": "Explosão Veloz",
+        "branch": "inferno",
+        "tier": "minor",
+        "x": 740,
+        "y": 740,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_inf_2",
+          "pyro_cat_2"
+        ],
+        "stats": {
+          "fireExplosion": 18,
+          "speedMult": 0.08
+        },
+        "icon": "💥",
+        "badge": "SINERGIA",
+        "statText": "+18 Raio Fogo, +8% Velocidade",
+        "description": "Ponte: A força das explosões impulsiona os passos da maga."
+      },
+      {
+        "id": "pyro_bridge_NE",
+        "classId": "pyromancer",
+        "name": "Detonação Multi-Orbe",
+        "branch": "sorcery",
+        "tier": "minor",
+        "x": 1060,
+        "y": 740,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_inf_3",
+          "pyro_sorc_2"
+        ],
+        "stats": {
+          "extraProjectiles": 1,
+          "fireExplosion": 15
+        },
+        "icon": "🔮",
+        "badge": "SINERGIA",
+        "statText": "+1 Bola de Fogo, +15 Raio Fogo",
+        "description": "Ponte: Cada orbe adicional mantém raio de explosão total."
+      },
+      {
+        "id": "pyro_bridge_SE",
+        "classId": "pyromancer",
+        "name": "Brasa Curativa",
+        "branch": "phoenix",
+        "tier": "minor",
+        "x": 1060,
+        "y": 1060,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_sorc_3",
+          "pyro_phoe_3"
+        ],
+        "stats": {
+          "cooldownReduc": 0.1,
+          "hpRegen": 0.8
+        },
+        "icon": "🌿",
+        "badge": "SINERGIA",
+        "statText": "-10% Recarga, +0.8 HP Regen/s",
+        "description": "Ponte: Conjurações rápidas curam pequenas frações de vida."
+      },
+      {
+        "id": "pyro_bridge_SW",
+        "classId": "pyromancer",
+        "name": "Retaliação Cataclísmica",
+        "branch": "cataclysm",
+        "tier": "minor",
+        "x": 740,
+        "y": 1060,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "pyro_cat_3",
+          "pyro_phoe_2"
+        ],
+        "stats": {
+          "thornsReflection": 25,
+          "damageMult": 0.15
+        },
+        "icon": "🔥",
+        "badge": "SINERGIA",
+        "statText": "+25 Espinhos Fogo, +15% Dano",
+        "description": "Ponte: Qualquer toque de inimigo resulta em explosão vingativa."
       }
     ]
   },
   "paladin": {
     "id": "paladin",
     "name": "Paladino da Alvorada",
-    "subtitle": "Campeão da Luz Sagrada, Aura Devastadora & Regeneração",
+    "subtitle": "Auréola Seráfica, Martelo Sunbreaker & Retribuição Divina",
     "icon": "✨",
-    "color": "#f39c12",
+    "color": "#f1c40f",
     "originId": "paladin_orig",
     "branches": {
-      "radiance": {
-        "id": "radiance",
-        "name": "Aura da Santidade",
-        "color": "#f1c40f",
+      "sanctity": {
+        "id": "sanctity",
+        "name": "Auréola Seráfica",
+        "color": "#f39c12",
         "icon": "✨",
-        "subtitle": "Expansão da Aura, Dano Sagrado & Vaporização"
+        "subtitle": "Raio de Consagração, Dano Sagrado & Relâmpagos"
       },
-      "grace": {
-        "id": "grace",
-        "name": "Graça da Vida",
+      "judgment": {
+        "id": "judgment",
+        "name": "Martelo da Alvorada",
+        "color": "#e67e22",
+        "icon": "🔨",
+        "subtitle": "Concussão Esmagadora, Órbitas Solares & Retribuição"
+      },
+      "providence": {
+        "id": "providence",
+        "name": "Providência Divina",
         "color": "#2ecc71",
         "icon": "🕊️",
-        "subtitle": "Regeneração Contínua de HP & Santificação"
+        "subtitle": "Regeneração em Área, Bênção & Barreira Sacra"
       },
-      "protection": {
-        "id": "protection",
-        "name": "Escudo dos Deuses",
+      "crusader": {
+        "id": "crusader",
+        "name": "Armadura dos Santos",
         "color": "#3498db",
         "icon": "🛡️",
-        "subtitle": "Armadura Divina, Retribuição & Resiliência"
+        "subtitle": "Armadura Pesada, Escudo Solar & Firmeza"
       }
     },
     "nodes": [
       {
         "id": "paladin_orig",
         "classId": "paladin",
-        "name": "Cálice da Alvorada",
+        "name": "Luz Primordial",
         "branch": "center",
         "tier": "origin",
-        "x": 500,
-        "y": 500,
+        "x": 900,
+        "y": 900,
         "cost": 0,
         "reqBranchCount": 0,
         "connects": [],
         "stats": {},
-        "statText": "Centelha da Constelação de Paladino da Alvorada",
-        "description": "O receptáculo sagrado dos sacerdotes solares. A luz eterna emana do Paladino, purificando as trevas."
+        "icon": "✨",
+        "badge": "ORIGEM",
+        "statText": "Centelha da Constelação do Paladino",
+        "description": "A bênção da Alvorada Eterna: iluminar as catacumbas e purificar toda corrupção profana."
       },
       {
-        "id": "paladin_radiance_1",
+        "id": "pal_sanc_1",
         "classId": "paladin",
-        "name": "Expansão Sacra",
-        "branch": "radiance",
+        "name": "Fogo Sagrado",
+        "branch": "sanctity",
         "tier": "minor",
-        "x": 500,
-        "y": 420,
-        "cost": 45,
+        "x": 900,
+        "y": 780,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "paladin_orig"
         ],
         "stats": {
-          "areaMult": 0.15,
-          "holyAuraBonus": 0.12
+          "holyAuraBonus": 20,
+          "damageMult": 0.08
         },
-        "statText": "+15% Raio da Aura Sagrada",
-        "description": "O halo luminoso do Paladino abrange uma área maior do solo sagrado."
+        "icon": "✨",
+        "badge": "SAGRADO",
+        "statText": "+20 Raio da Auréola, +8% Dano Sagrado",
+        "description": "O círculo sagrado ao redor do paladino amplia seu alcance."
       },
       {
-        "id": "paladin_radiance_2",
+        "id": "pal_sanc_2",
         "classId": "paladin",
-        "name": "Fervor da Fé",
-        "branch": "radiance",
+        "name": "Solo Consagrado",
+        "branch": "sanctity",
         "tier": "minor",
-        "x": 440,
-        "y": 340,
-        "cost": 70,
+        "x": 840,
+        "y": 700,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "paladin_radiance_1"
-        ],
-        "stats": {
-          "damageMult": 0.15,
-          "holyAuraBonus": 0.15
-        },
-        "statText": "+15% Dano da Aura Sagrada",
-        "description": "Luz penetrante quemina carne morta-viva em segundos."
-      },
-      {
-        "id": "paladin_radiance_3",
-        "classId": "paladin",
-        "name": "Luz Purificadora",
-        "branch": "radiance",
-        "tier": "minor",
-        "x": 560,
-        "y": 340,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "paladin_radiance_1"
+          "pal_sanc_1"
         ],
         "stats": {
           "areaMult": 0.18,
-          "damageMult": 0.12
+          "holyAuraBonus": 15
         },
-        "statText": "+18% Raio, +12% Dano da Aura",
-        "description": "Resplendor solar irresistível contra demônios e mortos."
+        "icon": "✨",
+        "badge": "ÁREA",
+        "statText": "+18% Área Geral, +15 Raio Auréola",
+        "description": "Monstros que pisam na terra santa sofrem queimaduras divinas."
       },
       {
-        "id": "paladin_radiance_not",
+        "id": "pal_sanc_3",
         "classId": "paladin",
-        "name": "Glória Divina",
-        "branch": "radiance",
+        "name": "Zelo Ardente",
+        "branch": "sanctity",
+        "tier": "minor",
+        "x": 960,
+        "y": 700,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "pal_sanc_1"
+        ],
+        "stats": {
+          "damageMult": 0.15,
+          "critChance": 0.05
+        },
+        "icon": "✨",
+        "badge": "SAGRADO",
+        "statText": "+15% Dano Sagrado, +5% Crítico",
+        "description": "A fúria piedosa expurga abominações com rapidez."
+      },
+      {
+        "id": "pal_sanc_4",
+        "classId": "paladin",
+        "name": "Purificação das Almas",
+        "branch": "sanctity",
+        "tier": "minor",
+        "x": 800,
+        "y": 620,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pal_sanc_2"
+        ],
+        "stats": {
+          "holyAuraBonus": 30,
+          "areaMult": 0.22
+        },
+        "icon": "✨",
+        "badge": "ÁREA",
+        "statText": "+30 Raio Auréola, +22% Área",
+        "description": "Luz tão intensa que cega demônios e zumbis."
+      },
+      {
+        "id": "pal_sanc_5",
+        "classId": "paladin",
+        "name": "Fagulha Celeste",
+        "branch": "sanctity",
+        "tier": "minor",
+        "x": 1000,
+        "y": 620,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pal_sanc_3"
+        ],
+        "stats": {
+          "damageMult": 0.22,
+          "cooldownReduc": 0.08
+        },
+        "icon": "⚡",
+        "badge": "CADÊNCIA",
+        "statText": "+22% Dano Sagrado, -8% Recarga",
+        "description": "Relâmpagos de pureza que crepitam na orla da auréola."
+      },
+      {
+        "id": "pal_sanc_not",
+        "classId": "paladin",
+        "name": "Resplendor dos Santos",
+        "branch": "sanctity",
         "tier": "notable",
-        "x": 500,
-        "y": 255,
-        "cost": 180,
+        "x": 900,
+        "y": 560,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "paladin_radiance_2",
-          "paladin_radiance_3"
+          "pal_sanc_4",
+          "pal_sanc_5"
         ],
         "stats": {
-          "areaMult": 0.35,
-          "damageMult": 0.3,
-          "holyAuraBonus": 0.3
+          "holyAuraBonus": 45,
+          "areaMult": 0.3,
+          "damageMult": 0.25
         },
-        "statText": "+35% Raio e +30% Dano da Aura Sagrada",
-        "description": "NOTÁVEL: A aura se torna um sol radiante cobrindo quase todo o campo de visão."
+        "icon": "✨",
+        "badge": "NOTÁVEL",
+        "statText": "+45 Raio Auréola, +30% Área, +25% Dano",
+        "description": "NOTÁVEL: A auréola sagrada se expande como um sol em miniatura ao redor do herói."
       },
       {
-        "id": "paladin_radiance_key",
+        "id": "pal_sanc_6",
         "classId": "paladin",
-        "name": "Halo Celestial",
-        "branch": "radiance",
-        "tier": "keystone",
-        "x": 500,
-        "y": 150,
-        "cost": 450,
+        "name": "Fogo da Inquisição",
+        "branch": "sanctity",
+        "tier": "minor",
+        "x": 860,
+        "y": 460,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "paladin_radiance_not"
+          "pal_sanc_not"
         ],
         "stats": {
-          "holyAuraBonus": 0.4,
-          "celestialHalo": true
+          "holyAuraBonus": 40,
+          "damageMult": 0.3
         },
-        "statText": "Aura Dissipa Projéteis & Dano Sagrado Duplo",
-        "description": "PEDRA ANGULAR: Projéteis inimigos que entrarem na aura são desintegrados instantaneamente."
+        "icon": "✨",
+        "badge": "SAGRADO",
+        "statText": "+40 Raio Auréola, +30% Dano",
+        "description": "Purga instantânea contra enxames de esqueletos e espectros."
       },
       {
-        "id": "paladin_grace_1",
+        "id": "pal_sanc_7",
         "classId": "paladin",
-        "name": "Bênção Matinal",
-        "branch": "grace",
+        "name": "Trovão Angelical",
+        "branch": "sanctity",
         "tier": "minor",
-        "x": 580,
-        "y": 560,
-        "cost": 45,
+        "x": 940,
+        "y": 460,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "pal_sanc_not"
+        ],
+        "stats": {
+          "damageMult": 0.35,
+          "critChance": 0.1
+        },
+        "icon": "⚡",
+        "badge": "CRÍTICO",
+        "statText": "+35% Dano Sagrado, +10% Crítico",
+        "description": "Trovões devocionais que quebram ossos e carapaças."
+      },
+      {
+        "id": "pal_sanc_key",
+        "classId": "paladin",
+        "name": "Auréola Seráfica Celestial",
+        "branch": "sanctity",
+        "tier": "keystone",
+        "x": 900,
+        "y": 340,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "pal_sanc_6",
+          "pal_sanc_7"
+        ],
+        "stats": {
+          "holyAuraBonus": 70,
+          "celestialHalo": true,
+          "damageMult": 0.45
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+70 Raio Auréola, Auréola Celestial, +45% Dano",
+        "description": "PEDRA ANGULAR: O diâmetro da Auréola Sagrada dobra de tamanho e dispara raios divinos contínuos!"
+      },
+      {
+        "id": "pal_judg_1",
+        "classId": "paladin",
+        "name": "Golpe Devocional",
+        "branch": "judgment",
+        "tier": "minor",
+        "x": 1020,
+        "y": 900,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "paladin_orig"
-        ],
-        "stats": {
-          "maxHp": 15,
-          "hpRegen": 0.3
-        },
-        "statText": "+15 HP Máximo, +0.3 HP Regen/s",
-        "description": "Cura constante alimentada pela luz da manhã."
-      },
-      {
-        "id": "paladin_grace_2",
-        "classId": "paladin",
-        "name": "Oração Serena",
-        "branch": "grace",
-        "tier": "minor",
-        "x": 660,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "paladin_grace_1"
-        ],
-        "stats": {
-          "hpRegen": 0.5
-        },
-        "statText": "+0.5 HP Regen/s",
-        "description": "Mesmo cercado por centenas de monstros, a vida se regenera."
-      },
-      {
-        "id": "paladin_grace_3",
-        "classId": "paladin",
-        "name": "Sangue Santificado",
-        "branch": "grace",
-        "tier": "minor",
-        "x": 660,
-        "y": 620,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "paladin_grace_1"
-        ],
-        "stats": {
-          "maxHp": 25,
-          "hpRegen": 0.4
-        },
-        "statText": "+25 HP Máximo, +0.4 HP Regen/s",
-        "description": "Corpo abençoado que não sucumbe ao veneno ou praga."
-      },
-      {
-        "id": "paladin_grace_not",
-        "classId": "paladin",
-        "name": "Fonte da Imortalidade",
-        "branch": "grace",
-        "tier": "notable",
-        "x": 745,
-        "y": 560,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "paladin_grace_2",
-          "paladin_grace_3"
-        ],
-        "stats": {
-          "hpRegen": 1.0,
-          "maxHp": 40
-        },
-        "statText": "+1.0 HP Regen/s, +40 HP Máximo",
-        "description": "NOTÁVEL: Regeneração colossal de mais de 2.5 pontos de vida por segundo."
-      },
-      {
-        "id": "paladin_grace_key",
-        "classId": "paladin",
-        "name": "Presença do Arcanjo",
-        "branch": "grace",
-        "tier": "keystone",
-        "x": 850,
-        "y": 560,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "paladin_grace_not"
-        ],
-        "stats": {
-          "hpRegen": 1.2,
-          "archangelPulse": true
-        },
-        "statText": "Pulso de Cura & Dano Sagrado Global",
-        "description": "PEDRA ANGULAR: A cada 6 segundos, libera um clarão sagrado que cura 10% do HP máximo e fere todos os monstros."
-      },
-      {
-        "id": "paladin_protection_1",
-        "classId": "paladin",
-        "name": "Escudo de Luz",
-        "branch": "protection",
-        "tier": "minor",
-        "x": 420,
-        "y": 560,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "paladin_orig"
-        ],
-        "stats": {
-          "armor": 1.5
-        },
-        "statText": "+1.5 Armadura",
-        "description": "Energia etérea reforça a defesa do combatente sagrado."
-      },
-      {
-        "id": "paladin_protection_2",
-        "classId": "paladin",
-        "name": "Armadura Solar",
-        "branch": "protection",
-        "tier": "minor",
-        "x": 340,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "paladin_protection_1"
-        ],
-        "stats": {
-          "armor": 1.5,
-          "maxHp": 15
-        },
-        "statText": "+1.5 Armadura, +15 HP Máximo",
-        "description": "Placas abençoadas que cegam quem as ataca."
-      },
-      {
-        "id": "paladin_protection_3",
-        "classId": "paladin",
-        "name": "Retribuição Justa",
-        "branch": "protection",
-        "tier": "minor",
-        "x": 340,
-        "y": 620,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "paladin_protection_1"
-        ],
-        "stats": {
-          "armor": 1.0,
-          "damageMult": 0.1
-        },
-        "statText": "+1 Armadura, +10% Dano Refletido",
-        "description": "O agressor sofre a punição de sua própria violência."
-      },
-      {
-        "id": "paladin_protection_not",
-        "classId": "paladin",
-        "name": "Muralha do Templo",
-        "branch": "protection",
-        "tier": "notable",
-        "x": 255,
-        "y": 560,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "paladin_protection_2",
-          "paladin_protection_3"
-        ],
-        "stats": {
-          "armor": 3.5,
-          "maxHp": 30
-        },
-        "statText": "+3.5 Armadura, +30 HP Máximo",
-        "description": "NOTÁVEL: Defesa sólida como a catedral de pedra de Valoria."
-      },
-      {
-        "id": "paladin_protection_key",
-        "classId": "paladin",
-        "name": "Vingança da Alvorada",
-        "branch": "protection",
-        "tier": "keystone",
-        "x": 150,
-        "y": 560,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "paladin_protection_not"
-        ],
-        "stats": {
-          "armor": 4.0,
-          "holyRetribution": true
-        },
-        "statText": "Retaliação Sagrada de 250% Dano & Cegueira",
-        "description": "PEDRA ANGULAR: Inimigos que tocam no Paladino recebem 250% de dano sagrado e ficam atordoados por 2s."
-      }
-    ]
-  },
-  "berserker": {
-    "id": "berserker",
-    "name": "Berserker do Norte",
-    "subtitle": "Colosso das Montanhas Geladas, Fúria & Sangue",
-    "icon": "🪓",
-    "color": "#d35400",
-    "originId": "berserker_orig",
-    "branches": {
-      "fury": {
-        "id": "fury",
-        "name": "Fúria Desenfreada",
-        "color": "#c0392b",
-        "icon": "🩸",
-        "subtitle": "Bônus Brutal com Vida Baixa & Dano Crítico"
-      },
-      "axes": {
-        "id": "axes",
-        "name": "Tormenta de Machados",
-        "color": "#e67e22",
-        "icon": "🪓",
-        "subtitle": "Machados Giratórios, Área Ampla & Vórtice"
-      },
-      "vitality": {
-        "id": "vitality",
-        "name": "Pele de Urso",
-        "color": "#7f8c8d",
-        "icon": "🐻",
-        "subtitle": "Vitalidade Primitiva & Roubo de Vida"
-      }
-    },
-    "nodes": [
-      {
-        "id": "berserker_orig",
-        "classId": "berserker",
-        "name": "Fúria Nórdica",
-        "branch": "center",
-        "tier": "origin",
-        "x": 500,
-        "y": 500,
-        "cost": 0,
-        "reqBranchCount": 0,
-        "connects": [],
-        "stats": {},
-        "statText": "Centelha da Constelação de Berserker do Norte",
-        "description": "Nas neves eternas, apenas a fúria mantém o sangue fluindo. Quanto mais ferido, mais letal o Berserker se torna."
-      },
-      {
-        "id": "berserker_fury_1",
-        "classId": "berserker",
-        "name": "Fervor Selvagem",
-        "branch": "fury",
-        "tier": "minor",
-        "x": 500,
-        "y": 420,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "berserker_orig"
         ],
         "stats": {
           "damageMult": 0.1,
-          "berserkFury": 0.1
-        },
-        "statText": "+10% Dano Global",
-        "description": "Instinto sanguinário que amplifica a força bruta."
-      },
-      {
-        "id": "berserker_fury_2",
-        "classId": "berserker",
-        "name": "Sangue Fervente",
-        "branch": "fury",
-        "tier": "minor",
-        "x": 440,
-        "y": 340,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "berserker_fury_1"
-        ],
-        "stats": {
-          "damageMult": 0.12,
-          "berserkFury": 0.15
-        },
-        "statText": "Ganha até +25% de dano conforme o HP cai",
-        "description": "O sofrimento alimenta a tempestade de golpes do colosso."
-      },
-      {
-        "id": "berserker_fury_3",
-        "classId": "berserker",
-        "name": "Ira Ancestral",
-        "branch": "fury",
-        "tier": "minor",
-        "x": 560,
-        "y": 340,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "berserker_fury_1"
-        ],
-        "stats": {
-          "damageMult": 0.15,
-          "critChance": 0.08
-        },
-        "statText": "+15% Dano, +8% Chance Crítica",
-        "description": "Grito de guerra que aterroriza os mortos-vivos."
-      },
-      {
-        "id": "berserker_fury_not",
-        "classId": "berserker",
-        "name": "Frenesi Sangrento",
-        "branch": "fury",
-        "tier": "notable",
-        "x": 500,
-        "y": 255,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "berserker_fury_2",
-          "berserker_fury_3"
-        ],
-        "stats": {
-          "damageMult": 0.25,
-          "critDamage": 0.35,
-          "berserkFury": 0.3
-        },
-        "statText": "Ganha até +50% Dano e +30% Velocidade de Ataque",
-        "description": "NOTÁVEL: Na beira da morte, seus machados se tornam um turbilhão ceifador."
-      },
-      {
-        "id": "berserker_fury_key",
-        "classId": "berserker",
-        "name": "Berserk Colossal",
-        "branch": "fury",
-        "tier": "keystone",
-        "x": 500,
-        "y": 150,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "berserker_fury_not"
-        ],
-        "stats": {
-          "damageMult": 0.4,
-          "colossalBerserk": true
-        },
-        "statText": "Dano Dobrado (+100%) Abaixo de 40% de Vida",
-        "description": "PEDRA ANGULAR: Abaixo de 40% de HP, o dano dobra e a recarga é reduzida em 40%. Impossível de deter."
-      },
-      {
-        "id": "berserker_axes_1",
-        "classId": "berserker",
-        "name": "Lâminas Pesadas",
-        "branch": "axes",
-        "tier": "minor",
-        "x": 580,
-        "y": 560,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "berserker_orig"
-        ],
-        "stats": {
-          "damageMult": 0.12
-        },
-        "statText": "+12% Dano dos Machados Giratórios",
-        "description": "Machados de duas mãos talhados em ferro bárbaro."
-      },
-      {
-        "id": "berserker_axes_2",
-        "classId": "berserker",
-        "name": "Giro Amplo",
-        "branch": "axes",
-        "tier": "minor",
-        "x": 660,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "berserker_axes_1"
-        ],
-        "stats": {
-          "areaMult": 0.18
-        },
-        "statText": "+18% Área dos Machados",
-        "description": "Voo circular que varre multidões inteiras."
-      },
-      {
-        "id": "berserker_axes_3",
-        "classId": "berserker",
-        "name": "Vórtice Cortante",
-        "branch": "axes",
-        "tier": "minor",
-        "x": 660,
-        "y": 620,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "berserker_axes_1"
-        ],
-        "stats": {
-          "damageMult": 0.15,
           "areaMult": 0.1
         },
-        "statText": "+15% Dano, +15% Velocidade de Giro",
-        "description": "O ar sibila enquanto as lâminas giram no ar."
+        "icon": "🔨",
+        "badge": "MARTELO",
+        "statText": "+10% Dano de Martelo, +10% Área",
+        "description": "O peso do martelo Sunbreaker esmagando a impiedade."
       },
       {
-        "id": "berserker_axes_not",
-        "classId": "berserker",
-        "name": "Machados do Inverno",
-        "branch": "axes",
-        "tier": "notable",
-        "x": 745,
-        "y": 560,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "berserker_axes_2",
-          "berserker_axes_3"
-        ],
-        "stats": {
-          "areaMult": 0.3,
-          "damageMult": 0.25
-        },
-        "statText": "+30% Área e +25% Dano dos Machados",
-        "description": "NOTÁVEL: Os machados se tornam tempestades de ferro e gelo cortante."
-      },
-      {
-        "id": "berserker_axes_key",
-        "classId": "berserker",
-        "name": "Tormenta de Sangue",
-        "branch": "axes",
-        "tier": "keystone",
-        "x": 850,
-        "y": 560,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "berserker_axes_not"
-        ],
-        "stats": {
-          "critChance": 0.2,
-          "axeVortex": true
-        },
-        "statText": "Machados Puxam Inimigos & Crítico Garantido",
-        "description": "PEDRA ANGULAR: Machados giratórios puxam monstros para o corte e causam acertos críticos automáticos."
-      },
-      {
-        "id": "berserker_vitality_1",
-        "classId": "berserker",
-        "name": "Couro Bárbaro",
-        "branch": "vitality",
+        "id": "pal_judg_2",
+        "classId": "paladin",
+        "name": "Martelo Orbitante",
+        "branch": "judgment",
         "tier": "minor",
-        "x": 420,
-        "y": 560,
-        "cost": 45,
+        "x": 1100,
+        "y": 840,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "berserker_orig"
+          "pal_judg_1"
         ],
         "stats": {
-          "maxHp": 20
+          "extraProjectiles": 1
         },
-        "statText": "+20 HP Máximo",
-        "description": "Resistência às nevascas e ferimentos mais brutais."
+        "icon": "🔨",
+        "badge": "MARTELO",
+        "statText": "+1 Martelo Adicional por Ataque",
+        "description": "Projeta um martelo sagrado adicional em trajetória orbital."
       },
       {
-        "id": "berserker_vitality_2",
-        "classId": "berserker",
-        "name": "Ossos de Titã",
-        "branch": "vitality",
+        "id": "pal_judg_3",
+        "classId": "paladin",
+        "name": "Impacto Sagrado",
+        "branch": "judgment",
         "tier": "minor",
-        "x": 340,
-        "y": 500,
-        "cost": 70,
+        "x": 1100,
+        "y": 960,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "berserker_vitality_1"
+          "pal_judg_1"
         ],
         "stats": {
-          "maxHp": 25,
-          "armor": 1.0
+          "critChance": 0.08,
+          "critDamage": 0.3
         },
-        "statText": "+25 HP Máximo, +1 Armadura",
-        "description": "Estrutura óssea densa forjada no gelo."
+        "icon": "🎯",
+        "badge": "CRÍTICO",
+        "statText": "+8% Chance Crítica, +30% Dano Crítico",
+        "description": "O impacto solar faz tremer a armadura dos chefes."
       },
       {
-        "id": "berserker_vitality_3",
-        "classId": "berserker",
-        "name": "Sede de Carnificina",
-        "branch": "vitality",
+        "id": "pal_judg_4",
+        "classId": "paladin",
+        "name": "Dança Solar",
+        "branch": "judgment",
         "tier": "minor",
-        "x": 340,
-        "y": 620,
-        "cost": 70,
+        "x": 1180,
+        "y": 800,
+        "cost": 80,
         "reqBranchCount": 0,
         "connects": [
-          "berserker_vitality_1"
-        ],
-        "stats": {
-          "hpRegen": 0.3,
-          "maxHp": 20
-        },
-        "statText": "+0.2 HP regenerado por inimigo abatido",
-        "description": "Matar inimigos renova a energia e fecha feridas abertas."
-      },
-      {
-        "id": "berserker_vitality_not",
-        "classId": "berserker",
-        "name": "Colosso dos Picos",
-        "branch": "vitality",
-        "tier": "notable",
-        "x": 255,
-        "y": 560,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "berserker_vitality_2",
-          "berserker_vitality_3"
-        ],
-        "stats": {
-          "maxHp": 50,
-          "armor": 1.5
-        },
-        "statText": "+50 HP Máximo, +1.5 Armadura",
-        "description": "NOTÁVEL: Estatura colossal com reservas infinitas de vitalidade."
-      },
-      {
-        "id": "berserker_vitality_key",
-        "classId": "berserker",
-        "name": "Banquete Sangrento",
-        "branch": "vitality",
-        "tier": "keystone",
-        "x": 150,
-        "y": 560,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "berserker_vitality_not"
-        ],
-        "stats": {
-          "maxHp": 60,
-          "bloodFeast": true
-        },
-        "statText": "Roubo de Vida Contínuo & Fúria Vampírica",
-        "description": "PEDRA ANGULAR: Cada golpe acerta restaura vida e acumula velocidade de movimento temporária."
-      }
-    ]
-  },
-  "necromancer": {
-    "id": "necromancer",
-    "name": "Necromante das Catacumbas",
-    "subtitle": "Senhor das Almas Perdidas, Exército Cadavérico & Orbes",
-    "icon": "💀",
-    "color": "#9b59b6",
-    "originId": "necromancer_orig",
-    "branches": {
-      "legion": {
-        "id": "legion",
-        "name": "Legião das Ossadas",
-        "color": "#8e44ad",
-        "icon": "💀",
-        "subtitle": "Limite de Servos Esqueletos & Dano dos Minions"
-      },
-      "spectral": {
-        "id": "spectral",
-        "name": "Artes Espectrais",
-        "color": "#9b59b6",
-        "icon": "🔮",
-        "subtitle": "Dano de Orbes, Velocidade de Órbita & Almas"
-      },
-      "siphon": {
-        "id": "siphon",
-        "name": "Colheita da Morte",
-        "color": "#4834d4",
-        "icon": "🪦",
-        "subtitle": "Ímã de Almas, Ouro Espiritual & Presença Fúnebre"
-      }
-    },
-    "nodes": [
-      {
-        "id": "necromancer_orig",
-        "classId": "necromancer",
-        "name": "Trono de Ossos",
-        "branch": "center",
-        "tier": "origin",
-        "x": 500,
-        "y": 500,
-        "cost": 0,
-        "reqBranchCount": 0,
-        "connects": [],
-        "stats": {},
-        "statText": "Centelha da Constelação de Necromante das Catacumbas",
-        "description": "A morte não é o fim, mas sim um recomeço a serviço do Necromante. Os ossos dos mortos se curvam à sua vontade."
-      },
-      {
-        "id": "necromancer_legion_1",
-        "classId": "necromancer",
-        "name": "Ossos Endurecidos",
-        "branch": "legion",
-        "tier": "minor",
-        "x": 500,
-        "y": 420,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "necromancer_orig"
-        ],
-        "stats": {
-          "minionHp": 0.18,
-          "damageMult": 0.05
-        },
-        "statText": "+18% Vida dos Minions Invocados",
-        "description": "Esqueletos reforçados com ferro e argamassa de sangue."
-      },
-      {
-        "id": "necromancer_legion_2",
-        "classId": "necromancer",
-        "name": "Garras Fúnebres",
-        "branch": "legion",
-        "tier": "minor",
-        "x": 440,
-        "y": 340,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "necromancer_legion_1"
-        ],
-        "stats": {
-          "minionDamage": 0.2,
-          "damageMult": 0.08
-        },
-        "statText": "+20% Dano de Ataque dos Servos",
-        "description": "Garras espectrais que dilaceram a carne inimiga."
-      },
-      {
-        "id": "necromancer_legion_3",
-        "classId": "necromancer",
-        "name": "Frenesi Necrótico",
-        "branch": "legion",
-        "tier": "minor",
-        "x": 560,
-        "y": 340,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "necromancer_legion_1"
-        ],
-        "stats": {
-          "minionSpeed": 0.25
-        },
-        "statText": "+25% Velocidade dos Servos Esqueletos",
-        "description": "Minions correm ferozmente contra as ameaças mais próximas."
-      },
-      {
-        "id": "necromancer_legion_not",
-        "classId": "necromancer",
-        "name": "Mestre da Horda",
-        "branch": "legion",
-        "tier": "notable",
-        "x": 500,
-        "y": 255,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "necromancer_legion_2",
-          "necromancer_legion_3"
-        ],
-        "stats": {
-          "minionCapBonus": 1,
-          "minionDamage": 0.25
-        },
-        "statText": "+1 Servo Esqueleto Adicional no Limite Máximo",
-        "description": "NOTÁVEL: Permite erguer mais um guerreiro esqueleto fiel permanente."
-      },
-      {
-        "id": "necromancer_legion_key",
-        "classId": "necromancer",
-        "name": "Exército das Trevas",
-        "branch": "legion",
-        "tier": "keystone",
-        "x": 500,
-        "y": 150,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "necromancer_legion_not"
-        ],
-        "stats": {
-          "minionCapBonus": 2,
-          "boneExplosion": true
-        },
-        "statText": "+2 Servos Esqueletos & Explosão de Ossos",
-        "description": "PEDRA ANGULAR: Eleva o exército com +2 servos; ao expirar, esqueletos explodem em espinhos de ossos em área."
-      },
-      {
-        "id": "necromancer_spectral_1",
-        "classId": "necromancer",
-        "name": "Orbe Fantasmagórico",
-        "branch": "spectral",
-        "tier": "minor",
-        "x": 580,
-        "y": 560,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "necromancer_orig"
-        ],
-        "stats": {
-          "damageMult": 0.12
-        },
-        "statText": "+12% Dano dos Orbes Espectrais",
-        "description": "Chamas frias do além que atravessam os mortos."
-      },
-      {
-        "id": "necromancer_spectral_2",
-        "classId": "necromancer",
-        "name": "Órbita Veloz",
-        "branch": "spectral",
-        "tier": "minor",
-        "x": 660,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "necromancer_spectral_1"
-        ],
-        "stats": {
-          "areaMult": 0.1,
-          "damageMult": 0.08
-        },
-        "statText": "+18% Velocidade de Rotação dos Orbes",
-        "description": "Orbes giram em alta velocidade, criando uma barreira de almas."
-      },
-      {
-        "id": "necromancer_spectral_3",
-        "classId": "necromancer",
-        "name": "Fagulha da Morte",
-        "branch": "spectral",
-        "tier": "minor",
-        "x": 660,
-        "y": 620,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "necromancer_spectral_1"
-        ],
-        "stats": {
-          "damageMult": 0.15,
-          "critChance": 0.08
-        },
-        "statText": "+15% Dano Sombrio, +8% Crítico",
-        "description": "Energia escura que corrói o espírito dos inimigos."
-      },
-      {
-        "id": "necromancer_spectral_not",
-        "classId": "necromancer",
-        "name": "Dança das Almas",
-        "branch": "spectral",
-        "tier": "notable",
-        "x": 745,
-        "y": 560,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "necromancer_spectral_2",
-          "necromancer_spectral_3"
+          "pal_judg_2"
         ],
         "stats": {
           "extraProjectiles": 1,
-          "damageMult": 0.2
+          "cooldownReduc": 0.08
         },
-        "statText": "+30% Dano e +1 Orbe Espectral Adicional",
-        "description": "NOTÁVEL: Mais um orbe espectral permanente orbitando o necromante."
+        "icon": "🔨",
+        "badge": "MARTELO",
+        "statText": "+1 Martelo Adicional, -8% Recarga",
+        "description": "Múltiplos martelos reluzentes limpando o caminho."
       },
       {
-        "id": "necromancer_spectral_key",
-        "classId": "necromancer",
-        "name": "Vórtice dos Condenados",
-        "branch": "spectral",
-        "tier": "keystone",
-        "x": 850,
-        "y": 560,
-        "cost": 450,
+        "id": "pal_judg_5",
+        "classId": "paladin",
+        "name": "Concussão Divina",
+        "branch": "judgment",
+        "tier": "minor",
+        "x": 1180,
+        "y": 1000,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pal_judg_3"
+        ],
+        "stats": {
+          "damageMult": 0.2,
+          "areaMult": 0.18
+        },
+        "icon": "💥",
+        "badge": "IMPACTO",
+        "statText": "+20% Dano, +18% Área de Impacto",
+        "description": "O estrondo do choque derruba monstros menores."
+      },
+      {
+        "id": "pal_judg_not",
+        "classId": "paladin",
+        "name": "Julgamento do Alvorecer",
+        "branch": "judgment",
+        "tier": "notable",
+        "x": 1240,
+        "y": 900,
+        "cost": 160,
+        "reqBranchCount": 2,
+        "connects": [
+          "pal_judg_4",
+          "pal_judg_5"
+        ],
+        "stats": {
+          "extraProjectiles": 1,
+          "damageMult": 0.25,
+          "critChance": 0.1
+        },
+        "icon": "🔨",
+        "badge": "NOTÁVEL",
+        "statText": "+1 Martelo, +25% Dano, +10% Crítico",
+        "description": "NOTÁVEL: Cada golpe de martelo ressoa como o sino de uma catedral divina."
+      },
+      {
+        "id": "pal_judg_6",
+        "classId": "paladin",
+        "name": "Fúria do Solbreaker",
+        "branch": "judgment",
+        "tier": "minor",
+        "x": 1340,
+        "y": 860,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "necromancer_spectral_not"
+          "pal_judg_not"
         ],
         "stats": {
           "damageMult": 0.35,
-          "spectralVortex": true
+          "areaMult": 0.25
         },
-        "statText": "Orbes Perfuram Alvos Infinitamente & Drenam Vida",
-        "description": "PEDRA ANGULAR: Orbes espectrais trespassam multidões inteiras infinitamente e curam o herói a cada acerto."
+        "icon": "🔨",
+        "badge": "MARTELO",
+        "statText": "+35% Dano de Martelo, +25% Área",
+        "description": "Poder solar condensado na cabeça de aço do martelo."
       },
       {
-        "id": "necromancer_siphon_1",
-        "classId": "necromancer",
-        "name": "Dreno de Almas",
-        "branch": "siphon",
+        "id": "pal_judg_7",
+        "classId": "paladin",
+        "name": "Sentença Inapelável",
+        "branch": "judgment",
         "tier": "minor",
-        "x": 420,
-        "y": 560,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "necromancer_orig"
-        ],
-        "stats": {
-          "magnetRadius": 0.25
-        },
-        "statText": "+25% Raio de Coleta de Gemas de XP",
-        "description": "A atração magnética das almas puxa gemas de longe."
-      },
-      {
-        "id": "necromancer_siphon_2",
-        "classId": "necromancer",
-        "name": "Almas Aprisionadas",
-        "branch": "siphon",
-        "tier": "minor",
-        "x": 340,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "necromancer_siphon_1"
-        ],
-        "stats": {
-          "goldMult": 0.15,
-          "xpMult": 0.12
-        },
-        "statText": "+15% Ouro, +12% XP",
-        "description": "Almas derrotadas revelam tesouros esquecidos."
-      },
-      {
-        "id": "necromancer_siphon_3",
-        "classId": "necromancer",
-        "name": "Mortalha de Sombras",
-        "branch": "siphon",
-        "tier": "minor",
-        "x": 340,
-        "y": 620,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "necromancer_siphon_1"
-        ],
-        "stats": {
-          "maxHp": 18,
-          "hpRegen": 0.3
-        },
-        "statText": "+18 HP Máximo, +0.3 HP Regen/s",
-        "description": "Emanação espectral que amortiza golpes físicos."
-      },
-      {
-        "id": "necromancer_siphon_not",
-        "classId": "necromancer",
-        "name": "Ceifa Fúnebre",
-        "branch": "siphon",
-        "tier": "notable",
-        "x": 255,
-        "y": 560,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "necromancer_siphon_2",
-          "necromancer_siphon_3"
-        ],
-        "stats": {
-          "magnetRadius": 0.4,
-          "goldMult": 0.2
-        },
-        "statText": "+40% Raio de Coleta, +20% Ouro",
-        "description": "NOTÁVEL: Quase todo o ouro e gemas da tela são sugados diretamente ao herói."
-      },
-      {
-        "id": "necromancer_siphon_key",
-        "classId": "necromancer",
-        "name": "Ceifador Supremo",
-        "branch": "siphon",
-        "tier": "keystone",
-        "x": 150,
-        "y": 560,
-        "cost": 450,
+        "x": 1340,
+        "y": 940,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "necromancer_siphon_not"
+          "pal_judg_not"
         ],
         "stats": {
-          "magnetRadius": 0.5,
-          "soulHarvester": true
+          "critDamage": 0.7,
+          "critChance": 0.12
         },
-        "statText": "Atração de Almas Global & Dano por Gema Coletada",
-        "description": "PEDRA ANGULAR: Coletar uma gema de alma atrai instantaneamente todas as gemas no raio de 350 unidades e concede bônus de dano."
-      }
-    ]
-  },
-  "assassin": {
-    "id": "assassin",
-    "name": "Assassino Sombrio",
-    "subtitle": "Lâmina Fantasma das Catacumbas, Críticos & Evasão",
-    "icon": "🗡️",
-    "color": "#34495e",
-    "originId": "assassin_orig",
-    "branches": {
-      "execution": {
-        "id": "execution",
-        "name": "Execução Mortal",
-        "color": "#e74c3c",
-        "icon": "🩸",
-        "subtitle": "Chance Crítica Brutal, Multiplicador & Hemorragia"
-      },
-      "daggers": {
-        "id": "daggers",
-        "name": "Dança das Adagas",
-        "color": "#c0392b",
-        "icon": "🗡️",
-        "subtitle": "Cadência de Adagas Gêmeas & Tempestade de Cortes"
-      },
-      "shadowstep": {
-        "id": "shadowstep",
-        "name": "Passo Fantasma",
-        "color": "#2c3e50",
-        "icon": "👤",
-        "subtitle": "Velocidade Extrema, Evasão & Vulto das Sombras"
-      }
-    },
-    "nodes": [
-      {
-        "id": "assassin_orig",
-        "classId": "assassin",
-        "name": "Lâmina Oculta",
-        "branch": "center",
-        "tier": "origin",
-        "x": 500,
-        "y": 500,
-        "cost": 0,
-        "reqBranchCount": 0,
-        "connects": [],
-        "stats": {},
-        "statText": "Centelha da Constelação de Assassino Sombrio",
-        "description": "O assassino nunca é visto antes do golpe final. Suas adagas gêmeas desferem o toque gélido da morte."
+        "icon": "🎯",
+        "badge": "LETALIDADE",
+        "statText": "+12% Crítico, +70% Dano Crítico",
+        "description": "Esmaga crânios demoníacos com justiça celestial."
       },
       {
-        "id": "assassin_execution_1",
-        "classId": "assassin",
-        "name": "Precisão Cirúrgica",
-        "branch": "execution",
-        "tier": "minor",
-        "x": 500,
-        "y": 420,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "assassin_orig"
-        ],
-        "stats": {
-          "critChance": 0.1,
-          "shadowCritBoost": 0.1
-        },
-        "statText": "+10% Chance de Acerto Crítico",
-        "description": "Golpes direcionados à garganta e articulações frágeis."
-      },
-      {
-        "id": "assassin_execution_2",
-        "classId": "assassin",
-        "name": "Lâmina Vorpal",
-        "branch": "execution",
-        "tier": "minor",
-        "x": 440,
-        "y": 340,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "assassin_execution_1"
-        ],
-        "stats": {
-          "critDamage": 0.4
-        },
-        "statText": "+40% Multiplicador de Dano Crítico",
-        "description": "Aço venenoso que multiplica exponencialmente a dor."
-      },
-      {
-        "id": "assassin_execution_3",
-        "classId": "assassin",
-        "name": "Golpe Fatal",
-        "branch": "execution",
-        "tier": "minor",
-        "x": 560,
-        "y": 340,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "assassin_execution_1"
-        ],
-        "stats": {
-          "critChance": 0.12,
-          "damageMult": 0.15
-        },
-        "statText": "+12% Chance Crítica, +15% Dano",
-        "description": "Monstros sentem a morte iminente a cada aproximação."
-      },
-      {
-        "id": "assassin_execution_not",
-        "classId": "assassin",
-        "name": "Mestre do Assassinato",
-        "branch": "execution",
-        "tier": "notable",
-        "x": 500,
-        "y": 255,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "assassin_execution_2",
-          "assassin_execution_3"
-        ],
-        "stats": {
-          "critChance": 0.18,
-          "critDamage": 0.6,
-          "shadowCritBoost": 0.25
-        },
-        "statText": "+18% Chance Crítica, +60% Dano Crítico",
-        "description": "NOTÁVEL: Praticamente todo golpe desferido se torna um acerto crítico fulminante."
-      },
-      {
-        "id": "assassin_execution_key",
-        "classId": "assassin",
-        "name": "Carnificina Cirúrgica",
-        "branch": "execution",
+        "id": "pal_judg_key",
+        "classId": "paladin",
+        "name": "Martelo do Sol Nascente",
+        "branch": "judgment",
         "tier": "keystone",
-        "x": 500,
-        "y": 150,
-        "cost": 450,
-        "reqBranchCount": 3,
+        "x": 1460,
+        "y": 900,
+        "cost": 550,
+        "reqBranchCount": 4,
         "connects": [
-          "assassin_execution_not"
+          "pal_judg_6",
+          "pal_judg_7"
         ],
         "stats": {
-          "critDamage": 0.8,
-          "surgicalCarnage": true
+          "extraProjectiles": 2,
+          "damageMult": 0.5,
+          "holyRetribution": true
         },
-        "statText": "Críticos Causam 3.5x Dano & Sangramento Severo",
-        "description": "PEDRA ANGULAR: Acertos críticos infligem 350% de dano base e causam sangramento contínuo que drena alvos."
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+2 Martelos, +50% Dano, Retribuição",
+        "description": "PEDRA ANGULAR: Martelos solares orbitam continuamente e invocam colunas celestiais em cada impacto!"
       },
       {
-        "id": "assassin_daggers_1",
-        "classId": "assassin",
-        "name": "Corte Duplo",
-        "branch": "daggers",
+        "id": "pal_prov_1",
+        "classId": "paladin",
+        "name": "Bênção da Vida",
+        "branch": "providence",
         "tier": "minor",
-        "x": 580,
-        "y": 560,
-        "cost": 45,
+        "x": 900,
+        "y": 1020,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
-          "assassin_orig"
+          "paladin_orig"
         ],
         "stats": {
-          "damageMult": 0.12
+          "maxHp": 35,
+          "hpRegen": 0.5
         },
-        "statText": "+12% Dano com Adagas",
-        "description": "Manuseio veloz com duas lâminas afiadas."
+        "icon": "❤️",
+        "badge": "VITALIDADE",
+        "statText": "+35 HP Máximo, +0.5 HP Regen/s",
+        "description": "A graça da Providência regenerando o paladino."
       },
       {
-        "id": "assassin_daggers_2",
-        "classId": "assassin",
-        "name": "Rajada de Aço",
-        "branch": "daggers",
+        "id": "pal_prov_2",
+        "classId": "paladin",
+        "name": "Água Benta",
+        "branch": "providence",
         "tier": "minor",
-        "x": 660,
-        "y": 500,
-        "cost": 70,
+        "x": 840,
+        "y": 1100,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "assassin_daggers_1"
+          "pal_prov_1"
         ],
         "stats": {
-          "cooldownReduc": 0.12
+          "hpRegen": 0.8,
+          "maxHp": 30
         },
-        "statText": "-12% Tempo de Recarga das Adagas",
-        "description": "Sequência ininterrupta de golpes de curta distância."
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+0.8 HP Regen/s, +30 HP Máximo",
+        "description": "Unguento sagrado fecha feridas em plena batalha."
       },
       {
-        "id": "assassin_daggers_3",
-        "classId": "assassin",
-        "name": "Fio Sombrio",
-        "branch": "daggers",
+        "id": "pal_prov_3",
+        "classId": "paladin",
+        "name": "Baluarte da Graça",
+        "branch": "providence",
         "tier": "minor",
-        "x": 660,
-        "y": 620,
-        "cost": 70,
+        "x": 960,
+        "y": 1100,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "assassin_daggers_1"
+          "pal_prov_1"
         ],
         "stats": {
-          "damageMult": 0.15,
-          "areaMult": 0.12
+          "armor": 1.5,
+          "maxHp": 40
         },
-        "statText": "+15% Dano das Adagas, +12% Área",
-        "description": "Arco de corte expandido atinge múltiplos alvos simultaneamente."
-      },
-      {
-        "id": "assassin_daggers_not",
-        "classId": "assassin",
-        "name": "Tempestade de Lâminas",
-        "branch": "daggers",
-        "tier": "notable",
-        "x": 745,
-        "y": 560,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "assassin_daggers_2",
-          "assassin_daggers_3"
-        ],
-        "stats": {
-          "damageMult": 0.3,
-          "cooldownReduc": 0.18
-        },
-        "statText": "+30% Dano, -18% Recarga das Adagas",
-        "description": "NOTÁVEL: Uma espiral de aço que não dá trégua a nenhum monstro."
-      },
-      {
-        "id": "assassin_daggers_key",
-        "classId": "assassin",
-        "name": "Adagas Fantasmas",
-        "branch": "daggers",
-        "tier": "keystone",
-        "x": 850,
-        "y": 560,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "assassin_daggers_not"
-        ],
-        "stats": {
-          "damageMult": 0.35,
-          "phantomDaggers": true
-        },
-        "statText": "Golpe Duplo Instantâneo em 360 Graus",
-        "description": "PEDRA ANGULAR: Ataques com adagas disparam uma réplica fantasma instantânea em 360 graus ao redor do herói."
-      },
-      {
-        "id": "assassin_shadowstep_1",
-        "classId": "assassin",
-        "name": "Passos Furtivos",
-        "branch": "shadowstep",
-        "tier": "minor",
-        "x": 420,
-        "y": 560,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "assassin_orig"
-        ],
-        "stats": {
-          "speedMult": 0.1
-        },
-        "statText": "+10% Velocidade de Movimento",
-        "description": "O Assassino se move mais rápido do que a vista alcança."
-      },
-      {
-        "id": "assassin_shadowstep_2",
-        "classId": "assassin",
-        "name": "Reflexos Sombrios",
-        "branch": "shadowstep",
-        "tier": "minor",
-        "x": 340,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "assassin_shadowstep_1"
-        ],
-        "stats": {
-          "speedMult": 0.08,
-          "maxHp": 15
-        },
-        "statText": "+8% Velocidade, +15 HP Máximo",
-        "description": "Agilidade para escapar dos cercos mais apertados."
-      },
-      {
-        "id": "assassin_shadowstep_3",
-        "classId": "assassin",
-        "name": "Rastro de Névoa",
-        "branch": "shadowstep",
-        "tier": "minor",
-        "x": 340,
-        "y": 620,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "assassin_shadowstep_1"
-        ],
-        "stats": {
-          "cooldownReduc": 0.08,
-          "magnetRadius": 0.1
-        },
-        "statText": "-8% Tempo de Recarga, +10% Coleta",
-        "description": "Rastro etéreo que atrai os despojos dos mortos."
-      },
-      {
-        "id": "assassin_shadowstep_not",
-        "classId": "assassin",
-        "name": "Vulto Fantasma",
-        "branch": "shadowstep",
-        "tier": "notable",
-        "x": 255,
-        "y": 560,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "assassin_shadowstep_2",
-          "assassin_shadowstep_3"
-        ],
-        "stats": {
-          "speedMult": 0.18,
-          "damageMult": 0.15
-        },
-        "statText": "+18% Velocidade de Movimento, +15% Dano",
-        "description": "NOTÁVEL: Movimentação tática fulminante para flanquear chefes."
-      },
-      {
-        "id": "assassin_shadowstep_key",
-        "classId": "assassin",
-        "name": "Manto da Meia-Noite",
-        "branch": "shadowstep",
-        "tier": "keystone",
-        "x": 150,
-        "y": 560,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "assassin_shadowstep_not"
-        ],
-        "stats": {
-          "speedMult": 0.2,
-          "midnightCloak": true
-        },
-        "statText": "Surto de +50% Velocidade e Imunidade ao Critar",
-        "description": "PEDRA ANGULAR: Desferir um acerto crítico ativa 2s de velocidade extrema +50% e intangibilidade momentânea."
-      }
-    ]
-  },
-  "dark_knight": {
-    "id": "dark_knight",
-    "name": "Cavaleiro Negro Caído",
-    "subtitle": "A Muralha de Espinhos Amaldiçoada, Armadura & Retaliação",
-    "icon": "🖤",
-    "color": "#1a1a24",
-    "originId": "dark_knight_orig",
-    "branches": {
-      "thorns": {
-        "id": "thorns",
-        "name": "Fortaleza dos Espinhos",
-        "color": "#e74c3c",
-        "icon": "🦔",
-        "subtitle": "Dano de Espinhos Colossal & Retaliação em Área"
-      },
-      "greatsword": {
-        "id": "greatsword",
-        "name": "Espadão das Sombras",
-        "color": "#8e44ad",
-        "icon": "⚔️",
-        "subtitle": "Dano Massivo com Espadão Negro & Ruína"
-      },
-      "plates": {
-        "id": "plates",
-        "name": "Placas do Tártaro",
-        "color": "#2c3e50",
         "icon": "🛡️",
-        "subtitle": "Armadura Titânica, Vida Máxima & Resiliência"
-      }
-    },
-    "nodes": [
-      {
-        "id": "dark_knight_orig",
-        "classId": "dark_knight",
-        "name": "Armadura Maldita",
-        "branch": "center",
-        "tier": "origin",
-        "x": 500,
-        "y": 500,
-        "cost": 0,
-        "reqBranchCount": 0,
-        "connects": [],
-        "stats": {},
-        "statText": "Centelha da Constelação de Cavaleiro Negro Caído",
-        "description": "Forjada no fogo negro do abismo. Cada golpe recebido alimenta os espinhos malévolos de sua carapaça."
+        "badge": "DEFESA",
+        "statText": "+1.5 Armadura, +40 HP Máximo",
+        "description": "A fé se solidifica em uma couraça impenetrável."
       },
       {
-        "id": "dark_knight_thorns_1",
-        "classId": "dark_knight",
-        "name": "Farpas de Ferro Negro",
-        "branch": "thorns",
+        "id": "pal_prov_4",
+        "classId": "paladin",
+        "name": "Santuário Vivo",
+        "branch": "providence",
         "tier": "minor",
-        "x": 500,
-        "y": 420,
-        "cost": 45,
+        "x": 800,
+        "y": 1180,
+        "cost": 80,
         "reqBranchCount": 0,
         "connects": [
-          "dark_knight_orig"
+          "pal_prov_2"
         ],
         "stats": {
-          "damageMult": 0.05,
-          "thornsReflection": 0.5
+          "hpRegen": 1.4,
+          "maxHp": 50
         },
-        "statText": "+50% Dano de Espinhos Refletido",
-        "description": "Espinhos afiados retalham monstros que ousem encostar no cavaleiro."
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+1.4 HP Regen/s, +50 HP Máximo",
+        "description": "Presença divina que repele a morte e o cansaço."
       },
       {
-        "id": "dark_knight_thorns_2",
-        "classId": "dark_knight",
-        "name": "Carapaça Maldita",
-        "branch": "thorns",
+        "id": "pal_prov_5",
+        "classId": "paladin",
+        "name": "Escudo Devoto",
+        "branch": "providence",
         "tier": "minor",
-        "x": 440,
-        "y": 340,
-        "cost": 70,
+        "x": 1000,
+        "y": 1180,
+        "cost": 80,
         "reqBranchCount": 0,
         "connects": [
-          "dark_knight_thorns_1"
-        ],
-        "stats": {
-          "armor": 1.0,
-          "thornsReflection": 0.8
-        },
-        "statText": "+80% Dano de Espinhos, +1 Armadura",
-        "description": "Estilhaços negros saltam e perfuram quem desferir dano."
-      },
-      {
-        "id": "dark_knight_thorns_3",
-        "classId": "dark_knight",
-        "name": "Vingança Sombria",
-        "branch": "thorns",
-        "tier": "minor",
-        "x": 560,
-        "y": 340,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "dark_knight_thorns_1"
-        ],
-        "stats": {
-          "maxHp": 20,
-          "thornsReflection": 1.0
-        },
-        "statText": "+100% Dano de Espinhos, +20 HP Máximo",
-        "description": "Monstros morrem pela força de seus próprios ataques."
-      },
-      {
-        "id": "dark_knight_thorns_not",
-        "classId": "dark_knight",
-        "name": "Cota de Espinhos Abissal",
-        "branch": "thorns",
-        "tier": "notable",
-        "x": 500,
-        "y": 255,
-        "cost": 180,
-        "reqBranchCount": 2,
-        "connects": [
-          "dark_knight_thorns_2",
-          "dark_knight_thorns_3"
+          "pal_prov_3"
         ],
         "stats": {
           "armor": 2.5,
-          "thornsReflection": 1.5
+          "speedMult": 0.06
         },
-        "statText": "+150% Dano de Espinhos, +2.5 Armadura",
-        "description": "NOTÁVEL: Inimigos comuns são aniquilados no instante em que tocam na armadura."
+        "icon": "🛡️",
+        "badge": "DEFESA",
+        "statText": "+2.5 Armadura, +6% Velocidade",
+        "description": "Passos firmes sustentados pela convicção sacra."
       },
       {
-        "id": "dark_knight_thorns_key",
-        "classId": "dark_knight",
-        "name": "Retaliação Cataclísmica",
-        "branch": "thorns",
-        "tier": "keystone",
-        "x": 500,
-        "y": 150,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "dark_knight_thorns_not"
-        ],
-        "stats": {
-          "thornsReflection": 2.0,
-          "cataclysmicThorns": true
-        },
-        "statText": "Explosão de Espinhos de 300% Dano em Toda a Tela",
-        "description": "PEDRA ANGULAR: Ao sofrer qualquer dano, explode estilhaços abissais causando 300% de dano a TODOS os monstros próximos."
-      },
-      {
-        "id": "dark_knight_greatsword_1",
-        "classId": "dark_knight",
-        "name": "Golpe Abissal",
-        "branch": "greatsword",
-        "tier": "minor",
-        "x": 580,
-        "y": 560,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "dark_knight_orig"
-        ],
-        "stats": {
-          "damageMult": 0.12
-        },
-        "statText": "+12% Dano com Espadão Negro",
-        "description": "Lâmina colossal pesada como o próprio túmulo."
-      },
-      {
-        "id": "dark_knight_greatsword_2",
-        "classId": "dark_knight",
-        "name": "Fenda do Pesar",
-        "branch": "greatsword",
-        "tier": "minor",
-        "x": 660,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "dark_knight_greatsword_1"
-        ],
-        "stats": {
-          "areaMult": 0.18
-        },
-        "statText": "+18% Área do Espadão Negro",
-        "description": "Cortes devastadores em semicírculo aberto."
-      },
-      {
-        "id": "dark_knight_greatsword_3",
-        "classId": "dark_knight",
-        "name": "Peso dos Condenados",
-        "branch": "greatsword",
-        "tier": "minor",
-        "x": 660,
-        "y": 620,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "dark_knight_greatsword_1"
-        ],
-        "stats": {
-          "damageMult": 0.15,
-          "critChance": 0.08
-        },
-        "statText": "+15% Dano, +8% Chance Crítica",
-        "description": "Aço corrompido que estilhaça defesas e armaduras inimigas."
-      },
-      {
-        "id": "dark_knight_greatsword_not",
-        "classId": "dark_knight",
-        "name": "Ruína das Trevas",
-        "branch": "greatsword",
+        "id": "pal_prov_not",
+        "classId": "paladin",
+        "name": "Providência Inabalável",
+        "branch": "providence",
         "tier": "notable",
-        "x": 745,
-        "y": 560,
-        "cost": 180,
+        "x": 900,
+        "y": 1240,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "dark_knight_greatsword_2",
-          "dark_knight_greatsword_3"
+          "pal_prov_4",
+          "pal_prov_5"
         ],
         "stats": {
-          "areaMult": 0.3,
+          "maxHp": 100,
+          "hpRegen": 2.2,
+          "armor": 3.5
+        },
+        "icon": "🕊️",
+        "badge": "NOTÁVEL",
+        "statText": "+100 HP Máx, +2.2 HP Regen, +3.5 Armadura",
+        "description": "NOTÁVEL: O guerreiro sagrado torna-se um bastião quase impossível de ser abatido."
+      },
+      {
+        "id": "pal_prov_6",
+        "classId": "paladin",
+        "name": "Aura de Esperança",
+        "branch": "providence",
+        "tier": "minor",
+        "x": 860,
+        "y": 1340,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "pal_prov_not"
+        ],
+        "stats": {
+          "hpRegen": 3,
+          "maxHp": 80
+        },
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+3.0 HP Regen/s, +80 HP Máximo",
+        "description": "Milagres de cura renovam o combatente continuamente."
+      },
+      {
+        "id": "pal_prov_7",
+        "classId": "paladin",
+        "name": "Couraça de Querubim",
+        "branch": "providence",
+        "tier": "minor",
+        "x": 940,
+        "y": 1340,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "pal_prov_not"
+        ],
+        "stats": {
+          "armor": 4.5,
+          "maxHp": 100
+        },
+        "icon": "🛡️",
+        "badge": "DEFESA",
+        "statText": "+4.5 Armadura, +100 HP Máximo",
+        "description": "Asas celestiais intangíveis absorvem os maiores impactos."
+      },
+      {
+        "id": "pal_prov_key",
+        "classId": "paladin",
+        "name": "Bênção da Alvorada Eterna",
+        "branch": "providence",
+        "tier": "keystone",
+        "x": 900,
+        "y": 1460,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "pal_prov_6",
+          "pal_prov_7"
+        ],
+        "stats": {
+          "maxHp": 180,
+          "hpRegen": 5,
+          "armor": 6
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+180 HP, +5.0 HP Regen/s, +6 Armadura",
+        "description": "PEDRA ANGULAR: O guerreiro é banhado pela luz eterna da Alvorada, tornando-se praticamente indestrutível!"
+      },
+      {
+        "id": "pal_cru_1",
+        "classId": "paladin",
+        "name": "Capa do Cruzado",
+        "branch": "crusader",
+        "tier": "minor",
+        "x": 780,
+        "y": 900,
+        "cost": 30,
+        "reqBranchCount": 0,
+        "connects": [
+          "paladin_orig"
+        ],
+        "stats": {
+          "armor": 1.5,
+          "magnetRadius": 0.25
+        },
+        "icon": "🛡️",
+        "badge": "CRUZADA",
+        "statText": "+1.5 Armadura, +25% Raio de Ímã",
+        "description": "O manto sagrado recolhe oferendas e ouro divino."
+      },
+      {
+        "id": "pal_cru_2",
+        "classId": "paladin",
+        "name": "Dízimo da Glória",
+        "branch": "crusader",
+        "tier": "minor",
+        "x": 700,
+        "y": 840,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "pal_cru_1"
+        ],
+        "stats": {
+          "goldMult": 0.2,
+          "xpMult": 0.15
+        },
+        "icon": "💰",
+        "badge": "RECURSOS",
+        "statText": "+20% Ouro, +15% XP",
+        "description": "Inimigos purificados concedem o dobro de recompensas sacras."
+      },
+      {
+        "id": "pal_cru_3",
+        "classId": "paladin",
+        "name": "Cadência do Julgamento",
+        "branch": "crusader",
+        "tier": "minor",
+        "x": 700,
+        "y": 960,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "pal_cru_1"
+        ],
+        "stats": {
+          "cooldownReduc": 0.1,
+          "damageMult": 0.08
+        },
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-10% Recarga de Armas, +8% Dano",
+        "description": "Bater o martelo em uníssono com os hinos dos templos."
+      },
+      {
+        "id": "pal_cru_4",
+        "classId": "paladin",
+        "name": "Ímã da Catedral",
+        "branch": "crusader",
+        "tier": "minor",
+        "x": 620,
+        "y": 800,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pal_cru_2"
+        ],
+        "stats": {
+          "magnetRadius": 0.5,
+          "goldMult": 0.25
+        },
+        "icon": "🧲",
+        "badge": "UTILIDADE",
+        "statText": "+50% Raio de Ímã, +25% Ouro",
+        "description": "Atrai todas as gemas da tela para alimentar o Éter Ancestral."
+      },
+      {
+        "id": "pal_cru_5",
+        "classId": "paladin",
+        "name": "Passo Inflexível",
+        "branch": "crusader",
+        "tier": "minor",
+        "x": 620,
+        "y": 1000,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "pal_cru_3"
+        ],
+        "stats": {
+          "cooldownReduc": 0.14,
+          "armor": 2
+        },
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-14% Recarga, +2.0 Armadura",
+        "description": "Avanço determinado que esmaga qualquer obstáculo."
+      },
+      {
+        "id": "pal_cru_not",
+        "classId": "paladin",
+        "name": "Campeão da Fé",
+        "branch": "crusader",
+        "tier": "notable",
+        "x": 560,
+        "y": 900,
+        "cost": 160,
+        "reqBranchCount": 2,
+        "connects": [
+          "pal_cru_4",
+          "pal_cru_5"
+        ],
+        "stats": {
+          "armor": 3.5,
+          "cooldownReduc": 0.16,
+          "magnetRadius": 0.65
+        },
+        "icon": "🛡️",
+        "badge": "NOTÁVEL",
+        "statText": "+3.5 Armadura, -16% Recarga, +65% Ímã",
+        "description": "NOTÁVEL: O campeão escolhido pelos deuses ataca com cadência implacável e recolhe tudo ao redor."
+      },
+      {
+        "id": "pal_cru_6",
+        "classId": "paladin",
+        "name": "Riqueza Sagrada",
+        "branch": "crusader",
+        "tier": "minor",
+        "x": 460,
+        "y": 860,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "pal_cru_not"
+        ],
+        "stats": {
+          "goldMult": 0.4,
+          "xpMult": 0.3
+        },
+        "icon": "💰",
+        "badge": "RECURSOS",
+        "statText": "+40% Ouro, +30% XP",
+        "description": "As bênçãos da vitória multiplicam as gemas de ascensão."
+      },
+      {
+        "id": "pal_cru_7",
+        "classId": "paladin",
+        "name": "Ritmo Litúrgico",
+        "branch": "crusader",
+        "tier": "minor",
+        "x": 460,
+        "y": 940,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "pal_cru_not"
+        ],
+        "stats": {
+          "cooldownReduc": 0.2,
           "damageMult": 0.25
         },
-        "statText": "+30% Área e +25% Dano do Espadão",
-        "description": "NOTÁVEL: O espadão varre metade da tela em arcos de escuridão pura."
+        "icon": "⏳",
+        "badge": "CADÊNCIA",
+        "statText": "-20% Recarga de Armas, +25% Dano",
+        "description": "Golpes ininterruptos que não dão margem para reação das hordas."
       },
       {
-        "id": "dark_knight_greatsword_key",
-        "classId": "dark_knight",
-        "name": "Lâmina do Pesar Eterno",
-        "branch": "greatsword",
+        "id": "pal_cru_key",
+        "classId": "paladin",
+        "name": "Cruzada Imortal",
+        "branch": "crusader",
         "tier": "keystone",
-        "x": 850,
-        "y": 560,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "dark_knight_greatsword_not"
-        ],
-        "stats": {
-          "damageMult": 0.35,
-          "sorrowBlade": true
-        },
-        "statText": "Dreno de Vida por Inimigo Golpeado com Espadão",
-        "description": "PEDRA ANGULAR: Cada golpe do espadão regenera 1 HP por monstro atingido e estilhaça a armadura do alvo."
-      },
-      {
-        "id": "dark_knight_plates_1",
-        "classId": "dark_knight",
-        "name": "Ferro Profano",
-        "branch": "plates",
-        "tier": "minor",
-        "x": 420,
-        "y": 560,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "dark_knight_orig"
-        ],
-        "stats": {
-          "armor": 2.0
-        },
-        "statText": "+2 de Armadura",
-        "description": "Camada densa de aço negro resistente ao calor e magia."
-      },
-      {
-        "id": "dark_knight_plates_2",
-        "classId": "dark_knight",
-        "name": "Vigor Abissal",
-        "branch": "plates",
-        "tier": "minor",
         "x": 340,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
+        "y": 900,
+        "cost": 550,
+        "reqBranchCount": 4,
         "connects": [
-          "dark_knight_plates_1"
+          "pal_cru_6",
+          "pal_cru_7"
         ],
         "stats": {
-          "maxHp": 30,
-          "armor": 1.0
+          "cooldownReduc": 0.28,
+          "magnetRadius": 1,
+          "goldMult": 0.6,
+          "armor": 5
         },
-        "statText": "+30 HP Máximo, +1 Armadura",
-        "description": "Vitalidade corrompida mas infinitamente resistente."
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "-28% Recarga, +100% Ímã, +60% Ouro, +5 Armadura",
+        "description": "PEDRA ANGULAR: Comande o campo com autoridade sagrada máxima: ataque a cada instante e colete tudo instantaneamente!"
       },
       {
-        "id": "dark_knight_plates_3",
-        "classId": "dark_knight",
-        "name": "Resiliência Negra",
-        "branch": "plates",
+        "id": "pal_bridge_NW",
+        "classId": "paladin",
+        "name": "Auréola Rápida",
+        "branch": "sanctity",
         "tier": "minor",
-        "x": 340,
-        "y": 620,
-        "cost": 70,
+        "x": 740,
+        "y": 740,
+        "cost": 95,
         "reqBranchCount": 0,
         "connects": [
-          "dark_knight_plates_1"
+          "pal_sanc_2",
+          "pal_cru_2"
         ],
         "stats": {
-          "armor": 2.0,
-          "maxHp": 20
+          "holyAuraBonus": 20,
+          "speedMult": 0.08
         },
-        "statText": "+2 Armadura, +20 HP Máximo",
-        "description": "Golpes de monstros causam apenas arranhões leves."
+        "icon": "✨",
+        "badge": "SINERGIA",
+        "statText": "+20 Raio Auréola, +8% Velocidade",
+        "description": "Ponte: Movimento sagrado célere sem perder a força do círculo."
       },
       {
-        "id": "dark_knight_plates_not",
-        "classId": "dark_knight",
-        "name": "Titã das Catacumbas",
-        "branch": "plates",
-        "tier": "notable",
-        "x": 255,
-        "y": 560,
-        "cost": 180,
-        "reqBranchCount": 2,
+        "id": "pal_bridge_NE",
+        "classId": "paladin",
+        "name": "Martelo Consagrado",
+        "branch": "judgment",
+        "tier": "minor",
+        "x": 1060,
+        "y": 740,
+        "cost": 95,
+        "reqBranchCount": 0,
         "connects": [
-          "dark_knight_plates_2",
-          "dark_knight_plates_3"
+          "pal_sanc_3",
+          "pal_judg_2"
         ],
         "stats": {
-          "armor": 4.0,
-          "maxHp": 50
+          "damageMult": 0.18,
+          "extraProjectiles": 1
         },
-        "statText": "+4 Armadura, +50 HP Máximo",
-        "description": "NOTÁVEL: O mais resistente e blindado guerreiro de todo o reino."
+        "icon": "🔨",
+        "badge": "SINERGIA",
+        "statText": "+18% Dano Sagrado, +1 Martelo",
+        "description": "Ponte: A auréola imbui todos os martelos com fogo sagrado puro."
       },
       {
-        "id": "dark_knight_plates_key",
-        "classId": "dark_knight",
-        "name": "Colosso Inabalável",
-        "branch": "plates",
-        "tier": "keystone",
-        "x": 150,
-        "y": 560,
-        "cost": 450,
-        "reqBranchCount": 3,
+        "id": "pal_bridge_SE",
+        "classId": "paladin",
+        "name": "Impacto Restaurador",
+        "branch": "providence",
+        "tier": "minor",
+        "x": 1060,
+        "y": 1060,
+        "cost": 95,
+        "reqBranchCount": 0,
         "connects": [
-          "dark_knight_plates_not"
+          "pal_judg_3",
+          "pal_prov_3"
         ],
         "stats": {
-          "armor": 8.0,
-          "maxHp": 100,
-          "unshakeableColossus": true
+          "maxHp": 50,
+          "hpRegen": 0.8
         },
-        "statText": "+8 Armadura, +100 HP Máximo & Firmeza Total",
-        "description": "PEDRA ANGULAR: Concede defesa titânica incomparável e imunidade completa a qualquer empurrão de chefes."
+        "icon": "❤️",
+        "badge": "SINERGIA",
+        "statText": "+50 HP Máximo, +0.8 HP Regen/s",
+        "description": "Ponte: Esmagar monstros restaura o fôlego e a saúde."
+      },
+      {
+        "id": "pal_bridge_SW",
+        "classId": "paladin",
+        "name": "Armadura da Graça",
+        "branch": "crusader",
+        "tier": "minor",
+        "x": 740,
+        "y": 1060,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "pal_cru_3",
+          "pal_prov_2"
+        ],
+        "stats": {
+          "armor": 2,
+          "hpRegen": 0.8
+        },
+        "icon": "🛡️",
+        "badge": "SINERGIA",
+        "statText": "+2.0 Armadura, +0.8 HP Regen/s",
+        "description": "Ponte: Couraça temperada com preces que se repara constantemente."
       }
     ]
   },
   "plague_alchemist": {
     "id": "plague_alchemist",
     "name": "Alquimista da Peste",
-    "subtitle": "Doutor da Máscara de Corvo, Ácido Cáustico & Epidemia",
+    "subtitle": "Miasma Corrosivo, Transmutação Proibida & Frascos Voláteis",
     "icon": "🧪",
-    "color": "#27ae60",
+    "color": "#8e44ad",
     "originId": "plague_alchemist_orig",
     "branches": {
-      "caustic": {
-        "id": "caustic",
-        "name": "Poças Cáusticas",
-        "color": "#2ecc71",
+      "miasma": {
+        "id": "miasma",
+        "name": "Miasma Corrosivo",
+        "color": "#27ae60",
         "icon": "🧪",
-        "subtitle": "Dano de Ácido, Área das Poças & Duração"
+        "subtitle": "Área de Veneno, Duração de Poças & Corrosão"
       },
-      "epidemic": {
-        "id": "epidemic",
-        "name": "Epidemia & Praga",
-        "color": "#16a085",
-        "icon": "☣️",
-        "subtitle": "Contágio em Cadeia, Explosões Virais & Peste"
+      "volatiles": {
+        "id": "volatiles",
+        "name": "Frascos Voláteis",
+        "color": "#9b59b6",
+        "icon": "💣",
+        "subtitle": "Frascos Extras, Velocidade de Arremesso & Detonação"
       },
-      "forbidden": {
-        "id": "forbidden",
-        "name": "Alquimia Proibida",
+      "transmutation": {
+        "id": "transmutation",
+        "name": "Grande Obra & Ouro",
         "color": "#f39c12",
-        "icon": "⚗️",
-        "subtitle": "Transmutação de Ouro, Elixires & Recarga Rápida"
+        "icon": "💰",
+        "subtitle": "Ouro e Éter de Inimigos Envenenados, Transmutação"
+      },
+      "apothecary": {
+        "id": "apothecary",
+        "name": "Elixires Proibidos",
+        "color": "#c0392b",
+        "icon": "🧬",
+        "subtitle": "Regeneração Tóxica, Vida Alquímica & Peste Viral"
       }
     },
     "nodes": [
@@ -2835,314 +3861,913 @@
         "name": "Frasco Primordial",
         "branch": "center",
         "tier": "origin",
-        "x": 500,
-        "y": 500,
+        "x": 900,
+        "y": 900,
         "cost": 0,
         "reqBranchCount": 0,
         "connects": [],
         "stats": {},
-        "statText": "Centelha da Constelação de Alquimista da Peste",
-        "description": "O conhecimento proibido das substâncias voláteis e miasmas venenosos que corrompem a matéria viva."
+        "icon": "🧪",
+        "badge": "ORIGEM",
+        "statText": "Centelha da Constelação do Alquimista",
+        "description": "O conhecimento herético proibido: dissolver carne e osso em ácidos pestilentos para criar ouro e vida."
       },
       {
-        "id": "plague_alchemist_caustic_1",
+        "id": "alch_mia_1",
         "classId": "plague_alchemist",
-        "name": "Ácido Volátil",
-        "branch": "caustic",
+        "name": "Vapor Tóxico",
+        "branch": "miasma",
         "tier": "minor",
-        "x": 500,
-        "y": 420,
-        "cost": 45,
+        "x": 900,
+        "y": 780,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "plague_alchemist_orig"
         ],
         "stats": {
-          "damageMult": 0.15,
-          "plagueAreaBonus": 0.12
+          "plagueAreaBonus": 15,
+          "damageMult": 0.08
         },
-        "statText": "+15% Dano das Poças de Veneno",
-        "description": "Substância corrosiva que dissolve ossos e armaduras em segundos."
+        "icon": "🧪",
+        "badge": "VENENO",
+        "statText": "+15 Raio do Miasma, +8% Dano",
+        "description": "Vapores sulfúricos que sufocam os pulmões de quem passar perto."
       },
       {
-        "id": "plague_alchemist_caustic_2",
+        "id": "alch_mia_2",
         "classId": "plague_alchemist",
-        "name": "Pântano Tóxico",
-        "branch": "caustic",
+        "name": "Ácido Concentrado",
+        "branch": "miasma",
         "tier": "minor",
-        "x": 440,
-        "y": 340,
-        "cost": 70,
+        "x": 840,
+        "y": 700,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "plague_alchemist_caustic_1"
+          "alch_mia_1"
         ],
         "stats": {
           "areaMult": 0.18,
-          "plagueAreaBonus": 0.18
+          "plagueAreaBonus": 12
         },
-        "statText": "+18% Área das Poças de Ácido",
-        "description": "Líquido verde borbulhante cobre uma vasta área no chão."
+        "icon": "🧪",
+        "badge": "ÁREA",
+        "statText": "+18% Área Geral, +12 Raio Miasma",
+        "description": "As poças venenosas expandem-se rapidamente pelo calçamento."
       },
       {
-        "id": "plague_alchemist_caustic_3",
+        "id": "alch_mia_3",
         "classId": "plague_alchemist",
-        "name": "Peste Duradoura",
-        "branch": "caustic",
+        "name": "Peste Pulmonar",
+        "branch": "miasma",
         "tier": "minor",
-        "x": 560,
-        "y": 340,
-        "cost": 70,
+        "x": 960,
+        "y": 700,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "plague_alchemist_caustic_1"
+          "alch_mia_1"
         ],
         "stats": {
-          "burnDuration": 0.25,
-          "damageMult": 0.1
+          "damageMult": 0.15
         },
-        "statText": "+25% Duração do Ácido no Solo",
-        "description": "O ácido queima no piso por mais tempo, garantindo dano contínuo."
+        "icon": "🧪",
+        "badge": "VENENO",
+        "statText": "+15% Dano Contínuo de Veneno",
+        "description": "Toxina que decompõe tecidos musculares dos carniceiros."
       },
       {
-        "id": "plague_alchemist_caustic_not",
+        "id": "alch_mia_4",
         "classId": "plague_alchemist",
-        "name": "Dilúvio Tóxico",
-        "branch": "caustic",
-        "tier": "notable",
-        "x": 500,
-        "y": 255,
-        "cost": 180,
-        "reqBranchCount": 2,
+        "name": "Poça Sulfúrica",
+        "branch": "miasma",
+        "tier": "minor",
+        "x": 800,
+        "y": 620,
+        "cost": 80,
+        "reqBranchCount": 0,
         "connects": [
-          "plague_alchemist_caustic_2",
-          "plague_alchemist_caustic_3"
+          "alch_mia_2"
         ],
         "stats": {
-          "areaMult": 0.35,
-          "damageMult": 0.3,
-          "plagueAreaBonus": 0.3
+          "plagueAreaBonus": 25,
+          "areaMult": 0.22
         },
-        "statText": "+35% Área e +30% Dano do Ácido",
-        "description": "NOTÁVEL: Poças colossais de ácido derretem qualquer monstro que as atravesse."
+        "icon": "🧪",
+        "badge": "ÁREA",
+        "statText": "+25 Raio Miasma, +22% Área",
+        "description": "Lagos de ácido verde brilhante onde nenhum monstro sobrevive."
       },
       {
-        "id": "plague_alchemist_caustic_key",
+        "id": "alch_mia_5",
+        "classId": "plague_alchemist",
+        "name": "Contágio Necrótico",
+        "branch": "miasma",
+        "tier": "minor",
+        "x": 1000,
+        "y": 620,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_mia_3"
+        ],
+        "stats": {
+          "damageMult": 0.22,
+          "critChance": 0.06
+        },
+        "icon": "🧪",
+        "badge": "VENENO",
+        "statText": "+22% Dano, +6% Chance Crítica",
+        "description": "Necrose avançada que enfraquece chefes e monstros de elite."
+      },
+      {
+        "id": "alch_mia_not",
         "classId": "plague_alchemist",
         "name": "Mar de Podridão",
-        "branch": "caustic",
-        "tier": "keystone",
-        "x": 500,
-        "y": 150,
-        "cost": 450,
-        "reqBranchCount": 3,
-        "connects": [
-          "plague_alchemist_caustic_not"
-        ],
-        "stats": {
-          "damageMult": 0.4,
-          "causticSea": true
-        },
-        "statText": "Ácido Reduz Vel. Inimiga em 45% & Dano Duplo",
-        "description": "PEDRA ANGULAR: Monstros sobre o ácido sofrem lentidão extrema de 45% e sofrem dano de ácido dobrado."
-      },
-      {
-        "id": "plague_alchemist_epidemic_1",
-        "classId": "plague_alchemist",
-        "name": "Miasma Infeccioso",
-        "branch": "epidemic",
-        "tier": "minor",
-        "x": 580,
-        "y": 560,
-        "cost": 45,
-        "reqBranchCount": 0,
-        "connects": [
-          "plague_alchemist_orig"
-        ],
-        "stats": {
-          "damageMult": 0.12
-        },
-        "statText": "+12% Dano Contínuo por Segundo",
-        "description": "Vapores que sufocam monstros ao redor do alquimista."
-      },
-      {
-        "id": "plague_alchemist_epidemic_2",
-        "classId": "plague_alchemist",
-        "name": "Surto Viral",
-        "branch": "epidemic",
-        "tier": "minor",
-        "x": 660,
-        "y": 500,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "plague_alchemist_epidemic_1"
-        ],
-        "stats": {
-          "areaMult": 0.18
-        },
-        "statText": "+18% Raio de Disseminação da Peste",
-        "description": "A infecção se alastra rapidamente entre hordas aglomeradas."
-      },
-      {
-        "id": "plague_alchemist_epidemic_3",
-        "classId": "plague_alchemist",
-        "name": "Toxicidade Aguda",
-        "branch": "epidemic",
-        "tier": "minor",
-        "x": 660,
-        "y": 620,
-        "cost": 70,
-        "reqBranchCount": 0,
-        "connects": [
-          "plague_alchemist_epidemic_1"
-        ],
-        "stats": {
-          "damageMult": 0.15,
-          "critChance": 0.08
-        },
-        "statText": "+15% Dano de Veneno, +8% Crítico",
-        "description": "Veneno letal que paralisa as reações dos monstros."
-      },
-      {
-        "id": "plague_alchemist_epidemic_not",
-        "classId": "plague_alchemist",
-        "name": "Praga Devastadora",
-        "branch": "epidemic",
+        "branch": "miasma",
         "tier": "notable",
-        "x": 745,
+        "x": 900,
         "y": 560,
-        "cost": 180,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "plague_alchemist_epidemic_2",
-          "plague_alchemist_epidemic_3"
+          "alch_mia_4",
+          "alch_mia_5"
+        ],
+        "stats": {
+          "plagueAreaBonus": 40,
+          "areaMult": 0.3,
+          "damageMult": 0.25
+        },
+        "icon": "🧪",
+        "badge": "NOTÁVEL",
+        "statText": "+40 Raio Miasma, +30% Área, +25% Dano",
+        "description": "NOTÁVEL: As poças verdes tornam-se lagos cáusticos que cobrem quarteirões inteiros."
+      },
+      {
+        "id": "alch_mia_6",
+        "classId": "plague_alchemist",
+        "name": "Gás Mostarda",
+        "branch": "miasma",
+        "tier": "minor",
+        "x": 860,
+        "y": 460,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "alch_mia_not"
+        ],
+        "stats": {
+          "plagueAreaBonus": 35,
+          "damageMult": 0.3
+        },
+        "icon": "🧪",
+        "badge": "VENENO",
+        "statText": "+35 Raio Miasma, +30% Dano",
+        "description": "Névoa amarela asfixiante que derrete armaduras inimigas."
+      },
+      {
+        "id": "alch_mia_7",
+        "classId": "plague_alchemist",
+        "name": "Chuva de Toxinas",
+        "branch": "miasma",
+        "tier": "minor",
+        "x": 940,
+        "y": 460,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "alch_mia_not"
         ],
         "stats": {
           "areaMult": 0.35,
           "damageMult": 0.25
         },
-        "statText": "+35% Área de Contágio & Explosões Virais",
-        "description": "NOTÁVEL: Monstros infectados transmitem a peste instantaneamente ao morrer."
+        "icon": "🧪",
+        "badge": "ÁREA",
+        "statText": "+35% Área Geral, +25% Dano",
+        "description": "Micro-gotículas suspensas no ar envenenam a arena inteira."
       },
       {
-        "id": "plague_alchemist_epidemic_key",
+        "id": "alch_mia_key",
         "classId": "plague_alchemist",
-        "name": "Pandemia Cataclísmica",
-        "branch": "epidemic",
+        "name": "Mar Cáustico",
+        "branch": "miasma",
         "tier": "keystone",
-        "x": 850,
-        "y": 560,
-        "cost": 450,
-        "reqBranchCount": 3,
+        "x": 900,
+        "y": 340,
+        "cost": 550,
+        "reqBranchCount": 4,
         "connects": [
-          "plague_alchemist_epidemic_not"
+          "alch_mia_6",
+          "alch_mia_7"
         ],
         "stats": {
-          "areaMult": 0.4,
-          "cataclysmicPlague": true
+          "plagueAreaBonus": 60,
+          "causticSea": true,
+          "damageMult": 0.45
         },
-        "statText": "Monstros Infectados Explodem Espalhando Mais Ácido",
-        "description": "PEDRA ANGULAR: Inimigos mortos por veneno explodem em nuvens de gás que infectam todos os monstros da tela."
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+60 Raio Miasma, Mar Cáustico, +45% Dano",
+        "description": "PEDRA ANGULAR: As poças venenosas fundem-se em um dilúvio ácido permanente que cobre toda a tela!"
       },
       {
-        "id": "plague_alchemist_forbidden_1",
+        "id": "alch_vol_1",
         "classId": "plague_alchemist",
-        "name": "Transmutação Ácida",
-        "branch": "forbidden",
+        "name": "Frascos de Impacto",
+        "branch": "volatiles",
         "tier": "minor",
-        "x": 420,
-        "y": 560,
-        "cost": 45,
+        "x": 1020,
+        "y": 900,
+        "cost": 30,
         "reqBranchCount": 0,
         "connects": [
           "plague_alchemist_orig"
         ],
         "stats": {
-          "goldMult": 0.15
+          "damageMult": 0.1,
+          "cooldownReduc": 0.08
         },
-        "statText": "+15% Ouro de Monstros Dissolvidos",
-        "description": "O ácido dissolve armaduras em pepitas de ouro puro."
+        "icon": "💣",
+        "badge": "FRASCOS",
+        "statText": "+10% Dano de Frascos, -8% Recarga",
+        "description": "Vidro temperado que estilhaça com violência contra os monstros."
       },
       {
-        "id": "plague_alchemist_forbidden_2",
+        "id": "alch_vol_2",
         "classId": "plague_alchemist",
-        "name": "Elixir da Máscara",
-        "branch": "forbidden",
+        "name": "Arremesso Duplo",
+        "branch": "volatiles",
         "tier": "minor",
-        "x": 340,
-        "y": 500,
-        "cost": 70,
+        "x": 1100,
+        "y": 840,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "plague_alchemist_forbidden_1"
+          "alch_vol_1"
         ],
         "stats": {
-          "maxHp": 18,
-          "hpRegen": 0.3
+          "extraProjectiles": 1
         },
-        "statText": "+18 HP Máximo, +0.3 HP Regen/s",
-        "description": "Filtros da máscara de corvo purificam os ares contaminados."
+        "icon": "💣",
+        "badge": "FRASCOS",
+        "statText": "+1 Frasco Adicional por Arremesso",
+        "description": "Dois frascos lançados em parábolas simétricas."
       },
       {
-        "id": "plague_alchemist_forbidden_3",
+        "id": "alch_vol_3",
         "classId": "plague_alchemist",
-        "name": "Frascos Rápidos",
-        "branch": "forbidden",
+        "name": "Estilhaços de Vidro",
+        "branch": "volatiles",
         "tier": "minor",
-        "x": 340,
-        "y": 620,
-        "cost": 70,
+        "x": 1100,
+        "y": 960,
+        "cost": 50,
         "reqBranchCount": 0,
         "connects": [
-          "plague_alchemist_forbidden_1"
+          "alch_vol_1"
         ],
         "stats": {
-          "cooldownReduc": 0.1
+          "critChance": 0.08,
+          "critDamage": 0.3
         },
-        "statText": "-10% Tempo de Recarga Global",
-        "description": "Arremesso veloz de recipientes de vidro explosivo."
+        "icon": "🎯",
+        "badge": "CRÍTICO",
+        "statText": "+8% Chance Crítica, +30% Dano Crítico",
+        "description": "Cacos afiados embebidos em veneno cortam fundo."
       },
       {
-        "id": "plague_alchemist_forbidden_not",
+        "id": "alch_vol_4",
         "classId": "plague_alchemist",
-        "name": "Grande Obra Alquímica",
-        "branch": "forbidden",
+        "name": "Tríplice Miasma",
+        "branch": "volatiles",
+        "tier": "minor",
+        "x": 1180,
+        "y": 800,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_vol_2"
+        ],
+        "stats": {
+          "extraProjectiles": 1,
+          "cooldownReduc": 0.08
+        },
+        "icon": "💣",
+        "badge": "FRASCOS",
+        "statText": "+1 Frasco Adicional, -8% Recarga",
+        "description": "Três pontos de veneno criados a cada ciclo de arremesso."
+      },
+      {
+        "id": "alch_vol_5",
+        "classId": "plague_alchemist",
+        "name": "Fórmula Explosiva",
+        "branch": "volatiles",
+        "tier": "minor",
+        "x": 1180,
+        "y": 1000,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_vol_3"
+        ],
+        "stats": {
+          "damageMult": 0.2,
+          "areaMult": 0.15
+        },
+        "icon": "💥",
+        "badge": "EXPLOSÃO",
+        "statText": "+20% Dano, +15% Área de Detonação",
+        "description": "Detonação de fósforo que quebra formações cerradas."
+      },
+      {
+        "id": "alch_vol_not",
+        "classId": "plague_alchemist",
+        "name": "Chuva de Vidro e Peste",
+        "branch": "volatiles",
         "tier": "notable",
-        "x": 255,
-        "y": 560,
-        "cost": 180,
+        "x": 1240,
+        "y": 900,
+        "cost": 160,
         "reqBranchCount": 2,
         "connects": [
-          "plague_alchemist_forbidden_2",
-          "plague_alchemist_forbidden_3"
+          "alch_vol_4",
+          "alch_vol_5"
         ],
         "stats": {
-          "goldMult": 0.25,
+          "extraProjectiles": 1,
+          "damageMult": 0.25,
           "cooldownReduc": 0.15
         },
-        "statText": "+25% Ouro, -15% Tempo de Recarga",
-        "description": "NOTÁVEL: Produção ininterrupta de frascos químicos e ganho de ouro acelerado."
+        "icon": "💣",
+        "badge": "NOTÁVEL",
+        "statText": "+1 Frasco, +25% Dano, -15% Recarga",
+        "description": "NOTÁVEL: Bombardeio ininterrupto de veneno estilhaçante que sufoca a arena."
       },
       {
-        "id": "plague_alchemist_forbidden_key",
+        "id": "alch_vol_6",
         "classId": "plague_alchemist",
-        "name": "Pedra Filosofal da Peste",
-        "branch": "forbidden",
-        "tier": "keystone",
-        "x": 150,
-        "y": 560,
-        "cost": 450,
+        "name": "Quádruplo Lançamento",
+        "branch": "volatiles",
+        "tier": "minor",
+        "x": 1340,
+        "y": 860,
+        "cost": 260,
         "reqBranchCount": 3,
         "connects": [
-          "plague_alchemist_forbidden_not"
+          "alch_vol_not"
+        ],
+        "stats": {
+          "extraProjectiles": 2
+        },
+        "icon": "💣",
+        "badge": "FRASCOS",
+        "statText": "+2 Frascos Adicionais",
+        "description": "Uma saraivada de recipientes de vidro tóxico cobrindo 360 graus."
+      },
+      {
+        "id": "alch_vol_7",
+        "classId": "plague_alchemist",
+        "name": "Reação em Cadeia",
+        "branch": "volatiles",
+        "tier": "minor",
+        "x": 1340,
+        "y": 940,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "alch_vol_not"
+        ],
+        "stats": {
+          "critDamage": 0.7,
+          "critChance": 0.12
+        },
+        "icon": "🎯",
+        "badge": "CRÍTICO",
+        "statText": "+12% Crítico, +70% Dano Crítico",
+        "description": "Explosões consecutivas pulverizam ossos e carnes putrefatas."
+      },
+      {
+        "id": "alch_vol_key",
+        "classId": "plague_alchemist",
+        "name": "Cataclismo Alquímico",
+        "branch": "volatiles",
+        "tier": "keystone",
+        "x": 1460,
+        "y": 900,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "alch_vol_6",
+          "alch_vol_7"
+        ],
+        "stats": {
+          "extraProjectiles": 2,
+          "damageMult": 0.5,
+          "cooldownReduc": 0.25
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+2 Frascos, -25% Recarga, +50% Dano",
+        "description": "PEDRA ANGULAR: Metralhadora de frascos químicos que banha o campo em constante dilúvio corrosivo!"
+      },
+      {
+        "id": "alch_tra_1",
+        "classId": "plague_alchemist",
+        "name": "Toque de Midas",
+        "branch": "transmutation",
+        "tier": "minor",
+        "x": 900,
+        "y": 1020,
+        "cost": 30,
+        "reqBranchCount": 0,
+        "connects": [
+          "plague_alchemist_orig"
+        ],
+        "stats": {
+          "goldMult": 0.2,
+          "magnetRadius": 0.25
+        },
+        "icon": "💰",
+        "badge": "TRANSMUTAÇÃO",
+        "statText": "+20% Ouro, +25% Raio de Ímã",
+        "description": "Fórmula arcana que converte cinzas e ácidos em moedas de ouro."
+      },
+      {
+        "id": "alch_tra_2",
+        "classId": "plague_alchemist",
+        "name": "Cristais de Éter",
+        "branch": "transmutation",
+        "tier": "minor",
+        "x": 840,
+        "y": 1100,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_tra_1"
+        ],
+        "stats": {
+          "xpMult": 0.2,
+          "goldMult": 0.15
+        },
+        "icon": "🔮",
+        "badge": "ÉTER",
+        "statText": "+20% XP, +15% Ouro",
+        "description": "Monstros envenenados liberam mais cristais de experiência pura."
+      },
+      {
+        "id": "alch_tra_3",
+        "classId": "plague_alchemist",
+        "name": "Magnetismo Ácido",
+        "branch": "transmutation",
+        "tier": "minor",
+        "x": 960,
+        "y": 1100,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_tra_1"
+        ],
+        "stats": {
+          "magnetRadius": 0.45,
+          "speedMult": 0.05
+        },
+        "icon": "🧲",
+        "badge": "UTILIDADE",
+        "statText": "+45% Raio de Ímã, +5% Velocidade",
+        "description": "Vapores químicos puxam gemas distantes como um vórtice."
+      },
+      {
+        "id": "alch_tra_4",
+        "classId": "plague_alchemist",
+        "name": "Destilação de Riqueza",
+        "branch": "transmutation",
+        "tier": "minor",
+        "x": 800,
+        "y": 1180,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_tra_2"
         ],
         "stats": {
           "goldMult": 0.35,
+          "xpMult": 0.25
+        },
+        "icon": "💰",
+        "badge": "TRANSMUTAÇÃO",
+        "statText": "+35% Ouro, +25% XP",
+        "description": "Refinamento proibido: cada abate enriquece as arcas do reino."
+      },
+      {
+        "id": "alch_tra_5",
+        "classId": "plague_alchemist",
+        "name": "Atração Etérea",
+        "branch": "transmutation",
+        "tier": "minor",
+        "x": 1000,
+        "y": 1180,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_tra_3"
+        ],
+        "stats": {
+          "magnetRadius": 0.6,
+          "cooldownReduc": 0.08
+        },
+        "icon": "🧲",
+        "badge": "UTILIDADE",
+        "statText": "+60% Raio de Ímã, -8% Recarga",
+        "description": "Acelera a absorção de poder místico do solo."
+      },
+      {
+        "id": "alch_tra_not",
+        "classId": "plague_alchemist",
+        "name": "A Grande Obra",
+        "branch": "transmutation",
+        "tier": "notable",
+        "x": 900,
+        "y": 1240,
+        "cost": 160,
+        "reqBranchCount": 2,
+        "connects": [
+          "alch_tra_4",
+          "alch_tra_5"
+        ],
+        "stats": {
+          "goldMult": 0.5,
+          "xpMult": 0.35,
+          "magnetRadius": 0.7
+        },
+        "icon": "💰",
+        "badge": "NOTÁVEL",
+        "statText": "+50% Ouro, +35% XP, +70% Ímã",
+        "description": "NOTÁVEL: O ápice do conhecimento alquímico: transforma todo abate venenoso em riqueza absoluta."
+      },
+      {
+        "id": "alch_tra_6",
+        "classId": "plague_alchemist",
+        "name": "Crisopeia Real",
+        "branch": "transmutation",
+        "tier": "minor",
+        "x": 860,
+        "y": 1340,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "alch_tra_not"
+        ],
+        "stats": {
+          "goldMult": 0.6,
+          "xpMult": 0.4
+        },
+        "icon": "💰",
+        "badge": "TRANSMUTAÇÃO",
+        "statText": "+60% Ouro, +40% XP",
+        "description": "Transmuta metais vis em ouro ancestral refinado."
+      },
+      {
+        "id": "alch_tra_7",
+        "classId": "plague_alchemist",
+        "name": "Vórtice Alquímico",
+        "branch": "transmutation",
+        "tier": "minor",
+        "x": 940,
+        "y": 1340,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "alch_tra_not"
+        ],
+        "stats": {
+          "magnetRadius": 1,
+          "speedMult": 0.1
+        },
+        "icon": "🧲",
+        "badge": "UTILIDADE",
+        "statText": "+100% Raio de Ímã, +10% Velocidade",
+        "description": "Recolhimento instantâneo de todas as gemas da partida."
+      },
+      {
+        "id": "alch_tra_key",
+        "classId": "plague_alchemist",
+        "name": "Pedra Filosofal da Peste",
+        "branch": "transmutation",
+        "tier": "keystone",
+        "x": 900,
+        "y": 1460,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "alch_tra_6",
+          "alch_tra_7"
+        ],
+        "stats": {
+          "goldMult": 1,
+          "xpMult": 0.6,
           "philosophersPlague": true
         },
-        "statText": "Monstros Mortos Rendem Ouro & Frascos de Cura",
-        "description": "PEDRA ANGULAR: Cada monstro dissolvido concede +1 ouro bônus e tem 25% de chance de dropar um frasco de cura ou gema de XP."
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+100% Ouro, +60% XP, Pedra Filosofal",
+        "description": "PEDRA ANGULAR: Monstros mortos sob efeito de veneno possuem 35% de chance de dropar Éter e Ouro duplicados!"
+      },
+      {
+        "id": "alch_apo_1",
+        "classId": "plague_alchemist",
+        "name": "Elixir Estimulante",
+        "branch": "apothecary",
+        "tier": "minor",
+        "x": 780,
+        "y": 900,
+        "cost": 30,
+        "reqBranchCount": 0,
+        "connects": [
+          "plague_alchemist_orig"
+        ],
+        "stats": {
+          "maxHp": 30,
+          "speedMult": 0.08
+        },
+        "icon": "🧬",
+        "badge": "ELIXIR",
+        "statText": "+30 HP Máximo, +8% Velocidade",
+        "description": "Dose controlada de veneno que aguça os sentidos e a velocidade."
+      },
+      {
+        "id": "alch_apo_2",
+        "classId": "plague_alchemist",
+        "name": "Imunidade Toxicólogica",
+        "branch": "apothecary",
+        "tier": "minor",
+        "x": 700,
+        "y": 840,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_apo_1"
+        ],
+        "stats": {
+          "armor": 1.5,
+          "maxHp": 35
+        },
+        "icon": "🛡️",
+        "badge": "DEFESA",
+        "statText": "+1.5 Armadura, +35 HP Máximo",
+        "description": "Antídotos ingeridos reforçam a pele e os tecidos vitais."
+      },
+      {
+        "id": "alch_apo_3",
+        "classId": "plague_alchemist",
+        "name": "Soro da Regeneração",
+        "branch": "apothecary",
+        "tier": "minor",
+        "x": 700,
+        "y": 960,
+        "cost": 50,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_apo_1"
+        ],
+        "stats": {
+          "hpRegen": 0.8,
+          "maxHp": 25
+        },
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+0.8 HP Regen/s, +25 HP Máximo",
+        "description": "Bactérias benéficas reconstroem feridas durante a caminhada."
+      },
+      {
+        "id": "alch_apo_4",
+        "classId": "plague_alchemist",
+        "name": "Sangue Acidificado",
+        "branch": "apothecary",
+        "tier": "minor",
+        "x": 620,
+        "y": 800,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_apo_2"
+        ],
+        "stats": {
+          "thornsReflection": 25,
+          "armor": 2
+        },
+        "icon": "🌵",
+        "badge": "RETALIAÇÃO",
+        "statText": "+25 Espinhos Ácidos, +2.0 Armadura",
+        "description": "Monstros que golpeiam o alquimista são corroídos pelo sangue ácido."
+      },
+      {
+        "id": "alch_apo_5",
+        "classId": "plague_alchemist",
+        "name": "Fórmula de Lázaro",
+        "branch": "apothecary",
+        "tier": "minor",
+        "x": 620,
+        "y": 1000,
+        "cost": 80,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_apo_3"
+        ],
+        "stats": {
+          "hpRegen": 1.5,
+          "maxHp": 50
+        },
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+1.5 HP Regen/s, +50 HP Máximo",
+        "description": "Regeneração espantosa mesmo sob condições extremas de combate."
+      },
+      {
+        "id": "alch_apo_not",
+        "classId": "plague_alchemist",
+        "name": "Apotecário da Meia-Noite",
+        "branch": "apothecary",
+        "tier": "notable",
+        "x": 560,
+        "y": 900,
+        "cost": 160,
+        "reqBranchCount": 2,
+        "connects": [
+          "alch_apo_4",
+          "alch_apo_5"
+        ],
+        "stats": {
+          "maxHp": 90,
+          "hpRegen": 2.2,
+          "armor": 3.5
+        },
+        "icon": "🧬",
+        "badge": "NOTÁVEL",
+        "statText": "+90 HP Máx, +2.2 HP Regen, +3.5 Armadura",
+        "description": "NOTÁVEL: Uma constituição química mutante resistente a todos os flagelos da morte."
+      },
+      {
+        "id": "alch_apo_6",
+        "classId": "plague_alchemist",
+        "name": "Mutação Quimérica",
+        "branch": "apothecary",
+        "tier": "minor",
+        "x": 460,
+        "y": 860,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "alch_apo_not"
+        ],
+        "stats": {
+          "armor": 4,
+          "thornsReflection": 40
+        },
+        "icon": "🛡️",
+        "badge": "DEFESA",
+        "statText": "+4.0 Armadura, +40 Espinhos Ácidos",
+        "description": "Pele quitinosa endurecida como o casco de escorpiões da peste."
+      },
+      {
+        "id": "alch_apo_7",
+        "classId": "plague_alchemist",
+        "name": "Elixir da Vida Eterna",
+        "branch": "apothecary",
+        "tier": "minor",
+        "x": 460,
+        "y": 940,
+        "cost": 260,
+        "reqBranchCount": 3,
+        "connects": [
+          "alch_apo_not"
+        ],
+        "stats": {
+          "hpRegen": 3.5,
+          "maxHp": 100
+        },
+        "icon": "🌿",
+        "badge": "REGENERAÇÃO",
+        "statText": "+3.5 HP Regen/s, +100 HP Máximo",
+        "description": "Fluxo incessante de cura biológica no sangue do herói."
+      },
+      {
+        "id": "alch_apo_key",
+        "classId": "plague_alchemist",
+        "name": "Elixir da Imortalidade Tóxica",
+        "branch": "apothecary",
+        "tier": "keystone",
+        "x": 340,
+        "y": 900,
+        "cost": 550,
+        "reqBranchCount": 4,
+        "connects": [
+          "alch_apo_6",
+          "alch_apo_7"
+        ],
+        "stats": {
+          "maxHp": 180,
+          "hpRegen": 5.5,
+          "armor": 5
+        },
+        "icon": "👑",
+        "badge": "KEYSTONE",
+        "statText": "+180 HP, +5.5 HP Regen/s, +5 Armadura",
+        "description": "PEDRA ANGULAR: O corpo atinge simbiose perfeita com as toxinas: regeneração e vitalidade perpétuas!"
+      },
+      {
+        "id": "alch_bridge_NW",
+        "classId": "plague_alchemist",
+        "name": "Ácido Volátil",
+        "branch": "miasma",
+        "tier": "minor",
+        "x": 740,
+        "y": 740,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_mia_2",
+          "alch_vol_2"
+        ],
+        "stats": {
+          "plagueAreaBonus": 20,
+          "extraProjectiles": 1
+        },
+        "icon": "🧪",
+        "badge": "SINERGIA",
+        "statText": "+20 Raio Miasma, +1 Frasco",
+        "description": "Ponte: Múltiplos frascos que espalham poças venenosas gigantescas."
+      },
+      {
+        "id": "alch_bridge_NE",
+        "classId": "plague_alchemist",
+        "name": "Vidro Transmutado",
+        "branch": "volatiles",
+        "tier": "minor",
+        "x": 1060,
+        "y": 740,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_vol_3",
+          "alch_tra_2"
+        ],
+        "stats": {
+          "goldMult": 0.25,
+          "critChance": 0.08
+        },
+        "icon": "💰",
+        "badge": "SINERGIA",
+        "statText": "+25% Ouro, +8% Chance Crítica",
+        "description": "Ponte: Críticos químicos convertem monstros diretamente em pepitas."
+      },
+      {
+        "id": "alch_bridge_SE",
+        "classId": "plague_alchemist",
+        "name": "Soro Dourado",
+        "branch": "transmutation",
+        "tier": "minor",
+        "x": 1060,
+        "y": 1060,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_tra_3",
+          "alch_apo_3"
+        ],
+        "stats": {
+          "maxHp": 45,
+          "magnetRadius": 0.4
+        },
+        "icon": "❤️",
+        "badge": "SINERGIA",
+        "statText": "+45 HP Máximo, +40% Raio Ímã",
+        "description": "Ponte: Saúde sustentada pela rápida atração de tesouros."
+      },
+      {
+        "id": "alch_bridge_SW",
+        "classId": "plague_alchemist",
+        "name": "Carapaça Ácida",
+        "branch": "apothecary",
+        "tier": "minor",
+        "x": 740,
+        "y": 1060,
+        "cost": 95,
+        "reqBranchCount": 0,
+        "connects": [
+          "alch_apo_2",
+          "alch_mia_3"
+        ],
+        "stats": {
+          "armor": 2,
+          "damageMult": 0.15
+        },
+        "icon": "🛡️",
+        "badge": "SINERGIA",
+        "statText": "+2.0 Armadura, +15% Dano Veneno",
+        "description": "Ponte: Couraça protetora que potencializa a densidade das toxinas."
       }
     ]
   }
@@ -3271,33 +4896,17 @@
         bowPierce: 0,
         fireExplosion: 0,
         holyAuraBonus: 0,
-        berserkFury: 0,
-        minionCapBonus: 0,
-        shadowCritBoost: 0,
-        thornsReflection: 0,
         plagueAreaBonus: 0,
+        thornsReflection: 0,
         // Keystones
         colossusPact: false,
-        secondWind: false,
         shockwaveOnCrit: false,
         windSurge: false,
         purgatoryFire: false,
         phoenixRebirth: false,
         celestialHalo: false,
         holyRetribution: false,
-        colossalBerserk: false,
-        bloodFeast: false,
-        boneExplosion: false,
-        spectralVortex: false,
-        soulHarvester: false,
-        surgicalCarnage: false,
-        phantomDaggers: false,
-        midnightCloak: false,
-        cataclysmicThorns: false,
-        sorrowBlade: false,
-        unshakeableColossus: false,
         causticSea: false,
-        cataclysmicPlague: false,
         philosophersPlague: false
       };
 

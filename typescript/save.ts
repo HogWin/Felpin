@@ -908,15 +908,62 @@ class SaveManager {
       if (treeBonuses.cosmicGems) {
         player.cosmicGems = true;
       }
+      if (treeBonuses.swordBoost > 0) {
+        player.swordBoost = (player.swordBoost || 0) + treeBonuses.swordBoost;
+      }
+      if (treeBonuses.bowPierce > 0) {
+        player.pierceBonus = (player.pierceBonus || 0) + treeBonuses.bowPierce;
+      }
+      if (treeBonuses.fireExplosion > 0) {
+        player.fireExplosionBonus = (player.fireExplosionBonus || 0) + treeBonuses.fireExplosion;
+      }
+      if (treeBonuses.holyAuraBonus > 0) {
+        player.holyAuraBonus = (player.holyAuraBonus || 0) + treeBonuses.holyAuraBonus;
+      }
+      if (treeBonuses.plagueAreaBonus > 0) {
+        player.plagueAreaBonus = (player.plagueAreaBonus || 0) + treeBonuses.plagueAreaBonus;
+      }
+      if (treeBonuses.thornsReflection > 0) {
+        player.thornsReflection = (player.thornsReflection || 0) + treeBonuses.thornsReflection;
+      }
+      if (treeBonuses.windSurge) {
+        player.windSurge = true;
+      }
+      if (treeBonuses.purgatoryFire) {
+        player.purgatoryFire = true;
+      }
+      if (treeBonuses.phoenixRebirth) {
+        player.phoenixRebirth = true;
+        player.phoenixRebirthAvailable = true;
+      }
+      if (treeBonuses.celestialHalo) {
+        player.celestialHalo = true;
+      }
+      if (treeBonuses.holyRetribution) {
+        player.holyRetribution = true;
+      }
+      if (treeBonuses.causticSea) {
+        player.causticSea = true;
+      }
+      if (treeBonuses.philosophersPlague) {
+        player.philosophersPlague = true;
+      }
     }
 
     player.weapons.forEach(w => {
-      if (w.id === 'broadsword' && up.sword_boost > 0) {
-        w.baseDamage += up.sword_boost * 6;
-      } else if (w.id === 'crossbow' && up.bow_boost > 0) {
-        w.baseDamage += up.bow_boost * 5;
-      } else if (w.id === 'holy_fire' && up.fire_boost > 0) {
-        w.baseDamage += up.fire_boost * 4;
+      if ((w.id === 'broadsword' || w.id === 'steel_sword') && (up.sword_boost > 0 || player.swordBoost > 0)) {
+        w.baseDamage += (up.sword_boost || 0) * 6;
+        if (player.swordBoost > 0) w.baseDamage = Math.round(w.baseDamage * (1 + player.swordBoost));
+      } else if ((w.id === 'crossbow' || w.id === 'composite_bow') && (up.bow_boost > 0 || player.pierceBonus > 0)) {
+        w.baseDamage += (up.bow_boost || 0) * 5;
+        if (player.pierceBonus > 0) w.pierceCount = (w.pierceCount || 2) + player.pierceBonus;
+      } else if ((w.id === 'holy_fire' || w.id === 'fire_staff') && (up.fire_boost > 0 || player.fireExplosionBonus > 0)) {
+        w.baseDamage += (up.fire_boost || 0) * 4;
+        if (player.fireExplosionBonus > 0) w.explosionRadiusBonus = (w.explosionRadiusBonus || 0) + player.fireExplosionBonus;
+      } else if (w.id === 'holy_hammer' && player.holyAuraBonus > 0) {
+        w.baseDamage = Math.round(w.baseDamage * (1 + player.holyAuraBonus * 0.01));
+      } else if (w.id === 'poison_flask' && player.plagueAreaBonus > 0) {
+        w.areaBonus = (w.areaBonus || 0) + player.plagueAreaBonus;
       }
     });
   }

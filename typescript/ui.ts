@@ -1875,7 +1875,7 @@ class UIController {
       this._skillTreeZoom = 1.0;
     }
     if (!this._skillTreeCenter) {
-      this._skillTreeCenter = { x: 500, y: 500 };
+      this._skillTreeCenter = { x: 900, y: 900 };
     }
 
     const classRegistry = window.MedievalSurvivors.classRegistry;
@@ -1947,8 +1947,8 @@ class UIController {
               <button class="tree-ctrl-btn" id="btn-zoom-reset" title="Centralizar Origem">🎯</button>
             </div>
 
-            <!-- SVG Constellation Map -->
-            <svg id="talent-tree-svg" class="talent-tree-svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
+            <!-- SVG Constellation Map (1800x1800) -->
+            <svg id="talent-tree-svg" class="talent-tree-svg" viewBox="200 200 1400 1400" preserveAspectRatio="xMidYMid meet">
               <defs>
                 <filter id="glow-gold" x="-30%" y="-30%" width="160%" height="160%">
                   <feGaussianBlur stdDeviation="4" result="blur" />
@@ -1964,13 +1964,16 @@ class UIController {
                 </filter>
               </defs>
 
-              <!-- Galaxy/Constellation Background Elements -->
+              <!-- Galaxy/Constellation Background Elements Centered at (900, 900) -->
               <g class="tree-constellation-bg">
-                <circle cx="500" cy="500" r="435" fill="none" stroke="rgba(241,196,15,0.06)" stroke-width="1.5" stroke-dasharray="8 6"/>
-                <circle cx="500" cy="500" r="285" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-                <circle cx="500" cy="500" r="145" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="4 4"/>
-                <line x1="500" y1="40" x2="500" y2="960" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-                <line x1="40" y1="500" x2="960" y2="500" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+                <circle cx="900" cy="900" r="760" fill="none" stroke="rgba(241,196,15,0.06)" stroke-width="2" stroke-dasharray="10 8"/>
+                <circle cx="900" cy="900" r="540" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5" stroke-dasharray="6 6"/>
+                <circle cx="900" cy="900" r="340" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"/>
+                <circle cx="900" cy="900" r="160" fill="none" stroke="rgba(241,196,15,0.08)" stroke-width="1.5" stroke-dasharray="4 4"/>
+                <line x1="900" y1="40" x2="900" y2="1760" stroke="rgba(255,255,255,0.03)" stroke-width="1.5"/>
+                <line x1="40" y1="900" x2="1760" y2="900" stroke="rgba(255,255,255,0.03)" stroke-width="1.5"/>
+                <line x1="280" y1="280" x2="1520" y2="1520" stroke="rgba(255,255,255,0.02)" stroke-width="1" stroke-dasharray="8 8"/>
+                <line x1="1520" y1="280" x2="280" y2="1520" stroke="rgba(255,255,255,0.02)" stroke-width="1" stroke-dasharray="8 8"/>
               </g>
 
               <!-- Constellation Lines (Edges) -->
@@ -2006,6 +2009,13 @@ class UIController {
             <div class="summary-stat-box"><span class="lbl">Regeneração:</span><strong class="val text-gold">+${bonuses.hpRegen.toFixed(1)} HP/s</strong></div>
             <div class="summary-stat-box"><span class="lbl">Projéteis Extras:</span><strong class="val text-gold">+${bonuses.extraProjectiles}</strong></div>
             <div class="summary-stat-box"><span class="lbl">Cargas Reroll:</span><strong class="val text-gold">+${bonuses.extraRerolls}</strong></div>
+            ${bonuses.swordBoost ? `<div class="summary-stat-box"><span class="lbl">Dano de Espada:</span><strong class="val text-gold">+${(bonuses.swordBoost * 100).toFixed(0)}%</strong></div>` : ''}
+            ${bonuses.bowPierce ? `<div class="summary-stat-box"><span class="lbl">Perfuração Flechas:</span><strong class="val text-gold">+${bonuses.bowPierce}</strong></div>` : ''}
+            ${bonuses.fireExplosion ? `<div class="summary-stat-box"><span class="lbl">Explosão Ígnea:</span><strong class="val text-gold">+${(bonuses.fireExplosion * 100).toFixed(0)}%</strong></div>` : ''}
+            ${bonuses.holyAuraBonus ? `<div class="summary-stat-box"><span class="lbl">Aura Sagrada:</span><strong class="val text-gold">+${(bonuses.holyAuraBonus * 100).toFixed(0)}%</strong></div>` : ''}
+            ${bonuses.plagueAreaBonus ? `<div class="summary-stat-box"><span class="lbl">Área Pútrida:</span><strong class="val text-gold">+${(bonuses.plagueAreaBonus * 100).toFixed(0)}%</strong></div>` : ''}
+            ${bonuses.thornsReflection ? `<div class="summary-stat-box"><span class="lbl">Espinhos Refletidos:</span><strong class="val text-gold">+${(bonuses.thornsReflection * 100).toFixed(0)}%</strong></div>` : ''}
+            ${bonuses.phoenixRebirth ? `<div class="summary-stat-box"><span class="lbl">Renascer da Fênix:</span><strong class="val text-gold">ATIVO 🔥</strong></div>` : ''}
           </div>
         </div>
       </div>
@@ -2054,11 +2064,11 @@ class UIController {
         <div class="inspect-header" style="border-left: 4px solid ${branchInfo.color};">
           <div class="inspect-branch-tag" style="color: ${branchInfo.color};">${branchInfo.name}</div>
           ${tierBadge}
-          <h4 class="inspect-name">${node.name}</h4>
+          <h4 class="inspect-name"><span class="inspect-title-icon" style="margin-right: 6px; font-size: 1.25rem;">${node.icon || '✦'}</span>${node.name}</h4>
         </div>
 
         <div class="inspect-stat-highlight">
-          <span class="inspect-stat-icon">✨</span>
+          <span class="inspect-stat-icon">${node.icon || '✨'}</span>
           <span class="inspect-stat-val">${node.statText}</span>
         </div>
 
@@ -2165,40 +2175,42 @@ class UIController {
       g.setAttribute('data-id', node.id);
       g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
 
+      const nodeGlyph = node.icon || '✦';
+
       if (node.tier === 'origin') {
-        // Origin Node: Grand Sun
+        // Origin Node: Grand Sun with pulsing aura and royal class icon
         g.innerHTML = `
-          <circle r="34" fill="rgba(241,196,15,0.18)" class="pulse-aura" />
-          <circle r="26" fill="#1b1202" stroke="${tree.color || '#f1c40f'}" stroke-width="3" filter="url(#glow-gold)" />
-          <circle r="16" fill="${tree.color || '#f39c12'}" />
-          <polygon points="0,-12 3,-3 12,0 3,3 0,12 -3,3 -12,0 -3,-3" fill="#ffffff" />
+          <circle r="42" fill="rgba(241,196,15,0.18)" class="pulse-aura" />
+          <circle r="32" fill="#1b1202" stroke="${tree.color || '#f1c40f'}" stroke-width="3.5" filter="url(#glow-gold)" />
+          <circle r="22" fill="${tree.color || '#f39c12'}" opacity="0.3" />
+          <text text-anchor="middle" dominant-baseline="central" font-size="20" y="1" pointer-events="none">${nodeGlyph}</text>
         `;
       } else if (node.tier === 'minor') {
-        // Minor Node: Glowing Gem Jewel
+        // Minor Node: Glowing Gem Jewel with descriptive symbol
         const fillCol = isAllocated ? (branchInfo.color || '#f1c40f') : (canUnlock ? '#1a2a3a' : '#14121b');
         const strokeCol = isAllocated ? '#ffffff' : (canUnlock ? '#3498db' : '#3d374d');
         g.innerHTML = `
-          <circle r="15" fill="${fillCol}" stroke="${strokeCol}" stroke-width="${isAllocated ? '2.5' : '1.5'}" class="node-body" />
-          <circle r="6" fill="${isAllocated ? '#ffffff' : 'rgba(255,255,255,0.2)'}" />
+          <circle r="19" fill="${fillCol}" stroke="${strokeCol}" stroke-width="${isAllocated ? '2.5' : '1.5'}" filter="${isAllocated ? 'url(#glow-gold)' : (canUnlock ? 'url(#glow-node-avail)' : 'none')}" class="node-body" />
+          <text text-anchor="middle" dominant-baseline="central" font-size="12" y="1" pointer-events="none" opacity="${isAllocated ? '1' : (canUnlock ? '0.9' : '0.45')}">${nodeGlyph}</text>
         `;
       } else if (node.tier === 'notable') {
-        // Notable Node: Diamond with Outer Ring
+        // Notable Node: Diamond Medallion with Outer Ring and prominent icon
         const fillCol = isAllocated ? (branchInfo.color || '#f1c40f') : (canUnlock ? '#2a1f10' : '#14121b');
         const strokeCol = isAllocated ? '#ffd700' : (canUnlock ? '#f39c12' : '#4d4233');
         g.innerHTML = `
-          <circle r="22" fill="none" stroke="${strokeCol}" stroke-width="1.5" stroke-dasharray="4 3" />
-          <polygon points="0,-17 17,0 0,17 -17,0" fill="${fillCol}" stroke="${strokeCol}" stroke-width="2.5" class="node-body" />
-          <polygon points="0,-7 7,0 0,7 -7,0" fill="${isAllocated ? '#ffffff' : '#ffd700'}" />
+          <circle r="27" fill="none" stroke="${strokeCol}" stroke-width="1.5" stroke-dasharray="5 3" opacity="${isAllocated ? '0.9' : '0.5'}" />
+          <polygon points="0,-21 21,0 0,21 -21,0" fill="${fillCol}" stroke="${strokeCol}" stroke-width="2.5" filter="${isAllocated ? 'url(#glow-gold)' : (canUnlock ? 'url(#glow-cyan)' : 'none')}" class="node-body" />
+          <text text-anchor="middle" dominant-baseline="central" font-size="15" y="1" pointer-events="none" opacity="${isAllocated ? '1' : (canUnlock ? '0.95' : '0.5')}">${nodeGlyph}</text>
         `;
       } else if (node.tier === 'keystone') {
-        // Keystone: Grand Ornate 8-Pointed Star
+        // Keystone: Grand Celestial 8-Pointed Star and large symbol
         const fillCol = isAllocated ? (branchInfo.color || '#e74c3c') : (canUnlock ? '#2c1010' : '#14121b');
         const strokeCol = isAllocated ? '#ffd700' : (canUnlock ? '#e74c3c' : '#4d3333');
         g.innerHTML = `
-          <circle r="30" fill="none" stroke="${strokeCol}" stroke-width="1.5" stroke-dasharray="6 4" class="keystone-ring" />
-          <circle r="24" fill="${fillCol}" stroke="${strokeCol}" stroke-width="3" filter="url(#glow-gold)" class="node-body" />
-          <polygon points="0,-18 5,-5 18,0 5,5 0,18 -5,5 -18,0 -5,-5" fill="#ffffff" />
-          <polygon points="-12,-12 0,-7 12,-12 7,0 12,12 0,7 -12,12 -7,0" fill="#ffd700" />
+          <circle r="36" fill="none" stroke="${strokeCol}" stroke-width="2" stroke-dasharray="6 4" class="keystone-ring" />
+          <circle r="28" fill="${fillCol}" stroke="${strokeCol}" stroke-width="3" filter="url(#glow-gold)" class="node-body" />
+          <polygon points="0,-24 7,-7 24,0 7,7 0,24 -7,7 -24,0 -7,-7" fill="${fillCol}" stroke="${strokeCol}" stroke-width="1.5" opacity="0.35" />
+          <text text-anchor="middle" dominant-baseline="central" font-size="20" y="1" pointer-events="none" opacity="${isAllocated ? '1' : (canUnlock ? '0.95' : '0.5')}">${nodeGlyph}</text>
         `;
       }
 
@@ -2218,7 +2230,7 @@ class UIController {
     const viewport = document.getElementById('talent-tree-viewport');
     let isDragging = false;
     let startX = 0, startY = 0;
-    let viewBox = { x: 0, y: 0, w: 1000, h: 1000 };
+    let viewBox = { x: 200, y: 200, w: 1400, h: 1400 };
 
     const updateViewBox = () => {
       svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
@@ -2234,8 +2246,8 @@ class UIController {
       const svgX = viewBox.x + (mouseX / rect.width) * viewBox.w;
       const svgY = viewBox.y + (mouseY / rect.height) * viewBox.h;
 
-      const newW = Math.max(350, Math.min(1800, viewBox.w * zoomFactor));
-      const newH = Math.max(350, Math.min(1800, viewBox.h * zoomFactor));
+      const newW = Math.max(400, Math.min(2400, viewBox.w * zoomFactor));
+      const newH = Math.max(400, Math.min(2400, viewBox.h * zoomFactor));
 
       viewBox.x = svgX - (mouseX / rect.width) * newW;
       viewBox.y = svgY - (mouseY / rect.height) * newH;
@@ -2296,8 +2308,8 @@ class UIController {
     // Zoom Buttons
     document.getElementById('btn-zoom-in').addEventListener('click', () => {
       const zoomFactor = 0.82;
-      const newW = viewBox.w * zoomFactor;
-      const newH = viewBox.h * zoomFactor;
+      const newW = Math.max(400, viewBox.w * zoomFactor);
+      const newH = Math.max(400, viewBox.h * zoomFactor);
       viewBox.x += (viewBox.w - newW) / 2;
       viewBox.y += (viewBox.h - newH) / 2;
       viewBox.w = newW;
@@ -2307,8 +2319,8 @@ class UIController {
 
     document.getElementById('btn-zoom-out').addEventListener('click', () => {
       const zoomFactor = 1.22;
-      const newW = Math.min(1600, viewBox.w * zoomFactor);
-      const newH = Math.min(1600, viewBox.h * zoomFactor);
+      const newW = Math.min(2400, viewBox.w * zoomFactor);
+      const newH = Math.min(2400, viewBox.h * zoomFactor);
       viewBox.x += (viewBox.w - newW) / 2;
       viewBox.y += (viewBox.h - newH) / 2;
       viewBox.w = newW;
@@ -2317,7 +2329,7 @@ class UIController {
     });
 
     document.getElementById('btn-zoom-reset').addEventListener('click', () => {
-      viewBox = { x: 0, y: 0, w: 1000, h: 1000 };
+      viewBox = { x: 200, y: 200, w: 1400, h: 1400 };
       updateViewBox();
     });
 
@@ -2328,7 +2340,7 @@ class UIController {
         if (cid && cid !== this._skillTreeActiveClass) {
           this._skillTreeActiveClass = cid;
           this._skillTreeSelectedNode = engine.getOriginNodeId(cid);
-          this._skillTreeCenter = { x: 500, y: 500 };
+          this._skillTreeCenter = { x: 900, y: 900 };
           this.renderSkillTreeTab();
         }
       });
