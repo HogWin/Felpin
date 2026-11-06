@@ -80,6 +80,7 @@ class GameRenderer {
     this._projectileMeshPool = new Map(); // typeKey -> Array<THREE.Group>
     this.holyAuraMesh = null;
     this.holyFirePoolsMap = new Map();
+    this.dyingEnemyMeshes = [];
 
     // Reusable tracking Sets to eliminate per-frame heap allocations & GC stutters
     this._activeEnemyIds = new Set();
@@ -104,10 +105,64 @@ class GameRenderer {
     this._projectVec = new THREE.Vector3();
     this._screenPos = { x: 0, y: 0, onScreen: false };
     this.init3DParticles();
+    this.initHordeInstancing();
 
     // Bind resize
     this.resize();
     window.addEventListener('resize', () => this.resize());
+  }
+
+  // =========================================================================
+  // HORDE INSTANCING: THREE.InstancedMesh Batcher (Single Draw Call)
+  // =========================================================================
+  initHordeInstancing() {
+    const models3d = window.MedievalSurvivors && window.MedievalSurvivors.models3d;
+    if (!models3d || !THREE.InstancedMesh) return;
+
+    this.hordeTypes = ['skeleton', 'villager', 'dark_knight', 'witch'];
+    this.hordeMeshes = {};
+    this.hordeCounts = {};
+    this.hordeMaxCapacity = 350;
+
+    this._hordeMatrix = new THREE.Matrix4();
+    this._hordePos = new THREE.Vector3();
+    this._hordeQuat = new THREE.Quaternion();
+    this._hordeEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+    this._hordeScale = new THREE.Vector3();
+    this._hordeColorNormal = new THREE.Color(1.0, 1.0, 1.0);
+    this._hordeColorFlash = new THREE.Color(2.4, 0.35, 0.35);
+
+    // 1. Horde character InstancedMeshes (Single Draw Call per archetype)
+    this.hordeTypes.forEach(type => {
+      const geo = models3d.createHordeCompoundGeometry(type);
+      const mat = models3d.getHordeMaterial(type);
+      const im = new THREE.InstancedMesh(geo, mat, this.hordeMaxCapacity);
+      im.count = 0;
+      im.frustumCulled = false;
+      this.scene.add(im);
+      this.hordeMeshes[type] = im;
+      this.hordeCounts[type] = 0;
+    });
+
+    // 2. Instanced contact shadows for horde
+    const shadowGeo = new THREE.CircleGeometry(1, 14);
+    shadowGeo.rotateX(-Math.PI / 2);
+    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.38 });
+    this.hordeShadowMesh = new THREE.InstancedMesh(shadowGeo, shadowMat, this.hordeMaxCapacity * 4);
+    this.hordeShadowMesh.count = 0;
+    this.hordeShadowMesh.frustumCulled = false;
+    this.scene.add(this.hordeShadowMesh);
+    this.hordeShadowCount = 0;
+
+    // 3. Instanced threat/hitbox rings for horde
+    const ringGeo = new THREE.RingGeometry(0.85, 1.0, 20);
+    ringGeo.rotateX(-Math.PI / 2);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xff3838, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
+    this.hordeRingMesh = new THREE.InstancedMesh(ringGeo, ringMat, this.hordeMaxCapacity * 4);
+    this.hordeRingMesh.count = 0;
+    this.hordeRingMesh.frustumCulled = false;
+    this.scene.add(this.hordeRingMesh);
+    this.hordeRingCount = 0;
   }
 
   // Cleanly disposes mesh geometries & non-shared materials to prevent WebGL memory leaks
@@ -686,7 +741,16 @@ class GameRenderer {
     this._activeEnemyIds.clear();
     const px = player ? player.x : 0;
     const py = player ? player.y : 0;
-    const viewDistSq = 580 * 580; // Frustum / camera visible threshold
+    const viewDistSq = 620 * 620; // Frustum / camera visible threshold
+
+    // Reset InstancedMesh horde counters
+    if (this.hordeMeshes) {
+      for (let i = 0; i < this.hordeTypes.length; i++) {
+        this.hordeCounts[this.hordeTypes[i]] = 0;
+      }
+      this.hordeShadowCount = 0;
+      this.hordeRingCount = 0;
+    }
 
     for (let i = 0, len = enemies.length; i < len; i++) {
       const e = enemies[i];
@@ -699,6 +763,81 @@ class GameRenderer {
       const inView = (dx * dx + dy * dy) <= viewDistSq;
       let mesh = this.enemyMeshMap.get(e.id);
 
+      // Check if enemy can be batched with THREE.InstancedMesh (Single Draw Call)
+      const isHordeCandidate = !e.isBoss && !e.isChampion && this.hordeMeshes && this.hordeMeshes[e.type];
+
+      if (isHordeCandidate && inView) {
+        // If enemy previously had an individual mesh, clean it up so no duplicate exists
+        if (mesh) {
+          this.scene.remove(mesh);
+          this.disposeMesh(mesh);
+          this.enemyMeshMap.delete(e.id);
+          mesh = null;
+        }
+
+        const im = this.hordeMeshes[e.type];
+        const idx = this.hordeCounts[e.type];
+        if (idx < this.hordeMaxCapacity) {
+          this.hordeCounts[e.type]++;
+
+          // 1. Procedural movement & walk sway
+          const angle = Math.atan2(e.vy, e.vx) || 0;
+          const walk = e.walkCycle || 0;
+          let bobY = 0;
+          let tiltZ = 0;
+
+          if (e.type === 'witch') {
+            bobY = 4.0 + Math.sin(walk * 2.0) * 2.5;
+            tiltZ = Math.sin(walk) * 0.12;
+          } else {
+            bobY = Math.abs(Math.sin(walk * 2.0)) * 1.4;
+            tiltZ = Math.sin(walk) * 0.08;
+          }
+
+          const scale = 1.38;
+          this._hordeEuler.set(0, -angle + Math.PI / 2, tiltZ);
+          this._hordeQuat.setFromEuler(this._hordeEuler);
+          this._hordePos.set(e.x, bobY, e.y);
+          this._hordeScale.set(scale, scale, scale);
+          this._hordeMatrix.compose(this._hordePos, this._hordeQuat, this._hordeScale);
+          im.setMatrixAt(idx, this._hordeMatrix);
+
+          // 2. GPU Hit Flash / Normal Color
+          if (e.hp < e._lastHp) {
+            e._hitFlash = 0.12;
+            e._lastHp = e.hp;
+          }
+          if (e._hitFlash > 0) {
+            e._hitFlash -= dt;
+            im.setColorAt(idx, this._hordeColorFlash);
+          } else {
+            im.setColorAt(idx, this._hordeColorNormal);
+          }
+
+          // 3. Instanced Shadow
+          if (this.hordeShadowMesh && this.hordeShadowCount < this.hordeMaxCapacity * 4) {
+            const sIdx = this.hordeShadowCount++;
+            const sR = (e.radius || 12) * 0.75;
+            this._hordePos.set(e.x, 0.12, e.y);
+            this._hordeScale.set(sR, 1, sR);
+            this._hordeMatrix.compose(this._hordePos, this._hordeQuat.identity(), this._hordeScale);
+            this.hordeShadowMesh.setMatrixAt(sIdx, this._hordeMatrix);
+          }
+
+          // 4. Instanced Threat / Hitbox Ring
+          if (this.hordeRingMesh && this.hordeRingCount < this.hordeMaxCapacity * 4) {
+            const rIdx = this.hordeRingCount++;
+            const rR = Math.max(6, e.radius || 14);
+            this._hordePos.set(e.x, 0.16, e.y);
+            this._hordeScale.set(rR, 1, rR);
+            this._hordeMatrix.compose(this._hordePos, this._hordeQuat.identity(), this._hordeScale);
+            this.hordeRingMesh.setMatrixAt(rIdx, this._hordeMatrix);
+          }
+        }
+        continue;
+      }
+
+      // Bosses, Champions and unique enemies use detailed hierarchical 3D models
       if (inView || e.isBoss) {
         if (!mesh) {
           mesh = window.MedievalSurvivors.models3d.createEnemyModel(e);
@@ -715,14 +854,59 @@ class GameRenderer {
       }
     }
 
-    // Clean up dead/despawned enemies
+    // Update THREE.InstancedMesh counts & buffers
+    if (this.hordeMeshes) {
+      for (let i = 0; i < this.hordeTypes.length; i++) {
+        const t = this.hordeTypes[i];
+        const im = this.hordeMeshes[t];
+        im.count = this.hordeCounts[t];
+        if (im.count > 0) {
+          im.instanceMatrix.needsUpdate = true;
+          if (im.instanceColor) im.instanceColor.needsUpdate = true;
+        }
+      }
+      if (this.hordeShadowMesh) {
+        this.hordeShadowMesh.count = this.hordeShadowCount;
+        if (this.hordeShadowMesh.count > 0) this.hordeShadowMesh.instanceMatrix.needsUpdate = true;
+      }
+      if (this.hordeRingMesh) {
+        this.hordeRingMesh.count = this.hordeRingCount;
+        if (this.hordeRingMesh.count > 0) this.hordeRingMesh.instanceMatrix.needsUpdate = true;
+      }
+    }
+
+    // Process dying disintegrating meshes with GLSL Dissolve hook
+    if (this.dyingEnemyMeshes && this.dyingEnemyMeshes.length > 0) {
+      for (let i = this.dyingEnemyMeshes.length - 1; i >= 0; i--) {
+        const item = this.dyingEnemyMeshes[i];
+        item.progress += dt * 2.6; // Disintegrate over ~0.38s
+        if (item.mesh && item.mesh.setDissolveProgress) {
+          item.mesh.setDissolveProgress(item.progress);
+        }
+        if (Math.random() < 0.40) {
+          this.spawn3DParticle(item.mesh.position.x + (Math.random() - 0.5) * 8, 10 + Math.random() * 8, item.mesh.position.z + (Math.random() - 0.5) * 8, 0xff5500, 2, 8);
+        }
+        if (item.progress >= 1.0) {
+          this.spawn3DParticle(item.mesh.position.x, 10, item.mesh.position.z, 0x333333, 5, 20);
+          this.scene.remove(item.mesh);
+          this.disposeMesh(item.mesh);
+          this.dyingEnemyMeshes.splice(i, 1);
+        }
+      }
+    }
+
+    // Clean up dead/despawned individual enemy meshes
     for (const [id, mesh] of this.enemyMeshMap.entries()) {
       if (!this._activeEnemyIds.has(id)) {
-        // Spawn death blood/soul particles at enemy position
-        this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0xa81923, 6, 30);
-        this.scene.remove(mesh);
-        this.disposeMesh(mesh);
-        this.enemyMeshMap.delete(id);
+        if (mesh.setDissolveProgress) {
+          this.dyingEnemyMeshes.push({ mesh, progress: 0.0, id });
+          this.enemyMeshMap.delete(id);
+        } else {
+          this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0xa81923, 6, 30);
+          this.scene.remove(mesh);
+          this.disposeMesh(mesh);
+          this.enemyMeshMap.delete(id);
+        }
       }
     }
   }
