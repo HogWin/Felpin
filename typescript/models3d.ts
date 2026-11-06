@@ -1,8 +1,3 @@
-/// <reference path="./types.d.ts" />
-/**
- * The Fallen Kingdom - models3d.ts (TypeScript Source)
- */
-
 /**
  * Medieval Survivors - 3D Models & Procedural Mesh Architecture (Three.js)
  * High-detail procedural low-poly & stylized 3D models with articulated limbs and animations.
@@ -266,25 +261,39 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       // Aim arrow stays on ground pointing at player's facing angle
       aimGroup.rotation.y = -player.facingAngle;
 
-      // 1. Locomocao & Sincronizacao de Passos dos Herois (Cavaleiro & Arqueira)
+      // 1. Locomocao & Sincronizacao de Passos dos Herois (Cavaleiro, Arqueira, Alquimista & Piromante)
       const inSwordSlash = player.swordAttackTimer > 0;
       const inShootAnim = player.shootAnimTimer > 0;
       const inToss = player.tossAnimTimer > 0;
+      const inCastAnim = (player.castAnimTimer || 0) > 0;
 
       if (isMoving) {
-        const legSwing = Math.sin(walk) * 0.72;
-        if (anim.leftLeg) anim.leftLeg.rotation.x = legSwing;
-        if (anim.rightLeg) anim.rightLeg.rotation.x = -legSwing;
-        bodyRoot.position.y = Math.abs(Math.sin(walk * 2)) * 1.6;
+        if (anim.isPyromancer) {
+          const legSwing = Math.sin(walk) * 0.28;
+          if (anim.leftLeg) anim.leftLeg.rotation.x = legSwing;
+          if (anim.rightLeg) anim.rightLeg.rotation.x = -legSwing;
+          bodyRoot.position.y = Math.abs(Math.sin(walk * 2)) * 0.9;
 
-        // Torcao de marcha do torso (apenas quando nao esta golpeando ou disparando)
-        if (anim.torso && !inSwordSlash && !inShootAnim) {
+          if (anim.robe) {
+            anim.robe.rotation.z = Math.sin(walk) * 0.06;
+            anim.robe.rotation.y = -Math.sin(walk) * 0.05;
+            anim.robe.rotation.x = 0.06 + Math.abs(Math.sin(walk)) * 0.03;
+          }
+        } else {
+          const legSwing = Math.sin(walk) * 0.72;
+          if (anim.leftLeg) anim.leftLeg.rotation.x = legSwing;
+          if (anim.rightLeg) anim.rightLeg.rotation.x = -legSwing;
+          bodyRoot.position.y = Math.abs(Math.sin(walk * 2)) * 1.6;
+        }
+
+        // Torcao de marcha do torso
+        if (anim.torso && !inSwordSlash && !inShootAnim && !inCastAnim) {
           anim.torso.rotation.y = Math.sin(walk) * 0.12;
           anim.torso.rotation.z = Math.cos(walk) * 0.04;
         }
 
-        // Braco Esquerdo - Apoio da Besta (Arqueira) ou Escudo de Guarda (Cavaleiro)
-        if (anim.leftArm && !inShootAnim) {
+        // Braco Esquerdo - Apoio da Besta (Arqueira), Frasco (Alquimista), Labareda (Piromante), Escudo Torre (Paladino) ou Escudo (Cavaleiro)
+        if (anim.leftArm && !inShootAnim && !inCastAnim) {
           if (anim.isRanger) {
             anim.leftArm.rotation.x = 0.65 + Math.sin(walk) * 0.08;
             anim.leftArm.rotation.y = 0.38;
@@ -293,6 +302,14 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             anim.leftArm.rotation.x = 0.35 + Math.sin(walk) * 0.15;
             anim.leftArm.rotation.y = 0.22;
             anim.leftArm.rotation.z = -0.18;
+          } else if (anim.isPyromancer) {
+            anim.leftArm.rotation.x = -0.35 + Math.sin(walk) * 0.15;
+            anim.leftArm.rotation.y = 0.30;
+            anim.leftArm.rotation.z = -0.20;
+          } else if (anim.isPaladin) {
+            anim.leftArm.rotation.x = 0.28 - Math.sin(walk) * 0.25;
+            anim.leftArm.rotation.y = 0.38;
+            anim.leftArm.rotation.z = -0.15;
           } else {
             anim.leftArm.rotation.x = 0.22 + Math.sin(walk) * 0.12;
             anim.leftArm.rotation.y = 0.32;
@@ -300,8 +317,8 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
           }
         }
 
-        // Braco Direito - Empunhadura de Disparo (Arqueira) ou Espada Tática (Cavaleiro)
-        if (anim.rightArm && !inSwordSlash && !inShootAnim && !inToss) {
+        // Braco Direito - Empunhadura de Disparo, Cajado, Martelo Relicário, Espada ou Frasco
+        if (anim.rightArm && !inSwordSlash && !inShootAnim && !inToss && !inCastAnim) {
           if (anim.isRanger) {
             anim.rightArm.rotation.x = -0.55 + Math.sin(walk) * 0.12;
             anim.rightArm.rotation.y = -0.22;
@@ -310,6 +327,14 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             anim.rightArm.rotation.x = -0.42 + Math.sin(walk) * 0.14;
             anim.rightArm.rotation.y = -0.15;
             anim.rightArm.rotation.z = 0.12 + Math.cos(walk) * 0.06;
+          } else if (anim.isPyromancer) {
+            anim.rightArm.rotation.x = -0.28 - Math.sin(walk) * 0.22;
+            anim.rightArm.rotation.y = -0.18;
+            anim.rightArm.rotation.z = 0.15;
+          } else if (anim.isPaladin) {
+            anim.rightArm.rotation.x = -0.35 + Math.sin(walk) * 0.35;
+            anim.rightArm.rotation.y = -0.20;
+            anim.rightArm.rotation.z = 0.14;
           } else {
             anim.rightArm.rotation.x = -0.26 + Math.sin(walk) * 0.16;
             anim.rightArm.rotation.y = -0.18;
@@ -317,25 +342,40 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
           }
         }
 
-        // Capa Nobre / Élfica - Esvoaçamento aerodinâmico na corrida
-        if (anim.cape && !inSwordSlash && !inShootAnim) {
+        // Tabardo do Paladino
+        if (anim.tabard) {
+          anim.tabard.rotation.x = 0.12 + Math.abs(Math.sin(walk)) * 0.08;
+        }
+
+        // Capa - Esvoaçamento aerodinâmico na corrida
+        if (anim.cape && !inSwordSlash && !inShootAnim && !inCastAnim) {
           anim.cape.rotation.x = 0.42 + Math.sin(walk * 2) * 0.16;
           anim.cape.rotation.z = Math.sin(walk) * 0.10;
         }
       } else {
-        if (anim.leftLeg) anim.leftLeg.rotation.x = 0;
-        if (anim.rightLeg) anim.rightLeg.rotation.x = 0;
+        if (anim.isPyromancer) {
+          if (anim.leftLeg) anim.leftLeg.rotation.x = -0.12;
+          if (anim.rightLeg) anim.rightLeg.rotation.x = 0.18;
+          if (anim.robe) {
+            anim.robe.rotation.x = 0;
+            anim.robe.rotation.y = 0;
+            anim.robe.rotation.z = 0;
+          }
+        } else {
+          if (anim.leftLeg) anim.leftLeg.rotation.x = 0;
+          if (anim.rightLeg) anim.rightLeg.rotation.x = 0;
+        }
 
         // Respiracao Heroica Idle
         const breath = Math.sin(Date.now() / 420);
         bodyRoot.position.y = breath * 0.45;
 
-        if (anim.torso && !inSwordSlash && !inShootAnim) {
+        if (anim.torso && !inSwordSlash && !inShootAnim && !inCastAnim) {
           anim.torso.rotation.y = 0;
           anim.torso.rotation.z = 0;
           anim.torso.rotation.x = breath * 0.012;
         }
-        if (anim.leftArm && !inShootAnim) {
+        if (anim.leftArm && !inShootAnim && !inCastAnim) {
           if (anim.isRanger) {
             anim.leftArm.rotation.x = 0.58 + breath * 0.015;
             anim.leftArm.rotation.y = 0.32;
@@ -344,13 +384,21 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             anim.leftArm.rotation.x = 0.28 + breath * 0.02;
             anim.leftArm.rotation.y = 0.20;
             anim.leftArm.rotation.z = -0.15;
+          } else if (anim.isPyromancer) {
+            anim.leftArm.rotation.x = -0.45 + breath * 0.05;
+            anim.leftArm.rotation.y = 0.35;
+            anim.leftArm.rotation.z = -0.25;
+          } else if (anim.isPaladin) {
+            anim.leftArm.rotation.x = 0.28 + breath * 0.02;
+            anim.leftArm.rotation.y = 0.42;
+            anim.leftArm.rotation.z = -0.15;
           } else {
             anim.leftArm.rotation.x = 0.14 + breath * 0.02;
             anim.leftArm.rotation.y = 0.25;
             anim.leftArm.rotation.z = -0.05;
           }
         }
-        if (anim.rightArm && !inSwordSlash && !inShootAnim && !inToss) {
+        if (anim.rightArm && !inSwordSlash && !inShootAnim && !inToss && !inCastAnim) {
           if (anim.isRanger) {
             anim.rightArm.rotation.x = -0.48 + breath * 0.02;
             anim.rightArm.rotation.y = -0.18;
@@ -359,13 +407,24 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             anim.rightArm.rotation.x = -0.36 + breath * 0.025;
             anim.rightArm.rotation.y = -0.12;
             anim.rightArm.rotation.z = 0.10;
+          } else if (anim.isPyromancer) {
+            anim.rightArm.rotation.x = -0.20 + breath * 0.04;
+            anim.rightArm.rotation.y = -0.15;
+            anim.rightArm.rotation.z = 0.15;
+          } else if (anim.isPaladin) {
+            anim.rightArm.rotation.x = -0.32 + breath * 0.02;
+            anim.rightArm.rotation.y = -0.22;
+            anim.rightArm.rotation.z = 0.14;
           } else {
             anim.rightArm.rotation.x = -0.18 + breath * 0.03;
             anim.rightArm.rotation.y = -0.12;
             anim.rightArm.rotation.z = 0.10;
           }
         }
-        if (anim.cape && !inSwordSlash && !inShootAnim) {
+        if (anim.tabard) {
+          anim.tabard.rotation.x = breath * 0.02;
+        }
+        if (anim.cape && !inSwordSlash && !inShootAnim && !inCastAnim) {
           anim.cape.rotation.x = 0.08 + Math.sin(Date.now() / 320) * 0.04;
           anim.cape.rotation.z = Math.cos(Date.now() / 400) * 0.02;
         }
@@ -588,6 +647,137 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       } else if (anim.weapon && anim.weapon.scale.x !== 1) {
         anim.weapon.scale.set(1, 1, 1);
         if (anim.rightElbow && anim.rightElbow.rotation.x !== 0) anim.rightElbow.rotation.x = 0;
+      }
+
+      // 4. Dynamic Cast Animation (Pyromancer solar flame burst & spell invocation)
+      if (inCastAnim) {
+        player.castAnimTimer -= dt;
+        const maxT = player.castAnimMax || 0.35;
+        const progress = 1 - Math.max(0, player.castAnimTimer / maxT);
+
+        if (progress < 0.35) {
+          // Fase 1: Windup & Erguimento de Cajado
+          const p = progress / 0.35;
+          const easeIn = p * p;
+          if (anim.rightArm) {
+            anim.rightArm.rotation.x = -0.20 - easeIn * 1.45;
+            anim.rightArm.rotation.y = -0.15 + easeIn * 0.35;
+            anim.rightArm.rotation.z = 0.15 + easeIn * 0.40;
+          }
+          if (anim.leftArm) {
+            anim.leftArm.rotation.x = -0.45 + easeIn * 0.80;
+            anim.leftArm.rotation.y = 0.35 - easeIn * 0.20;
+            anim.leftArm.rotation.z = -0.25;
+          }
+          if (anim.torso) {
+            anim.torso.rotation.x = -easeIn * 0.18;
+            anim.torso.rotation.y = -easeIn * 0.25;
+          }
+          if (anim.cape) {
+            anim.cape.rotation.x = 0.25 + easeIn * 0.30;
+          }
+        } else if (progress < 0.65) {
+          // Fase 2: Liberação Ígnea & Apontamento do Cajado
+          const p = (progress - 0.35) / 0.30;
+          const easeOut = 1 - Math.pow(1 - p, 3);
+          if (anim.rightArm) {
+            anim.rightArm.rotation.x = -1.65 + easeOut * 1.85;
+            anim.rightArm.rotation.y = 0.20 - easeOut * 0.35;
+            anim.rightArm.rotation.z = 0.55 - easeOut * 0.40;
+          }
+          if (anim.leftArm) {
+            anim.leftArm.rotation.x = 0.35 - easeOut * 0.80;
+            anim.leftArm.rotation.y = 0.15 + easeOut * 0.20;
+          }
+          if (anim.torso) {
+            anim.torso.rotation.x = -0.18 + easeOut * 0.28;
+            anim.torso.rotation.y = -0.25 + easeOut * 0.35;
+          }
+          if (anim.cape) {
+            anim.cape.rotation.x = 0.55 - easeOut * 0.35;
+          }
+        } else {
+          // Fase 3: Retorno suave
+          const p = (progress - 0.65) / 0.35;
+          const ease = 1 - Math.pow(1 - p, 2);
+          if (anim.rightArm) {
+            anim.rightArm.rotation.x = 0.20 * (1 - ease) + (-0.20) * ease;
+            anim.rightArm.rotation.y = -0.15;
+            anim.rightArm.rotation.z = 0.15;
+          }
+          if (anim.leftArm) {
+            anim.leftArm.rotation.x = -0.45;
+            anim.leftArm.rotation.y = 0.35;
+            anim.leftArm.rotation.z = -0.25;
+          }
+          if (anim.torso) {
+            anim.torso.rotation.x = 0.10 * (1 - ease);
+            anim.torso.rotation.y = 0.10 * (1 - ease);
+          }
+          if (anim.cape) {
+            anim.cape.rotation.x = 0.20 + (1 - ease) * 0.15;
+          }
+        }
+      }
+
+      // 5. Partículas & Cinemática Contínua de Piromancia (Labareda Viva, Orbe Solar & Brasas)
+      if (anim.isPyromancer) {
+        const timeSec = Date.now() * 0.001;
+        if (anim.fireParticles && anim.fireParticles.length > 0) {
+          for (let i = 0; i < anim.fireParticles.length; i++) {
+            const p = anim.fireParticles[i];
+            if (p._sparkAngle !== undefined) {
+              p._sparkAngle += dt * 3.5;
+              p.position.set(
+                Math.cos(p._sparkAngle) * p._sparkRadius,
+                Math.sin(p._sparkAngle * 2) * 0.4,
+                Math.sin(p._sparkAngle) * p._sparkRadius
+              );
+            } else if (p._emberAngle !== undefined) {
+              p._emberAngle += dt * 2.8;
+              p.position.set(
+                Math.cos(p._emberAngle) * p._emberRadius,
+                18.2 + Math.sin(p._emberAngle * 1.5) * 0.6,
+                Math.sin(p._emberAngle) * p._emberRadius
+              );
+            }
+          }
+        }
+        if (anim.staffFlame) anim.staffFlame.rotation.y += dt * 2.0;
+        if (anim.staffHalo) {
+          anim.staffHalo.rotation.x += dt * 1.5;
+          anim.staffHalo.rotation.z += dt * 1.2;
+        }
+        if (anim.fireAura) {
+          anim.fireAura.rotation.y += dt * 2.5;
+          const auraPulse = 1.0 + Math.sin(timeSec * 6) * 0.12;
+          anim.fireAura.scale.set(auraPulse, auraPulse * 1.1, auraPulse);
+        }
+      }
+
+      // 6. Cinemática & Partículas do Paladino da Alvorada (Auréola Solar, Motes Sagrados & Núcleo)
+      if (anim.isPaladin) {
+        const timeSec = Date.now() * 0.001;
+        if (anim.halo) {
+          anim.halo.rotation.y += dt * 0.8;
+        }
+        if (anim.holyMotes && anim.holyMotes.length > 0) {
+          for (let i = 0; i < anim.holyMotes.length; i++) {
+            const m = anim.holyMotes[i];
+            m._moteAngle += dt * 2.2;
+            m.position.set(
+              Math.cos(m._moteAngle) * m._moteRadius,
+              Math.sin(m._moteAngle * 3) * 0.6,
+              Math.sin(m._moteAngle) * m._moteRadius
+            );
+          }
+        }
+        if (anim.hammerCore) {
+          anim.hammerCore.rotation.y += dt * 1.5;
+          anim.hammerCore.rotation.x += dt * 0.8;
+          const pulse = 1.0 + Math.sin(timeSec * 5.0) * 0.15;
+          anim.hammerCore.scale.set(pulse, pulse, pulse);
+        }
       }
 
       // Flash on hit / invulnerability
@@ -1545,170 +1735,814 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   }
 
   // =========================================================================
-  // 1.3 FEITICEIRO DAS CINZAS (Pyromancer Model)
+  // 1.3 FEITICEIRO DAS CINZAS (Pyromancer Rework Model - Alta Fidelidade 3D)
+  // =========================================================================
   function buildPyromancerModel(group, anim) {
-    const robeMat = createFlashable(materials.pyroOrange);
-    const darkMat = createFlashable(materials.darkCloth);
-    const goldMat = createFlashable(materials.gold);
-    const woodMat = createFlashable(materials.wood);
-    const flameMat = materials.flameGlow;
-    anim.materials.push(robeMat, darkMat, goldMat, woodMat);
+    anim.isPyromancer = true;
+    anim.fireParticles = [];
 
+    // Materiais PBR Especiais de Piromancia Medieval Gótica
+    const crimsonSilkMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x821111,
+      roughness: 0.70,
+      side: THREE.DoubleSide,
+      flatShading: true
+    }));
+    const charcoalClothMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x151216,
+      roughness: 0.84,
+      side: THREE.DoubleSide,
+      flatShading: true
+    }));
+    const moltenAmberMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xbd5a16,
+      roughness: 0.65,
+      side: THREE.DoubleSide,
+      flatShading: true
+    }));
+    const scorchedLeatherMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x24140e,
+      roughness: 0.78,
+      flatShading: true
+    }));
+    const darkBronzeMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x6e4624,
+      metalness: 0.86,
+      roughness: 0.34,
+      flatShading: true
+    }));
+    const ashwoodMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x1f1a18,
+      roughness: 0.85,
+      flatShading: true
+    }));
+    const flameCoreMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xff6600,
+      emissive: 0xff3300,
+      emissiveIntensity: 1.8,
+      roughness: 0.15
+    }));
+    const fireAuraMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xffaa00,
+      emissive: 0xff7700,
+      emissiveIntensity: 1.4,
+      transparent: true,
+      opacity: 0.85
+    }));
+    const emberGlowMat = createFlashable(new THREE.MeshBasicMaterial({
+      color: 0xff7700
+    }));
+    const runeGoldMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xd4af37,
+      metalness: 0.92,
+      roughness: 0.22,
+      flatShading: true
+    }));
+    const amberGlassMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xd97706,
+      metalness: 0.2,
+      roughness: 0.1,
+      transparent: true,
+      opacity: 0.75
+    }));
+    const skinPaleMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xdecbbe,
+      roughness: 0.60
+    }));
+
+    anim.materials.push(
+      crimsonSilkMat, charcoalClothMat, moltenAmberMat, scorchedLeatherMat,
+      darkBronzeMat, ashwoodMat, flameCoreMat, fireAuraMat, runeGoldMat, amberGlassMat, skinPaleMat
+    );
+
+    // 1. TORSO, CORSELETE DE COURO & ESTOLA CLERICAL RÚNICA
     const torsoGroup = new THREE.Group();
-    torsoGroup.position.y = 13;
+    torsoGroup.position.y = 13.5;
     group.add(torsoGroup);
     anim.torso = torsoGroup;
 
-    // Robes
-    const robeGeo = new THREE.CylinderGeometry(3.5, 6.5, 15, 8);
-    robeGeo.translate(0, -4, 0);
-    torsoGroup.add(new THREE.Mesh(robeGeo, robeMat));
+    // Corpete Anatômico em Ampulheta com Proteção de Couro Tratado
+    const chestGeo = new THREE.CylinderGeometry(4.2, 3.4, 7.8, 8);
+    const chestMesh = new THREE.Mesh(chestGeo, scorchedLeatherMat);
+    torsoGroup.add(chestMesh);
 
-    // Wizard cowl & Head
+    // Corpete Interno de Seda Escarlate
+    const underVestGeo = new THREE.CylinderGeometry(4.0, 3.2, 7.2, 8);
+    const underVest = new THREE.Mesh(underVestGeo, crimsonSilkMat);
+    underVest.position.z = 0.2;
+    torsoGroup.add(underVest);
+
+    // Amarrações Frontais Cruzadas de Ouro Velho no Corselete
+    [-1.2, 0.4, 2.0].forEach(yPos => {
+      const cord1 = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.35, 0.4), runeGoldMat);
+      cord1.position.set(0, yPos, 2.2);
+      cord1.rotation.z = 0.25;
+      const cord2 = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.35, 0.4), runeGoldMat);
+      cord2.position.set(0, yPos, 2.2);
+      cord2.rotation.z = -0.25;
+      torsoGroup.add(cord1, cord2);
+    });
+
+    // Estola Clerical Mística com Símbolos de Fogo descendo pelo peito
+    const stoleL = new THREE.Mesh(new THREE.BoxGeometry(1.2, 9.5, 0.45), moltenAmberMat);
+    stoleL.position.set(-1.6, -1.2, 2.0);
+    stoleL.rotation.z = -0.06;
+    const stoleR = new THREE.Mesh(new THREE.BoxGeometry(1.2, 9.5, 0.45), moltenAmberMat);
+    stoleR.position.set(1.6, -1.2, 2.0);
+    stoleR.rotation.z = 0.06;
+    torsoGroup.add(stoleL, stoleR);
+
+    // Amuleto Solar de Rubi & Bronze no Peitoral
+    const brooch = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.4, 8), darkBronzeMat);
+    brooch.rotation.x = Math.PI / 2;
+    brooch.position.set(0, 3.2, 2.1);
+    const rubyCore = new THREE.Mesh(new THREE.OctahedronGeometry(0.65, 0), flameCoreMat);
+    rubyCore.position.set(0, 3.2, 2.4);
+    torsoGroup.add(brooch, rubyCore);
+
+    // Cinto Largo com Fivela de Latão & Frascos de Fogo Grego
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 3.8, 1.6, 10), scorchedLeatherMat);
+    belt.position.y = -3.8;
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.8, 0.7), darkBronzeMat);
+    buckle.position.set(0, -3.8, 2.3);
+    torsoGroup.add(belt, buckle);
+
+    // 3 Frascos de Alquimia Ígnea presos ao cinto
+    const flaskOffsets = [[-2.4, -4.2, 1.8], [2.2, -4.2, 1.9], [3.2, -4.2, 0.8]];
+    flaskOffsets.forEach(([fx, fy, fz]) => {
+      const flaskHolder = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.7, 6), scorchedLeatherMat);
+      flaskHolder.position.set(fx, fy, fz);
+      const flaskBottle = new THREE.Mesh(new THREE.CylinderGeometry(0.40, 0.40, 2.0, 8), amberGlassMat);
+      flaskBottle.position.set(fx, fy - 0.2, fz);
+      const flaskLiquid = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 1.4, 6), flameCoreMat);
+      flaskLiquid.position.set(fx, fy - 0.4, fz);
+      const flaskCork = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.28, 0.45, 6), scorchedLeatherMat);
+      flaskCork.position.set(fx, fy + 0.9, fz);
+      torsoGroup.add(flaskHolder, flaskBottle, flaskLiquid, flaskCork);
+    });
+
+    // Bolsa de Pós e Enxofre na Cintura
+    const sulfurPouch = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.6, 1.6), scorchedLeatherMat);
+    sulfurPouch.position.set(-3.2, -4.2, 0.8);
+    sulfurPouch.rotation.y = 0.45;
+    torsoGroup.add(sulfurPouch);
+
+    // 2. MANTO LONGO & SAIA DRAPEADA EM CAMADAS COM FORRO ÂMBAR
+    const robeBaseGroup = new THREE.Group();
+    robeBaseGroup.position.set(0, -4.2, 0);
+    torsoGroup.add(robeBaseGroup);
+
+    // Saia Cone de 8 Faces (Manto Carmesim)
+    anim.robe = robeBaseGroup;
+    const robeGeo = new THREE.CylinderGeometry(3.6, 7.6, 15.5, 8, 1, true);
+    robeGeo.translate(0, -7.5, 0);
+    const robeMesh = new THREE.Mesh(robeGeo, crimsonSilkMat);
+    robeBaseGroup.add(robeMesh);
+
+    // Forro Interno Âmbar Visível na Fenda da Saia
+    const innerLiningGeo = new THREE.CylinderGeometry(3.5, 7.4, 15.3, 8, 1, true);
+    innerLiningGeo.translate(0, -7.5, 0);
+    const innerLiningMesh = new THREE.Mesh(innerLiningGeo, moltenAmberMat);
+    innerLiningMesh.scale.set(0.98, 1, 0.98);
+    robeBaseGroup.add(innerLiningMesh);
+
+    // Sobretúnica de Cinzas Fatiada em 4 Abas Góticas de Combate
+    [-1.8, 1.8].forEach((x, i) => {
+      const flapF = new THREE.Mesh(new THREE.BoxGeometry(3.2, 9.5, 0.4), charcoalClothMat);
+      flapF.position.set(x, -5.5, 2.4);
+      flapF.rotation.x = 0.12;
+      flapF.rotation.y = (i === 0 ? 0.10 : -0.10);
+      robeBaseGroup.add(flapF);
+
+      const flapB = new THREE.Mesh(new THREE.BoxGeometry(3.4, 10.5, 0.4), charcoalClothMat);
+      flapB.position.set(x, -5.8, -2.4);
+      flapB.rotation.x = -0.15;
+      flapB.rotation.y = (i === 0 ? -0.12 : 0.12);
+      robeBaseGroup.add(flapB);
+    });
+
+    // Barrado Dourado Bordado na Borda da Sobretúnica
+    const hemTrimF = new THREE.Mesh(new THREE.BoxGeometry(7.2, 0.6, 0.5), runeGoldMat);
+    hemTrimF.position.set(0, -9.8, 2.8);
+    robeBaseGroup.add(hemTrimF);
+
+    // 3. CAPUZ PONTIEAGUDO GÓTICO, ROSTO SOMBREADO & OLHOS DE BRASA
     const headGroup = new THREE.Group();
-    headGroup.position.y = 7;
+    headGroup.position.y = 6.2;
     torsoGroup.add(headGroup);
     anim.head = headGroup;
 
-    const cowlGeo = new THREE.ConeGeometry(4, 9, 6);
-    cowlGeo.rotateX(-0.25);
-    headGroup.add(new THREE.Mesh(cowlGeo, darkMat));
+    // Rosto Feminino Sombreado
+    const faceGeo = new THREE.CylinderGeometry(2.0, 1.7, 4.4, 6);
+    const faceMesh = new THREE.Mesh(faceGeo, skinPaleMat);
+    faceMesh.position.set(0, 0, 0.3);
+    headGroup.add(faceMesh);
 
-    // Glowing fiery eyes
-    const eyeGeo = new THREE.SphereGeometry(0.6, 4, 4);
-    const eyeL = new THREE.Mesh(eyeGeo, flameMat);
-    eyeL.position.set(-1.2, -0.5, 2.5);
-    headGroup.add(eyeL);
-    const eyeR = new THREE.Mesh(eyeGeo, flameMat);
-    eyeR.position.set(1.2, -0.5, 2.5);
-    headGroup.add(eyeR);
+    // Queixo e Lábios Delicados
+    const chinGeo = new THREE.ConeGeometry(1.2, 1.6, 5);
+    chinGeo.rotateX(Math.PI);
+    chinGeo.translate(0, -2.4, 0.8);
+    headGroup.add(new THREE.Mesh(chinGeo, skinPaleMat));
 
-    // Left hand with floating flame orb
+    // Cabelos Negros com Mechas Escorrendo pela Frente
+    [-1.4, 1.4].forEach(hx => {
+      const hairBraid = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.25, 6.2, 5), charcoalClothMat);
+      hairBraid.position.set(hx, -2.2, 1.4);
+      hairBraid.rotation.z = (hx < 0 ? -0.12 : 0.12);
+      headGroup.add(hairBraid);
+    });
+
+    // Capuz Pontiagudo de Feiticeira
+    const hoodBaseGeo = new THREE.CylinderGeometry(3.2, 3.8, 5.4, 8);
+    const hoodBase = new THREE.Mesh(hoodBaseGeo, charcoalClothMat);
+    hoodBase.position.set(0, 0.6, -0.4);
+    headGroup.add(hoodBase);
+
+    const hoodTipGeo = new THREE.ConeGeometry(3.0, 8.5, 6);
+    hoodTipGeo.rotateX(-0.55);
+    hoodTipGeo.translate(0, 4.2, -2.5);
+    const hoodTip = new THREE.Mesh(hoodTipGeo, charcoalClothMat);
+    headGroup.add(hoodTip);
+
+    const hoodBrimGeo = new THREE.CylinderGeometry(3.4, 3.6, 1.4, 8);
+    hoodBrimGeo.rotateX(0.28);
+    const hoodBrim = new THREE.Mesh(hoodBrimGeo, crimsonSilkMat);
+    hoodBrim.position.set(0, 2.2, 1.4);
+    headGroup.add(hoodBrim);
+
+    // Olhos de Brasa Incandescente
+    const eyeGeo = new THREE.OctahedronGeometry(0.42, 0);
+    const eyeL = new THREE.Mesh(eyeGeo, emberGlowMat);
+    eyeL.position.set(-1.0, 0.3, 2.1);
+    const eyeR = new THREE.Mesh(eyeGeo, emberGlowMat);
+    eyeR.position.set(1.0, 0.3, 2.1);
+    headGroup.add(eyeL, eyeR);
+
+    // 4. CAPA DAS CINZAS COM DOBRAS GEOMÉTRICAS & BROCHES DE LABAREDA
+    const capeGroup = new THREE.Group();
+    capeGroup.position.set(0, 4.2, -2.8);
+    const capeGeo = new THREE.PlaneGeometry(9.5, 18.5, 3, 4);
+    capeGeo.translate(0, -8.5, 0);
+    const capeMesh = new THREE.Mesh(capeGeo, crimsonSilkMat);
+    capeMesh.rotation.x = 0.15;
+    capeGroup.add(capeMesh);
+
+    const capeInnerGeo = new THREE.PlaneGeometry(9.2, 18.2, 3, 4);
+    capeInnerGeo.translate(0, -8.5, 0.05);
+    const capeInnerMesh = new THREE.Mesh(capeInnerGeo, moltenAmberMat);
+    capeInnerMesh.rotation.x = 0.15;
+    capeGroup.add(capeInnerMesh);
+
+    torsoGroup.add(capeGroup);
+    anim.cape = capeGroup;
+
+    // Ombreiras Góticas em Bronze Forjado
+    [-3.8, 3.8].forEach(ox => {
+      const pauldron = new THREE.Mesh(new THREE.ConeGeometry(2.4, 3.8, 5), darkBronzeMat);
+      pauldron.position.set(ox, 4.2, 0);
+      pauldron.rotation.z = (ox < 0 ? Math.PI / 4.5 : -Math.PI / 4.5);
+      pauldron.rotation.x = 0.2;
+      torsoGroup.add(pauldron);
+    });
+
+    // 5. BRAÇO ESQUERDO & LABAREDA DE FOGO VIVO FLUTUANTE NA PALMA
     const leftArmGroup = new THREE.Group();
-    leftArmGroup.position.set(-5, 2, 0);
+    leftArmGroup.position.set(-4.8, 3.0, 0);
     torsoGroup.add(leftArmGroup);
     anim.leftArm = leftArmGroup;
 
-    const sleeveGeo = new THREE.CylinderGeometry(1.6, 2.4, 7, 6);
-    sleeveGeo.translate(0, -3.5, 0);
-    leftArmGroup.add(new THREE.Mesh(sleeveGeo, robeMat));
+    const lSleeveGeo = new THREE.CylinderGeometry(1.8, 2.4, 4.2, 6);
+    lSleeveGeo.translate(0, -2.1, 0);
+    leftArmGroup.add(new THREE.Mesh(lSleeveGeo, crimsonSilkMat));
 
-    const fireOrb = new THREE.Mesh(new THREE.SphereGeometry(1.8, 8, 8), flameMat);
-    fireOrb.position.set(0, -7, 2);
-    leftArmGroup.add(fireOrb);
+    const lForearmGeo = new THREE.CylinderGeometry(1.4, 1.2, 4.4, 6);
+    lForearmGeo.translate(0, -5.2, 0);
+    leftArmGroup.add(new THREE.Mesh(lForearmGeo, darkBronzeMat));
 
-    // Right hand with Arcane Staff
+    const lHand = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.4, 1.6), skinPaleMat);
+    lHand.position.set(0, -7.8, 0.4);
+    leftArmGroup.add(lHand);
+
+    // LABAREDA ARCANA FLUTUANTE SOBRE A PALMA
+    const fireAuraGroup = new THREE.Group();
+    fireAuraGroup.position.set(0, -8.8, 0.8);
+    leftArmGroup.add(fireAuraGroup);
+    anim.fireAura = fireAuraGroup;
+
+    const fireCore = new THREE.Mesh(new THREE.OctahedronGeometry(1.1, 0), flameCoreMat);
+    const fireSpire = new THREE.Mesh(new THREE.ConeGeometry(1.0, 2.4, 5), fireAuraMat);
+    fireSpire.position.y = 0.8;
+    const fireBase = new THREE.Mesh(new THREE.TetrahedronGeometry(0.85, 0), fireAuraMat);
+    fireBase.position.y = -0.4;
+    fireAuraGroup.add(fireCore, fireSpire, fireBase);
+
+    // Pequenas brasas orbitantes ao redor da chama da mão
+    for (let i = 0; i < 4; i++) {
+      const spark = new THREE.Mesh(new THREE.DodecahedronGeometry(0.28, 0), emberGlowMat);
+      const angle = (i * Math.PI) / 2;
+      spark.position.set(Math.cos(angle) * 1.6, Math.sin(angle) * 0.4, Math.sin(angle) * 1.6);
+      spark._sparkAngle = angle;
+      spark._sparkRadius = 1.6;
+      fireAuraGroup.add(spark);
+      anim.fireParticles.push(spark);
+    }
+
+    // 6. BRAÇO DIREITO & CAJADO DAS CINZAS COM NÚCLEO SOLAR
     const rightArmGroup = new THREE.Group();
-    rightArmGroup.position.set(5, 2, 0);
+    rightArmGroup.position.set(4.8, 3.0, 0);
     torsoGroup.add(rightArmGroup);
     anim.rightArm = rightArmGroup;
 
-    rightArmGroup.add(new THREE.Mesh(sleeveGeo, robeMat));
+    const rSleeveGeo = new THREE.CylinderGeometry(1.8, 2.4, 4.2, 6);
+    rSleeveGeo.translate(0, -2.1, 0);
+    rightArmGroup.add(new THREE.Mesh(rSleeveGeo, crimsonSilkMat));
 
-    // Staff
+    const rForearmGeo = new THREE.CylinderGeometry(1.4, 1.2, 4.4, 6);
+    rForearmGeo.translate(0, -5.2, 0);
+    rightArmGroup.add(new THREE.Mesh(rForearmGeo, darkBronzeMat));
+
+    const rHand = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 1.6), skinPaleMat);
+    rHand.position.set(0, -7.8, 0.4);
+    rightArmGroup.add(rHand);
+
+    // CAJADO ÍGNEO DAS CINZAS (Ashwood Flame Staff)
     const staffGroup = new THREE.Group();
-    staffGroup.position.set(0, -4, 3);
-    const staffShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 24, 6), woodMat);
-    staffGroup.add(staffShaft);
-
-    // Crystal headpiece
-    const staffCrystal = new THREE.Mesh(new THREE.OctahedronGeometry(2.2), flameMat);
-    staffCrystal.position.y = 12;
-    staffGroup.add(staffCrystal);
-
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.4, 6, 12), goldMat);
-    ring.position.y = 12;
-    staffGroup.add(ring);
-
+    staffGroup.position.set(0, -7.8, 0.6);
+    staffGroup.rotation.x = Math.PI / 12;
     rightArmGroup.add(staffGroup);
     anim.weapon = staffGroup;
+
+    const staffShaftGeo = new THREE.CylinderGeometry(0.55, 0.70, 28, 7);
+    const staffShaft = new THREE.Mesh(staffShaftGeo, ashwoodMat);
+    staffShaft.position.y = 2.0;
+    staffGroup.add(staffShaft);
+
+    [-8, -2, 5, 11].forEach(sy => {
+      const staffRing = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.6, 6), darkBronzeMat);
+      staffRing.position.y = sy;
+      staffGroup.add(staffRing);
+    });
+
+    const staffBaseTip = new THREE.Mesh(new THREE.ConeGeometry(0.8, 2.2, 6), darkBronzeMat);
+    staffBaseTip.position.y = -12.5;
+    staffBaseTip.rotation.x = Math.PI;
+    staffGroup.add(staffBaseTip);
+
+    const headSocket = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 0.8, 2.5, 6), darkBronzeMat);
+    headSocket.position.y = 15.5;
+    staffGroup.add(headSocket);
+
+    for (let cIdx = 0; cIdx < 4; cIdx++) {
+      const clawAngle = (cIdx * Math.PI) / 2;
+      const clawGeo = new THREE.BoxGeometry(0.45, 3.8, 0.6);
+      clawGeo.translate(0, 1.9, 0);
+      const claw = new THREE.Mesh(clawGeo, darkBronzeMat);
+      claw.position.set(Math.cos(clawAngle) * 1.3, 16.2, Math.sin(clawAngle) * 1.3);
+      claw.rotation.y = -clawAngle;
+      claw.rotation.z = Math.cos(clawAngle) * 0.28;
+      claw.rotation.x = Math.sin(clawAngle) * 0.28;
+      staffGroup.add(claw);
+    }
+
+    const orbCore = new THREE.Mesh(new THREE.OctahedronGeometry(1.5, 1), flameCoreMat);
+    orbCore.position.y = 18.2;
+    staffGroup.add(orbCore);
+    anim.staffFlame = orbCore;
+
+    const orbHalo = new THREE.Mesh(new THREE.DodecahedronGeometry(2.1, 0), fireAuraMat);
+    orbHalo.position.y = 18.2;
+    staffGroup.add(orbHalo);
+    anim.staffHalo = orbHalo;
+
+    for (let i = 0; i < 5; i++) {
+      const ember = new THREE.Mesh(new THREE.TetrahedronGeometry(0.35, 0), emberGlowMat);
+      const angle = (i * Math.PI * 2) / 5;
+      ember.position.set(Math.cos(angle) * 2.6, 18.2 + Math.sin(angle) * 0.6, Math.sin(angle) * 2.6);
+      ember._emberAngle = angle;
+      ember._emberRadius = 2.6;
+      staffGroup.add(ember);
+      anim.fireParticles.push(ember);
+    }
+
+    // 7. PERNAS & BOTAS DE VELUDO E COURO TRATADO
+    [-1.6, 1.6].forEach((x, idx) => {
+      const legGroup = new THREE.Group();
+      legGroup.position.set(x, 8.5, 0);
+
+      const thighGeo = new THREE.CylinderGeometry(1.2, 1.0, 5.0, 6);
+      thighGeo.translate(0, -2.5, 0);
+      legGroup.add(new THREE.Mesh(thighGeo, charcoalClothMat));
+
+      const bootGeo = new THREE.CylinderGeometry(1.2, 1.0, 5.2, 6);
+      bootGeo.translate(0, -6.8, 0);
+      legGroup.add(new THREE.Mesh(bootGeo, scorchedLeatherMat));
+
+      const shoeGeo = new THREE.BoxGeometry(1.6, 1.4, 2.6);
+      shoeGeo.translate(0, -8.8, 0.5);
+      legGroup.add(new THREE.Mesh(shoeGeo, scorchedLeatherMat));
+
+      group.add(legGroup);
+      if (idx === 0) anim.leftLeg = legGroup;
+      else anim.rightLeg = legGroup;
+    });
   }
 
-  // 1.4 PALADINO DA ALVORADA (Paladin Model)
+  // =========================================================================
+  // 1.4 PALADINO DA ALVORADA (Paladin Rework Model - Alta Fidelidade 3D)
+  // =========================================================================
   function buildPaladinModel(group, anim) {
-    const goldPlate = createFlashable(materials.paladinGold);
-    const whiteSteel = createFlashable(materials.steel);
-    const haloMat = materials.holyGlow;
-    const blueMat = createFlashable(new THREE.MeshStandardMaterial({ color: 0x1976d2, roughness: 0.5 }));
-    anim.materials.push(goldPlate, whiteSteel, blueMat);
+    anim.isPaladin = true;
+    anim.holyMotes = [];
 
+    // Materiais PBR Especiais de Cruzado e Luz Divina
+    const holyGoldMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      emissive: 0x78350f,
+      emissiveIntensity: 0.28,
+      metalness: 0.94,
+      roughness: 0.18,
+      flatShading: true
+    }));
+
+    const brightSteelMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x94a3b8,
+      metalness: 0.88,
+      roughness: 0.26,
+      flatShading: true
+    }));
+
+    const darkSteelMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      metalness: 0.92,
+      roughness: 0.38,
+      flatShading: true
+    }));
+
+    const ultramarineMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x1d4ed8,
+      roughness: 0.72,
+      side: THREE.DoubleSide,
+      flatShading: true
+    }));
+
+    const holyWhiteMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xf8fafc,
+      roughness: 0.78,
+      side: THREE.DoubleSide,
+      flatShading: true
+    }));
+
+    const purityParchmentMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xfef08a,
+      roughness: 0.85,
+      side: THREE.DoubleSide
+    }));
+
+    const waxSealMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x991b1b,
+      roughness: 0.55,
+      flatShading: true
+    }));
+
+    const leatherMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x3b2111,
+      roughness: 0.80,
+      flatShading: true
+    }));
+
+    const holyGlowMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xfef08a,
+      emissive: 0xfacc15,
+      emissiveIntensity: 1.8,
+      roughness: 0.15
+    }));
+
+    const sapphireMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      emissiveIntensity: 1.3,
+      roughness: 0.1,
+      flatShading: true
+    }));
+
+    const capeMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0x1e3a8a,
+      roughness: 0.82,
+      side: THREE.DoubleSide
+    }));
+
+    const capeLiningMat = createFlashable(new THREE.MeshStandardMaterial({
+      color: 0xd97706,
+      roughness: 0.75,
+      side: THREE.DoubleSide
+    }));
+
+    anim.materials.push(
+      holyGoldMat, brightSteelMat, darkSteelMat, ultramarineMat, holyWhiteMat,
+      purityParchmentMat, waxSealMat, leatherMat, holyGlowMat, sapphireMat, capeMat
+    );
+
+    // 1. TORSO, PEITORAL ANATÔMICO & TABARDO BICOLOR
     const torsoGroup = new THREE.Group();
     torsoGroup.position.y = 15;
     group.add(torsoGroup);
     anim.torso = torsoGroup;
 
-    // Gilded plate armor
-    const chest = new THREE.Mesh(new THREE.BoxGeometry(11, 12, 7.5), goldPlate);
-    torsoGroup.add(chest);
+    // Peitoral de Placas de Aço Consagrado (Corte Angular de 8 Faces)
+    const chestGeo = new THREE.CylinderGeometry(5.8, 4.4, 9.8, 8);
+    const chestMesh = new THREE.Mesh(chestGeo, brightSteelMat);
+    torsoGroup.add(chestMesh);
 
-    // Holy Halo floating above head
+    // Gorjal canelado no pescoço
+    const gorgetGeo = new THREE.CylinderGeometry(4.4, 5.0, 2.2, 8);
+    gorgetGeo.translate(0, 5.0, 0);
+    torsoGroup.add(new THREE.Mesh(gorgetGeo, darkSteelMat));
+
+    // Borda em Ouro Biselado contornando o peitoral
+    const trimGeo = new THREE.BoxGeometry(6.2, 1.2, 0.6);
+    const trimMesh = new THREE.Mesh(trimGeo, holyGoldMat);
+    trimMesh.position.set(0, 3.8, 4.4);
+    torsoGroup.add(trimMesh);
+
+    // Grande Brasão da Cruz Solar em Alto Relevo Dourado
+    const crestGroup = new THREE.Group();
+    crestGroup.position.set(0, 1.2, 4.5);
+    const crossV = new THREE.Mesh(new THREE.BoxGeometry(1.5, 7.5, 0.6), holyGoldMat);
+    const crossH = new THREE.Mesh(new THREE.BoxGeometry(6.0, 1.5, 0.6), holyGoldMat);
+    crossH.position.y = 1.2;
+    const sunburst = new THREE.Mesh(new THREE.OctahedronGeometry(1.6, 0), sapphireMat);
+    sunburst.position.set(0, 1.2, 0.45);
+    crestGroup.add(crossV, crossH, sunburst);
+    torsoGroup.add(crestGroup);
+
+    // Cinto Clerical de Couro Sagrado com Fivela Relicário de Ouro
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(4.7, 4.8, 1.8, 10), leatherMat);
+    belt.position.y = -4.6;
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.2, 1.2), holyGoldMat);
+    buckle.position.set(0, -4.6, 4.5);
+    torsoGroup.add(belt, buckle);
+
+    // 3 Selos de Pureza pendurados no cinto
+    const sealOffsets = [[-3.4, -4.8, 2.8], [3.2, -4.8, 3.0], [4.2, -4.8, 1.2]];
+    sealOffsets.forEach(([sx, sy, sz], idx) => {
+      const wax = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.35, 8), waxSealMat);
+      wax.rotation.x = Math.PI / 2;
+      wax.position.set(sx, sy, sz);
+      const parchment = new THREE.Mesh(new THREE.BoxGeometry(0.85, 4.2 + (idx * 0.4), 0.15), purityParchmentMat);
+      parchment.position.set(sx, sy - 2.2, sz - 0.1);
+      parchment.rotation.z = (idx === 0 ? 0.08 : -0.06);
+      torsoGroup.add(wax, parchment);
+    });
+
+    // TABARDO SAGRADO (Bicolor)
+    const tabardGroup = new THREE.Group();
+    tabardGroup.position.set(0, -4.8, 0);
+    torsoGroup.add(tabardGroup);
+    anim.tabard = tabardGroup;
+
+    const tabardFL = new THREE.Mesh(new THREE.BoxGeometry(2.4, 9.5, 0.4), holyWhiteMat);
+    tabardFL.position.set(-1.25, -4.2, 4.4);
+    tabardFL.rotation.x = 0.08;
+    const tabardFR = new THREE.Mesh(new THREE.BoxGeometry(2.4, 9.5, 0.4), ultramarineMat);
+    tabardFR.position.set(1.25, -4.2, 4.4);
+    tabardFR.rotation.x = 0.08;
+    const tabardTrimF = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.8, 0.5), holyGoldMat);
+    tabardTrimF.position.set(0, -8.6, 4.7);
+
+    const tabardBL = new THREE.Mesh(new THREE.BoxGeometry(2.4, 10.0, 0.4), holyWhiteMat);
+    tabardBL.position.set(-1.25, -4.4, -4.4);
+    tabardBL.rotation.x = -0.08;
+    const tabardBR = new THREE.Mesh(new THREE.BoxGeometry(2.4, 10.0, 0.4), ultramarineMat);
+    tabardBR.position.set(1.25, -4.4, -4.4);
+    tabardBR.rotation.x = -0.08;
+
+    tabardGroup.add(tabardFL, tabardFR, tabardTrimF, tabardBL, tabardBR);
+
+    // 2. CAPACETE CRUZADO FECHADO & VISOR EM CRUZ
     const headGroup = new THREE.Group();
-    headGroup.position.y = 8.5;
+    headGroup.position.y = 8.2;
     torsoGroup.add(headGroup);
     anim.head = headGroup;
 
-    const helm = new THREE.Mesh(new THREE.BoxGeometry(6.8, 8, 7), whiteSteel);
-    headGroup.add(helm);
+    const helmDome = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 4.2, 7.2, 8), brightSteelMat);
+    headGroup.add(helmDome);
 
-    const haloGeo = new THREE.TorusGeometry(5, 0.6, 8, 20);
-    haloGeo.rotateX(Math.PI / 2);
-    haloGeo.translate(0, 7.5, 0);
-    const haloMesh = new THREE.Mesh(haloGeo, haloMat);
-    headGroup.add(haloMesh);
+    const bevor = new THREE.Mesh(new THREE.ConeGeometry(3.8, 3.2, 8), darkSteelMat);
+    bevor.rotation.x = Math.PI;
+    bevor.position.set(0, -2.6, 0.6);
+    headGroup.add(bevor);
 
-    // Pauldrons (Lion winged shoulders)
-    const pauldronGeo = new THREE.BoxGeometry(5, 4.5, 5);
-    const pauldronL = new THREE.Mesh(pauldronGeo, goldPlate);
-    pauldronL.position.set(-7, 4, 0);
-    torsoGroup.add(pauldronL);
-    const pauldronR = new THREE.Mesh(pauldronGeo, goldPlate);
-    pauldronR.position.set(7, 4, 0);
-    torsoGroup.add(pauldronR);
+    const crestRidge = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.2, 7.0), holyGoldMat);
+    crestRidge.position.set(0, 4.0, 0);
+    headGroup.add(crestRidge);
 
-    // Right Arm with Warhammer
-    const rightArmGroup = new THREE.Group();
-    rightArmGroup.position.set(7, 2, 0);
-    torsoGroup.add(rightArmGroup);
-    anim.rightArm = rightArmGroup;
+    // Visor em Cruz Dourada com Brilho
+    const visorGroup = new THREE.Group();
+    visorGroup.position.set(0, 0.5, 3.8);
+    const visorV = new THREE.Mesh(new THREE.BoxGeometry(0.7, 5.2, 0.5), holyGlowMat);
+    const visorH = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.7, 0.5), holyGlowMat);
+    visorH.position.y = 0.6;
+    const visorFrameV = new THREE.Mesh(new THREE.BoxGeometry(1.6, 5.6, 0.3), holyGoldMat);
+    const visorFrameH = new THREE.Mesh(new THREE.BoxGeometry(5.6, 1.6, 0.3), holyGoldMat);
+    visorFrameH.position.y = 0.6;
+    visorGroup.add(visorFrameV, visorFrameH, visorV, visorH);
+    headGroup.add(visorGroup);
 
-    const maceShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 16, 6), materials.darkSteel);
-    maceShaft.position.set(0, -4, 3);
-    maceShaft.rotation.x = Math.PI / 4;
-    rightArmGroup.add(maceShaft);
+    // 3. AURÉOLA SERÁFICA SOLAR COM 8 RAIOS
+    const haloGroup = new THREE.Group();
+    haloGroup.position.set(0, 7.5, -0.5);
+    headGroup.add(haloGroup);
+    anim.halo = haloGroup;
 
-    const maceHead = new THREE.Mesh(new THREE.BoxGeometry(4.5, 4.5, 4.5), goldPlate);
-    maceHead.position.set(0, 2, 9);
-    rightArmGroup.add(maceHead);
+    const haloRing = new THREE.Mesh(new THREE.TorusGeometry(5.6, 0.45, 8, 24), holyGoldMat);
+    haloRing.rotation.x = Math.PI / 2;
+    haloGroup.add(haloRing);
 
-    // Left Arm with Tower Shield
+    const haloInner = new THREE.Mesh(new THREE.TorusGeometry(4.2, 0.25, 6, 20), holyGlowMat);
+    haloInner.rotation.x = Math.PI / 2;
+    haloGroup.add(haloInner);
+
+    for (let rIdx = 0; rIdx < 8; rIdx++) {
+      const rayAngle = (rIdx * Math.PI * 2) / 8;
+      const rayGeo = new THREE.ConeGeometry(0.65, 2.8, 4);
+      const ray = new THREE.Mesh(rayGeo, holyGoldMat);
+      ray.position.set(Math.cos(rayAngle) * 6.5, 0, Math.sin(rayAngle) * 6.5);
+      ray.rotation.z = -rayAngle + Math.PI / 2;
+      ray.rotation.x = Math.PI / 2;
+      haloGroup.add(ray);
+    }
+
+    for (let m = 0; m < 6; m++) {
+      const mote = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0), holyGlowMat);
+      const ang = (m * Math.PI * 2) / 6;
+      mote.position.set(Math.cos(ang) * 4.8, Math.sin(ang * 2) * 0.4, Math.sin(ang) * 4.8);
+      mote._moteAngle = ang;
+      mote._moteRadius = 4.8;
+      haloGroup.add(mote);
+      anim.holyMotes.push(mote);
+    }
+
+    // 4. OMBREIRAS DE ASAS CELESTIAIS
+    [-6.5, 6.5].forEach((ox) => {
+      const pauldronGroup = new THREE.Group();
+      pauldronGroup.position.set(ox, 4.4, 0);
+
+      [0, -1.2, -2.4].forEach((ly, lIdx) => {
+        const bladeGeo = new THREE.CylinderGeometry(2.8 - (lIdx * 0.3), 3.4 - (lIdx * 0.3), 2.2, 6);
+        const pBlade = new THREE.Mesh(bladeGeo, brightSteelMat);
+        pBlade.position.y = ly;
+        pauldronGroup.add(pBlade);
+      });
+
+      const pSpine = new THREE.Mesh(new THREE.BoxGeometry(1.2, 4.6, 5.0), holyGoldMat);
+      pSpine.position.set(ox > 0 ? 0.6 : -0.6, -0.6, 0);
+      pauldronGroup.add(pSpine);
+
+      pauldronGroup.rotation.z = (ox > 0 ? -0.25 : 0.25);
+      torsoGroup.add(pauldronGroup);
+    });
+
+    // 5. CAPA CERIMONIAL REAL
+    const capeGroup = new THREE.Group();
+    capeGroup.position.set(0, 4.4, -4.4);
+    const capeGeo = new THREE.PlaneGeometry(11.5, 20.0, 3, 4);
+    capeGeo.translate(0, -9.5, 0);
+    const capeMesh = new THREE.Mesh(capeGeo, capeMat);
+    capeMesh.rotation.x = 0.16;
+    capeGroup.add(capeMesh);
+
+    const capeLiningGeo = new THREE.PlaneGeometry(11.2, 19.8, 3, 4);
+    capeLiningGeo.translate(0, -9.5, 0.05);
+    const capeLining = new THREE.Mesh(capeLiningGeo, capeLiningMat);
+    capeLining.rotation.x = 0.16;
+    capeGroup.add(capeLining);
+
+    torsoGroup.add(capeGroup);
+    anim.cape = capeGroup;
+
+    // 6. BRAÇO ESQUERDO & ESCUDO TORRE AEGIS OF THE DAWN
     const leftArmGroup = new THREE.Group();
-    leftArmGroup.position.set(-7, 2, 0);
+    leftArmGroup.position.set(-6.2, 3.2, 0);
     torsoGroup.add(leftArmGroup);
     anim.leftArm = leftArmGroup;
 
-    const shieldGeo = new THREE.BoxGeometry(8, 14, 1.2);
-    const shield = new THREE.Mesh(shieldGeo, goldPlate);
-    shield.position.set(-2, -4, 3);
-    leftArmGroup.add(shield);
+    const armGeo = new THREE.CylinderGeometry(1.8, 1.4, 7.5, 6);
+    armGeo.translate(0, -3.7, 0);
+    leftArmGroup.add(new THREE.Mesh(armGeo, brightSteelMat));
 
-    const blueCross = new THREE.Mesh(new THREE.BoxGeometry(6, 2, 0.6), blueMat);
-    blueCross.position.set(-2, -3, 3.8);
-    leftArmGroup.add(blueCross);
+    const gauntlet = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.2, 2.2), darkSteelMat);
+    gauntlet.position.set(0, -7.6, 0.4);
+    leftArmGroup.add(gauntlet);
 
-    // Legs
-    const legGeo = new THREE.CylinderGeometry(1.8, 1.5, 9.5, 6);
-    legGeo.translate(0, -4.7, 0);
-    const legL = new THREE.Group();
-    legL.position.set(-3.2, 9, 0);
-    legL.add(new THREE.Mesh(legGeo, goldPlate));
-    group.add(legL);
-    anim.leftLeg = legL;
+    const shieldGroup = new THREE.Group();
+    shieldGroup.position.set(-2.2, -4.8, 4.2);
+    shieldGroup.rotation.y = -Math.PI / 10;
+    leftArmGroup.add(shieldGroup);
+    anim.shield = shieldGroup;
 
-    const legR = new THREE.Group();
-    legR.position.set(3.2, 9, 0);
-    legR.add(new THREE.Mesh(legGeo, goldPlate));
-    group.add(legR);
-    anim.rightLeg = legR;
+    const shieldGeo = new THREE.BoxGeometry(9.6, 17.5, 1.4);
+    const shieldMesh = new THREE.Mesh(shieldGeo, ultramarineMat);
+    shieldGroup.add(shieldMesh);
+
+    const borderTop = new THREE.Mesh(new THREE.BoxGeometry(10.2, 1.2, 1.6), holyGoldMat);
+    borderTop.position.y = 8.4;
+    const borderBot = new THREE.Mesh(new THREE.BoxGeometry(8.2, 1.2, 1.6), holyGoldMat);
+    borderBot.position.y = -8.4;
+    shieldGroup.add(borderTop, borderBot);
+
+    const sCrossV = new THREE.Mesh(new THREE.BoxGeometry(2.2, 14.5, 0.8), holyGoldMat);
+    sCrossV.position.z = 1.0;
+    const sCrossH = new THREE.Mesh(new THREE.BoxGeometry(7.6, 2.2, 0.8), holyGoldMat);
+    sCrossH.position.set(0, 3.2, 1.0);
+    shieldGroup.add(sCrossV, sCrossH);
+
+    const sUmbo = new THREE.Mesh(new THREE.OctahedronGeometry(1.8, 0), sapphireMat);
+    sUmbo.position.set(0, 3.2, 1.6);
+    shieldGroup.add(sUmbo);
+
+    // 7. BRAÇO DIREITO & MARTELO RELICÁRIO SUNBREAKER
+    const rightArmGroup = new THREE.Group();
+    rightArmGroup.position.set(6.2, 3.2, 0);
+    torsoGroup.add(rightArmGroup);
+    anim.rightArm = rightArmGroup;
+
+    const rArm = new THREE.Mesh(armGeo, brightSteelMat);
+    rightArmGroup.add(rArm);
+
+    const rGauntlet = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.2, 2.2), darkSteelMat);
+    rGauntlet.position.set(0, -7.6, 0.4);
+    rightArmGroup.add(rGauntlet);
+
+    const hammerGroup = new THREE.Group();
+    hammerGroup.position.set(0, -7.6, 0.8);
+    hammerGroup.rotation.x = Math.PI / 10;
+    rightArmGroup.add(hammerGroup);
+    anim.weapon = hammerGroup;
+
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.75, 24, 8), darkSteelMat);
+    shaft.position.y = 2.0;
+    hammerGroup.add(shaft);
+
+    [-8, -2, 4, 10].forEach(hy => {
+      const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.6, 8), holyGoldMat);
+      ring.position.y = hy;
+      hammerGroup.add(ring);
+    });
+
+    const baseTip = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.5, 6), holyGoldMat);
+    baseTip.position.y = -10.5;
+    baseTip.rotation.x = Math.PI;
+    hammerGroup.add(baseTip);
+
+    const hammerHeadGroup = new THREE.Group();
+    hammerHeadGroup.position.y = 12.8;
+    hammerGroup.add(hammerHeadGroup);
+
+    const maceBlock = new THREE.Mesh(new THREE.BoxGeometry(5.2, 5.6, 5.8), brightSteelMat);
+    hammerHeadGroup.add(maceBlock);
+
+    const spikeBeak = new THREE.Mesh(new THREE.ConeGeometry(1.5, 3.8, 4), holyGoldMat);
+    spikeBeak.rotation.x = -Math.PI / 2;
+    spikeBeak.position.set(0, 0, -4.2);
+    hammerHeadGroup.add(spikeBeak);
+
+    const impactFace = new THREE.Mesh(new THREE.BoxGeometry(4.6, 5.0, 1.2), holyGoldMat);
+    impactFace.position.set(0, 0, 3.4);
+    hammerHeadGroup.add(impactFace);
+
+    const holyCore = new THREE.Mesh(new THREE.OctahedronGeometry(1.8, 0), holyGlowMat);
+    holyCore.position.set(0, 0, 0);
+    hammerHeadGroup.add(holyCore);
+    anim.hammerCore = holyCore;
+
+    // 8. PERNAS, GREVAS & SABATONS ESPOROADOS
+    [-2.8, 2.8].forEach((x, idx) => {
+      const legGroup = new THREE.Group();
+      legGroup.position.set(x, 9.5, 0);
+
+      const cuisse = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.5, 6.0, 6), darkSteelMat);
+      cuisse.position.y = -3.0;
+      legGroup.add(cuisse);
+
+      const poleyn = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 1.4), holyGoldMat);
+      poleyn.position.set(0, -6.0, 1.4);
+      legGroup.add(poleyn);
+
+      const greave = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.4, 6.2, 6), brightSteelMat);
+      greave.position.y = -9.0;
+      legGroup.add(greave);
+
+      const sabaton = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 4.2), brightSteelMat);
+      sabaton.position.set(0, -12.0, 1.0);
+      const spur = new THREE.Mesh(new THREE.ConeGeometry(0.4, 1.5, 4), holyGoldMat);
+      spur.rotation.x = -Math.PI / 2;
+      spur.position.set(0, -12.0, -1.6);
+      legGroup.add(sabaton, spur);
+
+      group.add(legGroup);
+      if (idx === 0) anim.leftLeg = legGroup;
+      else anim.rightLeg = legGroup;
+    });
   }
 
   // 1.5 BERSERKER DO NORTE (Berserker Model)

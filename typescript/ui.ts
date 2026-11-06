@@ -1731,6 +1731,12 @@ class UIController {
                onclick="event.stopPropagation();">
               <span>🔍 Ver Modelo 3D 360° ↗</span>
             </a>` : ''}
+            ${c.id === 'paladin' ? `
+            <a href="paladin_showcase.html" target="_blank" class="btn-royal btn-sm"
+               style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; text-decoration:none; padding:6px 10px; font-size:0.78rem; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); border-radius:4px;"
+               onclick="event.stopPropagation();">
+              <span>🔍 Ver Modelo 3D 360° ↗</span>
+            </a>` : ''}
           </div>
           `;
         }).join('')}
@@ -3193,10 +3199,37 @@ class UIController {
 
     const updatesData = [
       {
+        version: 'v2.4.2',
+        eraName: 'Luz & Chamas: Reworks Visuais 3D da Piromante e do Paladino',
+        date: '6 de Novembro de 2026',
+        isLatest: true,
+        summary: 'Reformulação monumental em alta fidelidade gráfica 3D da Feiticeira das Cinzas (Piromante) e do Paladino da Alvorada: anatomia escultural refinada, novas vestes e armaduras de placas góticas, animações fluidas de conjuração e golpe devocional, novos efeitos de auréola solar, brasas e chamas orbitantes, além dos novos Showcases 3D interativos dedicados!',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'REWORK VISUAL 3D',
+            title: 'Feiticeira das Cinzas (Piromante) em Alta Fidelidade',
+            desc: 'Modelagem 3D completa com corpete em ampulheta de couro e seda escarlate, manto talar com forro âmbar em 8 faces, capuz pontiagudo com bico curvo sombreado, olhos incandescentes de brasa, frascos alquímicos de fogo no cinto, labareda de fogo viva flutuante na palma e o cajado das cinzas em madeira petrificada segurando o coração de magma pulsante.'
+          },
+          {
+            type: 'feature',
+            badge: 'REWORK VISUAL 3D',
+            title: 'Paladino da Alvorada em Alta Fidelidade',
+            desc: 'Armadura monumental de placas de aço polido com orlas de ouro antigo, gorjal canelado, Brasão da Cruz Solar em alto relevo com safira lapidada, elmo cruzado fechado com visor cruciforme brilhante, auréola seráfica solar com raios pontiagudos e motes de luz sagrada orbitantes, escudo torre curvo Aegis of the Dawn com a Grande Cruz e martelo relicário Sunbreaker com núcleo solar pulsante.'
+          },
+          {
+            type: 'feature',
+            badge: 'SHOWCASE 3D',
+            title: 'Dois Novos Showcases 3D Interativos',
+            desc: 'Aplicativos 3D dedicados para inspeção livre dos dois heróis com rotação orbital 360°, controles de câmera com presets de foco, modos de animação exclusivos (Julgamento Divino, Marcha Cruzada, Oração, Incineração, Marcha Mística), áudio sintetizado procedural e iluminação cinematográfica de catedral e forja.'
+          }
+        ]
+      },
+      {
         version: 'v2.4.0',
         eraName: 'O Reino Renascido: Grande Rework Visual 3D do Cenário, Ruínas & Biomas',
         date: '6 de Novembro de 2026',
-        isLatest: true,
+        isLatest: false,
         summary: 'Reformulação monumental do ambiente 3D procedural e arquitetura gótica de Valoria: novo relevo tátil com mapa de Bump procedural em 1024x1024; pavimentação de alta fidelidade com lajotas de pedra desgastadas, micro-fissuras, musgo e roseta central de catedral; distribuição densa de mais de 420 estruturas e escombros pelo mapa em grade de 16 setores geográficos (eliminando toda sensação de vazio); monumentos arquitetônicos imponentes (Arcos Góticos com pontas lavradas e lanternas penduradas, Colunatas em Ruínas com dentilos, Paredes de Nave de Catedral com janelas ogivais de traceria e vitrais radiantes cobalto/rubi, Mausoléus com sarcófago interno e tocheiros, Fontes Antigas com spouts de leão e jatos de água, Forcas com gaiolas de gibbet oscilantes ao vento, Círculos Megalíticos com runas druídicas pulsantes e Santuários de Estrada com velas de cera acesas); Praça Central da Cidadela com plataforma octogonal, estrela dourada de 8 pontas, 4 monumentos guardiões com braseiros cerimoniais e estandartes heráldicos reais com física de vento; além de névoa rasteira volumétrica animada e o novo Showcase 3D Interativo do Mapa!',
         categories: [
           {
@@ -3623,16 +3656,22 @@ class UIController {
             <div class="updates-title-badge">📜 DECRETOS REAIS & HISTÓRICO DE VALORIA</div>
             <h3>CRÔNICAS DE ATUALIZAÇÕES & EXPANSÕES</h3>
             <p>Acompanhe a evolução de Valoria — novas mecânicas, balanceamentos, classes e melhorias contínuas forjadas no reino.</p>
-            <div style="margin-top:10px;">
-              <a href="map_showcase.html" target="_blank" class="btn-royal" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:6px 14px; font-size:0.82rem; background:rgba(212,175,55,0.18); border:1px solid rgba(212,175,55,0.5); border-radius:5px;">
-                <span>🏛️ Abrir Showcase 3D do Cenário & Biomas ↗</span>
+            <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">
+              <a href="paladin_showcase.html" target="_blank" class="btn-royal" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:6px 12px; font-size:0.80rem; background:rgba(250,204,21,0.18); border:1px solid rgba(250,204,21,0.5); border-radius:5px;">
+                <span>✨ 3D Showcase: Paladino da Alvorada ↗</span>
+              </a>
+              <a href="pyromancer_showcase.html" target="_blank" class="btn-royal" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:6px 12px; font-size:0.80rem; background:rgba(249,115,22,0.18); border:1px solid rgba(249,115,22,0.5); border-radius:5px;">
+                <span>🔥 3D Showcase: Feiticeira das Cinzas ↗</span>
+              </a>
+              <a href="map_showcase.html" target="_blank" class="btn-royal" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:6px 12px; font-size:0.80rem; background:rgba(212,175,55,0.18); border:1px solid rgba(212,175,55,0.5); border-radius:5px;">
+                <span>🏛️ 3D Showcase: Cenário & Monumentos ↗</span>
               </a>
             </div>
           </div>
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v2.4.0 (O Reino Renascido: Grande Rework Visual 3D do Cenário, Ruínas & Biomas)</strong>
+              <strong class="text-gold">v2.4.2 (Luz & Chamas: Reworks Visuais 3D da Piromante e do Paladino)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>
@@ -3789,4 +3828,3 @@ function shuffleArray(arr) {
 
 window.MedievalSurvivors = window.MedievalSurvivors || {};
 window.MedievalSurvivors.UIController = UIController;
-

@@ -1,8 +1,3 @@
-/// <reference path="./types.d.ts" />
-/**
- * The Fallen Kingdom - weapons.ts (TypeScript Source)
- */
-
 function getNearbyEnemiesForCollision(x, y, radius, fallbackEnemies) {
   const game = window.MedievalSurvivors && window.MedievalSurvivors.game;
   if (game && game.getNearbyEnemies) {
@@ -445,6 +440,7 @@ class HolyFireWeapon extends BaseWeapon {
 
   attack(player, enemies, projectiles, particles) {
     window.MedievalSurvivors.sound.playFireBurst();
+    player.castAnimTimer = 0.35;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const effectiveArea = this.area * player.areaMultiplier;
     const totalCount = this.count + (player.bonusProjectiles || 0);
@@ -2258,6 +2254,8 @@ class CelestialGlaiveWeapon extends BaseWeapon {
 
   attack(player, enemies, projectiles, particles) {
     if (enemies.length === 0) return;
+    player.swordAttackTimer = 0.32;
+    player.swordAttackMax = 0.32;
     const isEvo = this.level >= this.maxLevel;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const totalGlaives = this.count + (player.bonusProjectiles || 0);
@@ -2395,6 +2393,8 @@ class ThunderHammerWeapon extends BaseWeapon {
 
   attack(player, enemies, projectiles, particles) {
     if (enemies.length === 0) return;
+    player.swordAttackTimer = 0.32;
+    player.swordAttackMax = 0.32;
     const isEvo = this.level >= this.maxLevel;
     const effectiveDamage = Math.round(this.damage * player.damageMultiplier);
     const strikeRadius = 28 * this.area * player.areaMultiplier;

@@ -16,10 +16,14 @@ class Player {
     this.aimingWithMouse = true;
     this.walkCycle = 0;
 
-    // Sincronizacao de animacoes 3D (Espada, Arremessos e Movimento)
+    // Sincronizacao de animacoes 3D (Espada, Disparos, Conjuracao, Arremessos e Movimento)
     this.swordAttackTimer = 0;
     this.swordAttackMax = 0.28;
     this.swordAttackCombo = 0;
+    this.shootAnimTimer = 0;
+    this.shootAnimMax = 0.24;
+    this.castAnimTimer = 0;
+    this.castAnimMax = 0.35;
     this.tossAnimTimer = 0;
     this.tossAnimMax = 0.38;
 

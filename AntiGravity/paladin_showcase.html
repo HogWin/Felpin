@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Showcase 3D — Paladino da Alvorada | The Fallen Kingdom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #080a12;
+      font-family: 'Inter', sans-serif;
+      color: #e2e8f0;
+    }
+
+    #viewport-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 35%, #141c2e 0%, #0a0d17 65%, #05060b 100%);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* UI Overlay */
+    .ui-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 28px;
+    }
+
+    .interactive {
+      pointer-events: auto;
+    }
+
+    /* Header Banner */
+    .header-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .title-box {
+      background: rgba(12, 17, 30, 0.90);
+      border: 1px solid #1e3a8a;
+      border-left: 4px solid #facc15;
+      backdrop-filter: blur(14px);
+      padding: 16px 22px;
+      border-radius: 8px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.7), 0 0 24px rgba(250, 204, 21, 0.15);
+      max-width: 600px;
+    }
+
+    .badge-era {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(250, 204, 21, 0.15);
+      border: 1px solid rgba(250, 204, 21, 0.4);
+      color: #fef08a;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: #fef08a;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.9), 0 0 16px rgba(250, 204, 21, 0.45);
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .subtitle strong {
+      color: #facc15;
+    }
+
+    /* Controls Panel */
+    .controls-panel {
+      background: rgba(12, 17, 30, 0.92);
+      border: 1px solid #1e3a8a;
+      backdrop-filter: blur(14px);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.75), 0 0 20px rgba(30, 58, 138, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 320px;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+
+    .controls-panel::-webkit-scrollbar {
+      width: 5px;
+    }
+    .controls-panel::-webkit-scrollbar-thumb {
+      background: #1e3a8a;
+      border-radius: 3px;
+    }
+
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #facc15;
+      border-bottom: 1px solid rgba(250, 204, 21, 0.25);
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-group.full {
+      grid-template-columns: 1fr;
+    }
+
+    .btn-group.three {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    button.btn-ctrl {
+      background: #111827;
+      border: 1px solid #1e3a8a;
+      color: #cbd5e1;
+      padding: 9px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    button.btn-ctrl:hover {
+      background: #1e3a8a;
+      color: #ffffff;
+      border-color: #facc15;
+      box-shadow: 0 0 12px rgba(250, 204, 21, 0.25);
+      transform: translateY(-1px);
+    }
+
+    button.btn-ctrl.active {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      border-color: #facc15;
+      color: #fef08a;
+      box-shadow: 0 0 14px rgba(250, 204, 21, 0.4);
+    }
+
+    /* Action Banner (Exit & Sound) */
+    .top-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-action {
+      background: rgba(12, 17, 30, 0.90);
+      border: 1px solid #1e3a8a;
+      color: #e2e8f0;
+      padding: 10px 16px;
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-action:hover {
+      background: #1e3a8a;
+      border-color: #facc15;
+      color: #fef08a;
+      box-shadow: 0 0 16px rgba(250, 204, 21, 0.35);
+    }
+
+    /* Feature List */
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .feature-item {
+      font-size: 11px;
+      color: #94a3b8;
+      background: rgba(17, 24, 39, 0.6);
+      border: 1px solid rgba(30, 58, 138, 0.4);
+      padding: 7px 9px;
+      border-radius: 5px;
+      line-height: 1.4;
+    }
+
+    .feature-item strong {
+      color: #fef08a;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* Bottom Bar */
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+    }
+
+    .specs-card {
+      background: rgba(12, 17, 30, 0.90);
+      border: 1px solid #1e3a8a;
+      backdrop-filter: blur(10px);
+      padding: 12px 18px;
+      border-radius: 8px;
+      display: flex;
+      gap: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+
+    .spec-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .spec-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .spec-val {
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      color: #fef08a;
+      font-weight: 700;
+    }
+
+    .legend-card {
+      background: rgba(12, 17, 30, 0.90);
+      border: 1px solid #1e3a8a;
+      backdrop-filter: blur(10px);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      gap: 16px;
+    }
+
+    .legend-item span {
+      color: #fef08a;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="viewport-container">
+    <canvas id="webgl-canvas"></canvas>
+  </div>
+
+  <div class="ui-layer">
+
+    <!-- Header Banner & Actions -->
+    <div class="header-banner">
+      <div class="title-box interactive">
+        <div class="badge-era">✦ Rework Visual 3D em Alta Fidelidade (v2.4.2)</div>
+        <h1>Paladino da Alvorada</h1>
+        <div class="subtitle">
+          Campeão supremo da Ordem da Luz Celeste. Forjado em <strong>aço consagrado e ouro rúnico</strong>, empunha o lendário <strong>Martelo Relicário Sunbreaker</strong> e o <strong>Escudo Torre Aegis of the Dawn</strong>, guiado por uma auréola seráfica de raios solares.
+        </div>
+      </div>
+
+      <div class="top-actions interactive">
+        <button class="btn-action" id="sound-btn" onclick="toggleAudio()">
+          <span id="sound-icon">🔊</span> Áudio Atmosférico
+        </button>
+        <a href="index.html" class="btn-action">
+          <span>⚔️</span> Voltar ao Jogo
+        </a>
+      </div>
+    </div>
+
+    <!-- Controls Panel (Direita) -->
+    <div style="align-self: flex-end;">
+      <div class="controls-panel interactive">
+
+        <!-- Modos de Animação -->
+        <div>
+          <div class="section-title">🎭 Posturas & Cinemática</div>
+          <div class="btn-group">
+            <button class="btn-ctrl active" id="anim-idle" onclick="setAnimMode('idle')">🛡️ Vigília (Idle)</button>
+            <button class="btn-ctrl" id="anim-walk" onclick="setAnimMode('walk')">🚶 Marcha Cruzada</button>
+            <button class="btn-ctrl" id="anim-smite" onclick="setAnimMode('smite')">⚡ Julgamento Divino</button>
+            <button class="btn-ctrl" id="anim-guard" onclick="setAnimMode('guard')">🏰 Baluarte da Fé</button>
+          </div>
+          <div style="margin-top: 8px;">
+            <button class="btn-ctrl" id="anim-pray" onclick="setAnimMode('pray')" style="width: 100%;">✨ Oração Consagrada</button>
+          </div>
+        </div>
+
+        <!-- Presets de Câmera -->
+        <div>
+          <div class="section-title">🎥 Enquadramentos de Detalhe</div>
+          <div class="btn-group">
+            <button class="btn-ctrl active" onclick="focusCamera('full')">👁️ Visão Geral</button>
+            <button class="btn-ctrl" onclick="focusCamera('helm')">👑 Elmo & Auréola</button>
+            <button class="btn-ctrl" onclick="focusCamera('hammer')">🔨 Martelo Relicário</button>
+            <button class="btn-ctrl" onclick="focusCamera('shield')">🛡️ Escudo Torre</button>
+            <button class="btn-ctrl" onclick="focusCamera('armor')" style="grid-column: span 2;">⚜️ Tabardo & Selos de Pureza</button>
+          </div>
+        </div>
+
+        <!-- Iluminação de Catedral -->
+        <div>
+          <div class="section-title">💡 Atmosfera & Iluminação</div>
+          <div class="btn-group">
+            <button class="btn-ctrl active" id="light-cathedral" onclick="setLighting('cathedral')">⛪ Catedral Gótica</button>
+            <button class="btn-ctrl" id="light-dawn" onclick="setLighting('dawn')">🌅 Aurora Solar</button>
+            <button class="btn-ctrl" id="light-night" onclick="setLighting('night')">🌌 Noite Sagrada</button>
+            <button class="btn-ctrl" id="light-wrath" onclick="setLighting('wrath')">🔥 Ira Celestial</button>
+          </div>
+        </div>
+
+        <!-- Modificadores -->
+        <div>
+          <div class="section-title">⚙️ Ferramentas de Exibição</div>
+          <div class="btn-group full">
+            <button class="btn-ctrl" id="toggle-turntable" onclick="toggleTurntable()">🔄 Giro Automático (Turntable)</button>
+            <button class="btn-ctrl" id="toggle-slowmo" onclick="toggleSlowMo()">⏱️ Câmera Lenta (Slow-Mo)</button>
+          </div>
+        </div>
+
+        <!-- Destaques Esculpidos -->
+        <div>
+          <div class="section-title">🔍 Detalhes Esculpidos</div>
+          <div class="feature-list">
+            <div class="feature-item">
+              <strong>1. Elmo Cruzado & Visor Cruciforme:</strong>
+              Elmo fechado em aço canelado com visor de cruz dourada incandescente emitindo suave brilho celestial.
+            </div>
+            <div class="feature-item">
+              <strong>2. Auréola Seráfica Solar & Motes:</strong>
+              Coroa rúnica concêntrica com 8 raios solares contra-rotativos e partículas sagradas orbitantes.
+            </div>
+            <div class="feature-item">
+              <strong>3. Martelo Sunbreaker & Núcleo Radiante:</strong>
+              Bloco de aço sagrado com bico perfurador de armadura e núcleo solar pulsante no interior vazado.
+            </div>
+            <div class="feature-item">
+              <strong>4. Escudo Torre Aegis of the Dawn:</strong>
+              Corpo azul ultramarino curvo, bordas em ouro biselado, cruz radiant solar e safira central lapidada.
+            </div>
+            <div class="feature-item">
+              <strong>5. Tabardo Bicolor & Selos de Pureza:</strong>
+              Tecido cerimonial em azul e linho branco com pergaminhos sagrados e selos de cera vermelha nos flancos.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bottom Specs & Legend -->
+    <div class="bottom-bar">
+      <div class="specs-card">
+        <div class="spec-item">
+          <span class="spec-label">Resolução PBR</span>
+          <span class="spec-val">3.640 Tris</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Motor Gráfico</span>
+          <span class="spec-val">Three.js WebGL</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Partículas Ativas</span>
+          <span class="spec-val">6 Motes Sagrados</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Taxa de Quadros</span>
+          <span class="spec-val" style="color: #38ef7d;" id="fps-text">60 FPS</span>
+        </div>
+      </div>
+
+      <div class="legend-card interactive">
+        <div class="legend-item">🖱️ <span>Botão Esquerdo:</span> Girar 360°</div>
+        <div class="legend-item">🖱️ <span>Scroll:</span> Zoom</div>
+        <div class="legend-item">🖱️ <span>Botão Direito:</span> Pan</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Three.js Local Engine -->
+  <script src="js/three.min.js"></script>
+
+  <script>
+    // Sintetizador de Áudio Atmosférico Procedural (Sinos de Catedral & Energia Sagrada)
+    let audioCtx = null;
+    let audioEnabled = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleAudio() {
+      initAudio();
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('sound-btn');
+      const icon = document.getElementById('sound-icon');
+      if (audioEnabled) {
+        btn.classList.add('active');
+        icon.textContent = '🔊';
+        playCathedralBell();
+        scheduleAmbientChants();
+      } else {
+        btn.classList.remove('active');
+        icon.textContent = '🔇';
+      }
+    }
+
+    function playCathedralBell() {
+      if (!audioEnabled || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      // Sino de bronze ressonante
+      [220, 440, 659.25, 880].forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.12 / (idx + 1), now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 3.6);
+      });
+    }
+
+    function playHolyImpact() {
+      if (!audioEnabled || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.35);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.45);
+
+      // Shimmer agudo
+      const shimmer = audioCtx.createOscillator();
+      const sGain = audioCtx.createGain();
+      shimmer.type = 'triangle';
+      shimmer.frequency.setValueAtTime(880, now);
+      shimmer.frequency.linearRampToValueAtTime(1760, now + 0.5);
+      sGain.gain.setValueAtTime(0.08, now);
+      sGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+      shimmer.connect(sGain);
+      sGain.connect(audioCtx.destination);
+      shimmer.start(now);
+      shimmer.stop(now + 0.65);
+    }
+
+    let ambientTimer = null;
+    function scheduleAmbientChants() {
+      if (!audioEnabled) return;
+      playCathedralBell();
+      ambientTimer = setTimeout(scheduleAmbientChants, 12000 + Math.random() * 8000);
+    }
+
+    // =========================================================================
+    // CONSTRUÇÃO DO MODELO 3D DO PALADINO DA ALVORADA (HIGH-FIDELITY REWORK)
+    // =========================================================================
+    function createFlashable(mat) {
+      mat._origEmissive = mat.emissive ? mat.emissive.getHex() : 0x000000;
+      mat._origEmissiveInt = mat.emissiveIntensity || 0;
+      return mat;
+    }
+
+    function buildPaladinReworkModel(group, anim) {
+      anim.isPaladin = true;
+      anim.holyMotes = [];
+      anim.materials = [];
+
+      // Materiais PBR Especiais de Cruzado e Luz Divina
+      const holyGoldMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        emissive: 0x78350f,
+        emissiveIntensity: 0.28,
+        metalness: 0.94,
+        roughness: 0.18,
+        flatShading: true
+      }));
+
+      const brightSteelMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x94a3b8,
+        metalness: 0.88,
+        roughness: 0.26,
+        flatShading: true
+      }));
+
+      const darkSteelMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        metalness: 0.92,
+        roughness: 0.38,
+        flatShading: true
+      }));
+
+      const ultramarineMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x1d4ed8,
+        roughness: 0.72,
+        side: THREE.DoubleSide,
+        flatShading: true
+      }));
+
+      const holyWhiteMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0xf8fafc,
+        roughness: 0.78,
+        side: THREE.DoubleSide,
+        flatShading: true
+      }));
+
+      const purityParchmentMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0xfef08a,
+        roughness: 0.85,
+        side: THREE.DoubleSide
+      }));
+
+      const waxSealMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x991b1b,
+        roughness: 0.55,
+        flatShading: true
+      }));
+
+      const leatherMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x3b2111,
+        roughness: 0.80,
+        flatShading: true
+      }));
+
+      const chainmailMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x334155,
+        metalness: 0.82,
+        roughness: 0.55
+      }));
+
+      const holyGlowMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0xfef08a,
+        emissive: 0xfacc15,
+        emissiveIntensity: 1.8,
+        roughness: 0.15
+      }));
+
+      const sapphireMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0284c7,
+        emissiveIntensity: 1.3,
+        roughness: 0.1,
+        flatShading: true
+      }));
+
+      const capeMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x1e3a8a,
+        roughness: 0.82,
+        side: THREE.DoubleSide
+      }));
+
+      const capeLiningMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0xd97706,
+        roughness: 0.75,
+        side: THREE.DoubleSide
+      }));
+
+      anim.materials.push(
+        holyGoldMat, brightSteelMat, darkSteelMat, ultramarineMat, holyWhiteMat,
+        purityParchmentMat, waxSealMat, leatherMat, chainmailMat, holyGlowMat, sapphireMat, capeMat
+      );
+
+      // 1. TORSO, PEITORAL ANATÔMICO & TABARDO BICOLOR
+      const torsoGroup = new THREE.Group();
+      torsoGroup.position.y = 15;
+      group.add(torsoGroup);
+      anim.torso = torsoGroup;
+
+      // Peitoral de Placas de Aço Consagrado (Corte Angular de 8 Faces)
+      const chestGeo = new THREE.CylinderGeometry(5.8, 4.4, 9.8, 8);
+      const chestMesh = new THREE.Mesh(chestGeo, brightSteelMat);
+      torsoGroup.add(chestMesh);
+
+      // Gorjal canelado no pescoço
+      const gorgetGeo = new THREE.CylinderGeometry(4.4, 5.0, 2.2, 8);
+      gorgetGeo.translate(0, 5.0, 0);
+      torsoGroup.add(new THREE.Mesh(gorgetGeo, darkSteelMat));
+
+      // Borda em Ouro Biselado contornando o peitoral
+      const trimGeo = new THREE.BoxGeometry(6.2, 1.2, 0.6);
+      const trimMesh = new THREE.Mesh(trimGeo, holyGoldMat);
+      trimMesh.position.set(0, 3.8, 4.4);
+      torsoGroup.add(trimMesh);
+
+      // Grande Brasão da Cruz Solar em Alto Relevo Dourado
+      const crestGroup = new THREE.Group();
+      crestGroup.position.set(0, 1.2, 4.5);
+      const crossV = new THREE.Mesh(new THREE.BoxGeometry(1.5, 7.5, 0.6), holyGoldMat);
+      const crossH = new THREE.Mesh(new THREE.BoxGeometry(6.0, 1.5, 0.6), holyGoldMat);
+      crossH.position.y = 1.2;
+      const sunburst = new THREE.Mesh(new THREE.OctahedronGeometry(1.6, 0), sapphireMat);
+      sunburst.position.set(0, 1.2, 0.45);
+      crestGroup.add(crossV, crossH, sunburst);
+      torsoGroup.add(crestGroup);
+
+      // Cinto Clerical de Couro Sagrado com Fivela Relicário de Ouro
+      const belt = new THREE.Mesh(new THREE.CylinderGeometry(4.7, 4.8, 1.8, 10), leatherMat);
+      belt.position.y = -4.6;
+      const buckle = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.2, 1.2), holyGoldMat);
+      buckle.position.set(0, -4.6, 4.5);
+      torsoGroup.add(belt, buckle);
+
+      // 3 Selos de Pureza (Purity Seals) pendurados no cinto
+      const sealOffsets = [[-3.4, -4.8, 2.8], [3.2, -4.8, 3.0], [4.2, -4.8, 1.2]];
+      sealOffsets.forEach(([sx, sy, sz], idx) => {
+        const wax = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.35, 8), waxSealMat);
+        wax.rotation.x = Math.PI / 2;
+        wax.position.set(sx, sy, sz);
+        const parchment = new THREE.Mesh(new THREE.BoxGeometry(0.85, 4.2 + (idx * 0.4), 0.15), purityParchmentMat);
+        parchment.position.set(sx, sy - 2.2, sz - 0.1);
+        parchment.rotation.z = (idx === 0 ? 0.08 : -0.06);
+        torsoGroup.add(wax, parchment);
+      });
+
+      // TABARDO SAGRADO (Bicolor: Azul Real na direita, Branco Alvo na esquerda)
+      const tabardGroup = new THREE.Group();
+      tabardGroup.position.set(0, -4.8, 0);
+      torsoGroup.add(tabardGroup);
+      anim.tabard = tabardGroup;
+
+      // Aba Dianteira Esquerda (Branco)
+      const tabardFL = new THREE.Mesh(new THREE.BoxGeometry(2.4, 9.5, 0.4), holyWhiteMat);
+      tabardFL.position.set(-1.25, -4.2, 4.4);
+      tabardFL.rotation.x = 0.08;
+      // Aba Dianteira Direita (Azul Ultramarino)
+      const tabardFR = new THREE.Mesh(new THREE.BoxGeometry(2.4, 9.5, 0.4), ultramarineMat);
+      tabardFR.position.set(1.25, -4.2, 4.4);
+      tabardFR.rotation.x = 0.08;
+      // Borda Dourada inferior da frente
+      const tabardTrimF = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.8, 0.5), holyGoldMat);
+      tabardTrimF.position.set(0, -8.6, 4.7);
+
+      // Aba Traseira Esquerda e Direita
+      const tabardBL = new THREE.Mesh(new THREE.BoxGeometry(2.4, 10.0, 0.4), holyWhiteMat);
+      tabardBL.position.set(-1.25, -4.4, -4.4);
+      tabardBL.rotation.x = -0.08;
+      const tabardBR = new THREE.Mesh(new THREE.BoxGeometry(2.4, 10.0, 0.4), ultramarineMat);
+      tabardBR.position.set(1.25, -4.4, -4.4);
+      tabardBR.rotation.x = -0.08;
+
+      tabardGroup.add(tabardFL, tabardFR, tabardTrimF, tabardBL, tabardBR);
+
+      // 2. CAPACETE CRUZADO FECHADO (CRUSADER GREATHELM) & VISOR EM CRUZ
+      const headGroup = new THREE.Group();
+      headGroup.position.y = 8.2;
+      torsoGroup.add(headGroup);
+      anim.head = headGroup;
+
+      // Cúpula do elmo
+      const helmDome = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 4.2, 7.2, 8), brightSteelMat);
+      headGroup.add(helmDome);
+
+      // Queixo reforçado (Bevor)
+      const bevor = new THREE.Mesh(new THREE.ConeGeometry(3.8, 3.2, 8), darkSteelMat);
+      bevor.rotation.x = Math.PI;
+      bevor.position.set(0, -2.6, 0.6);
+      headGroup.add(bevor);
+
+      // Crista Dourada Superior do Elmo
+      const crestRidge = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.2, 7.0), holyGoldMat);
+      crestRidge.position.set(0, 4.0, 0);
+      headGroup.add(crestRidge);
+
+      // VISOR EM CRUZ DOURADA (CRUCIFORM VISOR SLIT COM BRILHO CELESTIAL)
+      const visorGroup = new THREE.Group();
+      visorGroup.position.set(0, 0.5, 3.8);
+      const visorV = new THREE.Mesh(new THREE.BoxGeometry(0.7, 5.2, 0.5), holyGlowMat);
+      const visorH = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.7, 0.5), holyGlowMat);
+      visorH.position.y = 0.6;
+      // Moldura exterior em ouro
+      const visorFrameV = new THREE.Mesh(new THREE.BoxGeometry(1.6, 5.6, 0.3), holyGoldMat);
+      const visorFrameH = new THREE.Mesh(new THREE.BoxGeometry(5.6, 1.6, 0.3), holyGoldMat);
+      visorFrameH.position.y = 0.6;
+      visorGroup.add(visorFrameV, visorFrameH, visorV, visorH);
+      headGroup.add(visorGroup);
+
+      // 3. AURÉOLA SERÁFICA SOLAR (RADIANT SERAPHIC HALO COM 8 RAIOS)
+      const haloGroup = new THREE.Group();
+      haloGroup.position.set(0, 7.5, -0.5);
+      headGroup.add(haloGroup);
+      anim.halo = haloGroup;
+
+      // Anel Rúnico de Ouro
+      const haloRing = new THREE.Mesh(new THREE.TorusGeometry(5.6, 0.45, 8, 24), holyGoldMat);
+      haloRing.rotation.x = Math.PI / 2;
+      haloGroup.add(haloRing);
+
+      // Anel Interno de Luz Sagrada
+      const haloInner = new THREE.Mesh(new THREE.TorusGeometry(4.2, 0.25, 6, 20), holyGlowMat);
+      haloInner.rotation.x = Math.PI / 2;
+      haloGroup.add(haloInner);
+
+      // 8 Raios Solares Pontiagudos
+      for (let rIdx = 0; rIdx < 8; rIdx++) {
+        const rayAngle = (rIdx * Math.PI * 2) / 8;
+        const rayGeo = new THREE.ConeGeometry(0.65, 2.8, 4);
+        const ray = new THREE.Mesh(rayGeo, holyGoldMat);
+        ray.position.set(Math.cos(rayAngle) * 6.5, 0, Math.sin(rayAngle) * 6.5);
+        ray.rotation.z = -rayAngle + Math.PI / 2;
+        ray.rotation.x = Math.PI / 2;
+        haloGroup.add(ray);
+      }
+
+      // 6 Motes de Luz Sagrada orbitantes
+      for (let m = 0; m < 6; m++) {
+        const mote = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0), holyGlowMat);
+        const ang = (m * Math.PI * 2) / 6;
+        mote.position.set(Math.cos(ang) * 4.8, Math.sin(ang * 2) * 0.4, Math.sin(ang) * 4.8);
+        mote._moteAngle = ang;
+        mote._moteRadius = 4.8;
+        haloGroup.add(mote);
+        anim.holyMotes.push(mote);
+      }
+
+      // 4. OMBREIRAS DE ASAS CELESTIAIS (SERAPHIC PAULDRONS)
+      [-6.5, 6.5].forEach((ox, idx) => {
+        const pauldronGroup = new THREE.Group();
+        pauldronGroup.position.set(ox, 4.4, 0);
+
+        // 3 Lâminas curvas sobrepostas em asa de anjo
+        [0, -1.2, -2.4].forEach((ly, lIdx) => {
+          const bladeGeo = new THREE.CylinderGeometry(2.8 - (lIdx * 0.3), 3.4 - (lIdx * 0.3), 2.2, 6);
+          const pBlade = new THREE.Mesh(bladeGeo, brightSteelMat);
+          pBlade.position.y = ly;
+          pauldronGroup.add(pBlade);
+        });
+
+        // Crista de Ouro Solar em relevo
+        const pSpine = new THREE.Mesh(new THREE.BoxGeometry(1.2, 4.6, 5.0), holyGoldMat);
+        pSpine.position.set(ox > 0 ? 0.6 : -0.6, -0.6, 0);
+        pauldronGroup.add(pSpine);
+
+        pauldronGroup.rotation.z = (ox > 0 ? -0.25 : 0.25);
+        torsoGroup.add(pauldronGroup);
+      });
+
+      // 5. CAPA CERIMONIAL REAL
+      const capeGroup = new THREE.Group();
+      capeGroup.position.set(0, 4.4, -4.4);
+      const capeGeo = new THREE.PlaneGeometry(11.5, 20.0, 3, 4);
+      capeGeo.translate(0, -9.5, 0);
+      const capeMesh = new THREE.Mesh(capeGeo, capeMat);
+      capeMesh.rotation.x = 0.16;
+      capeGroup.add(capeMesh);
+
+      const capeLiningGeo = new THREE.PlaneGeometry(11.2, 19.8, 3, 4);
+      capeLiningGeo.translate(0, -9.5, 0.05);
+      const capeLining = new THREE.Mesh(capeLiningGeo, capeLiningMat);
+      capeLining.rotation.x = 0.16;
+      capeGroup.add(capeLining);
+
+      torsoGroup.add(capeGroup);
+      anim.cape = capeGroup;
+
+      // 6. BRAÇO ESQUERDO & ESCUDO TORRE AEGIS OF THE DAWN
+      const leftArmGroup = new THREE.Group();
+      leftArmGroup.position.set(-6.2, 3.2, 0);
+      torsoGroup.add(leftArmGroup);
+      anim.leftArm = leftArmGroup;
+
+      // Braço em cota de malha e braçadeira de placas
+      const armGeo = new THREE.CylinderGeometry(1.8, 1.4, 7.5, 6);
+      armGeo.translate(0, -3.7, 0);
+      leftArmGroup.add(new THREE.Mesh(armGeo, brightSteelMat));
+
+      const gauntlet = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.2, 2.2), darkSteelMat);
+      gauntlet.position.set(0, -7.6, 0.4);
+      leftArmGroup.add(gauntlet);
+
+      // ESCUDO TORRE GÓTICO CURVO (AEGIS OF THE DAWN)
+      const shieldGroup = new THREE.Group();
+      shieldGroup.position.set(-2.2, -4.8, 4.2);
+      shieldGroup.rotation.y = -Math.PI / 10;
+      leftArmGroup.add(shieldGroup);
+      anim.shield = shieldGroup;
+
+      // Corpo principal do escudo (Kite Shield alongado com chanfro)
+      const shieldGeo = new THREE.BoxGeometry(9.6, 17.5, 1.4);
+      const shieldMesh = new THREE.Mesh(shieldGeo, ultramarineMat);
+      shieldGroup.add(shieldMesh);
+
+      // Bordas douradas chanfradas do escudo
+      const borderTop = new THREE.Mesh(new THREE.BoxGeometry(10.2, 1.2, 1.6), holyGoldMat);
+      borderTop.position.y = 8.4;
+      const borderBot = new THREE.Mesh(new THREE.BoxGeometry(8.2, 1.2, 1.6), holyGoldMat);
+      borderBot.position.y = -8.4;
+      shieldGroup.add(borderTop, borderBot);
+
+      // Grande Cruz da Alvorada em relevo no escudo
+      const sCrossV = new THREE.Mesh(new THREE.BoxGeometry(2.2, 14.5, 0.8), holyGoldMat);
+      sCrossV.position.z = 1.0;
+      const sCrossH = new THREE.Mesh(new THREE.BoxGeometry(7.6, 2.2, 0.8), holyGoldMat);
+      sCrossH.position.set(0, 3.2, 1.0);
+      shieldGroup.add(sCrossV, sCrossH);
+
+      // Umbo / Cristal de Safira no Centro da Cruz
+      const sUmbo = new THREE.Mesh(new THREE.OctahedronGeometry(1.8, 0), sapphireMat);
+      sUmbo.position.set(0, 3.2, 1.6);
+      shieldGroup.add(sUmbo);
+
+      // 7. BRAÇO DIREITO & MARTELO RELICÁRIO SUNBREAKER
+      const rightArmGroup = new THREE.Group();
+      rightArmGroup.position.set(6.2, 3.2, 0);
+      torsoGroup.add(rightArmGroup);
+      anim.rightArm = rightArmGroup;
+
+      const rArm = new THREE.Mesh(armGeo, brightSteelMat);
+      rightArmGroup.add(rArm);
+
+      const rGauntlet = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.2, 2.2), darkSteelMat);
+      rGauntlet.position.set(0, -7.6, 0.4);
+      rightArmGroup.add(rGauntlet);
+
+      // MARTELO RELICÁRIO SUNBREAKER
+      const hammerGroup = new THREE.Group();
+      hammerGroup.position.set(0, -7.6, 0.8);
+      hammerGroup.rotation.x = Math.PI / 10;
+      rightArmGroup.add(hammerGroup);
+      anim.weapon = hammerGroup;
+
+      // Haste octogonal de freixo e aço
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.75, 24, 8), darkSteelMat);
+      shaft.position.y = 2.0;
+      hammerGroup.add(shaft);
+
+      // Anéis de reforço em ouro
+      [-8, -2, 4, 10].forEach(hy => {
+        const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.6, 8), holyGoldMat);
+        ring.position.y = hy;
+        hammerGroup.add(ring);
+      });
+
+      // Ponteira inferior com corvo cônico
+      const baseTip = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.5, 6), holyGoldMat);
+      baseTip.position.y = -10.5;
+      baseTip.rotation.x = Math.PI;
+      hammerGroup.add(baseTip);
+
+      // CABEÇA DO MARTELO (BLOCO MONUMENTAL EM AÇO SAGRADO)
+      const hammerHeadGroup = new THREE.Group();
+      hammerHeadGroup.position.y = 12.8;
+      hammerGroup.add(hammerHeadGroup);
+
+      // Bloco principal de impacto
+      const maceBlock = new THREE.Mesh(new THREE.BoxGeometry(5.2, 5.6, 5.8), brightSteelMat);
+      hammerHeadGroup.add(maceBlock);
+
+      // Bico perfurador de armadura traseiro
+      const spikeBeak = new THREE.Mesh(new THREE.ConeGeometry(1.5, 3.8, 4), holyGoldMat);
+      spikeBeak.rotation.x = -Math.PI / 2;
+      spikeBeak.position.set(0, 0, -4.2);
+      hammerHeadGroup.add(spikeBeak);
+
+      // Face de impacto frontal biselada
+      const impactFace = new THREE.Mesh(new THREE.BoxGeometry(4.6, 5.0, 1.2), holyGoldMat);
+      impactFace.position.set(0, 0, 3.4);
+      hammerHeadGroup.add(impactFace);
+
+      // Núcleo Solar no interior do martelo
+      const holyCore = new THREE.Mesh(new THREE.OctahedronGeometry(1.8, 0), holyGlowMat);
+      holyCore.position.set(0, 0, 0);
+      hammerHeadGroup.add(holyCore);
+      anim.hammerCore = holyCore;
+
+      // 8. PERNAS, GREVAS & SABATONS ESPOROADOS
+      [-2.8, 2.8].forEach((x, idx) => {
+        const legGroup = new THREE.Group();
+        legGroup.position.set(x, 9.5, 0);
+
+        // Coxote de aço
+        const cuisse = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.5, 6.0, 6), darkSteelMat);
+        cuisse.position.y = -3.0;
+        legGroup.add(cuisse);
+
+        // Joelheira (Poleyn) com roseta de ouro
+        const poleyn = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 1.4), holyGoldMat);
+        poleyn.position.set(0, -6.0, 1.4);
+        legGroup.add(poleyn);
+
+        // Greva canelada
+        const greave = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.4, 6.2, 6), brightSteelMat);
+        greave.position.y = -9.0;
+        legGroup.add(greave);
+
+        // Sabaton de ferro e espora dourada
+        const sabaton = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 4.2), brightSteelMat);
+        sabaton.position.set(0, -12.0, 1.0);
+        const spur = new THREE.Mesh(new THREE.ConeGeometry(0.4, 1.5, 4), holyGoldMat);
+        spur.rotation.x = -Math.PI / 2;
+        spur.position.set(0, -12.0, -1.6);
+        legGroup.add(sabaton, spur);
+
+        group.add(legGroup);
+        if (idx === 0) anim.leftLeg = legGroup;
+        else anim.rightLeg = legGroup;
+      });
+    }
+
+    // =========================================================================
+    // CONFIGURAÇÃO THREE.JS, CÂMERA & LUZES
+    // =========================================================================
+    const canvas = document.getElementById('webgl-canvas');
+    const container = document.getElementById('viewport-container');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x080a12);
+    scene.fog = new THREE.FogExp2(0x080a12, 0.0075);
+
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.set(28, 22, 52);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+
+    // Pedestal de Mármore da Catedral com Runa Solar
+    const pedestalGroup = new THREE.Group();
+    const pedGeo = new THREE.CylinderGeometry(16, 18, 2.5, 24);
+    const pedMat = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      metalness: 0.3,
+      roughness: 0.8
+    });
+    const pedMesh = new THREE.Mesh(pedGeo, pedMat);
+    pedMesh.position.y = -1.25;
+    pedMesh.receiveShadow = true;
+    pedestalGroup.add(pedMesh);
+
+    // Anel Dourado de Consagração no Pedestal
+    const pedRing = new THREE.Mesh(new THREE.TorusGeometry(15.5, 0.35, 6, 32), new THREE.MeshStandardMaterial({
+      color: 0xfacc15,
+      metalness: 0.9,
+      roughness: 0.2
+    }));
+    pedRing.rotation.x = Math.PI / 2;
+    pedRing.position.y = 0.05;
+    pedestalGroup.add(pedRing);
+
+    // Estrela solar de 8 pontas no mármore
+    for (let i = 0; i < 4; i++) {
+      const line = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 28), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+      line.position.y = 0.08;
+      line.rotation.y = (i * Math.PI) / 4;
+      pedestalGroup.add(line);
+    }
+    scene.add(pedestalGroup);
+
+    // Iluminação Tri-Point + Glow Sagrado
+    const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.85);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xfef08a, 1.8);
+    dirLight.position.set(30, 45, 35);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 1024;
+    dirLight.shadow.mapSize.height = 1024;
+    scene.add(dirLight);
+
+    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.9);
+    fillLight.position.set(-35, 20, -20);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xf59e0b, 1.4);
+    rimLight.position.set(0, 30, -35);
+    scene.add(rimLight);
+
+    // Ponto de luz celestial no halo do paladino
+    const haloGlowLight = new THREE.PointLight(0xfacc15, 2.4, 60);
+    haloGlowLight.position.set(0, 26, 0);
+    scene.add(haloGlowLight);
+
+    // Ponto de luz no martelo
+    const hammerGlowLight = new THREE.PointLight(0x38bdf8, 1.5, 30);
+    hammerGlowLight.position.set(6, 16, 2);
+    scene.add(hammerGlowLight);
+
+    // Instanciação do Modelo do Paladino
+    const paladinRoot = new THREE.Group();
+    const paladinAnim = {};
+    buildPaladinReworkModel(paladinRoot, paladinAnim);
+    scene.add(paladinRoot);
+
+    // =========================================================================
+    // CONTROLES DE CÂMERA, ÓRBITA & PRESETS
+    // =========================================================================
+    let isDragging = false;
+    let prevMouseX = 0;
+    let prevMouseY = 0;
+    let targetAzimuth = 0.45;
+    let currentAzimuth = 0.45;
+    let targetPolar = 1.35;
+    let currentPolar = 1.35;
+    let targetDistance = 50;
+    let currentDistance = 50;
+    let targetLookAt = new THREE.Vector3(0, 13, 0);
+    let currentLookAt = new THREE.Vector3(0, 13, 0);
+    let autoRotate = false;
+    let slowMo = false;
+    let activeAnimMode = 'idle';
+
+    canvas.addEventListener('mousedown', e => {
+      isDragging = true;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    window.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      const dx = e.clientX - prevMouseX;
+      const dy = e.clientY - prevMouseY;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+
+      targetAzimuth -= dx * 0.008;
+      targetPolar = Math.max(0.2, Math.min(Math.PI / 2 + 0.1, targetPolar - dy * 0.008));
+    });
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      targetDistance = Math.max(14, Math.min(100, targetDistance + e.deltaY * 0.04));
+    }, { passive: false });
+
+    window.focusCamera = function(preset) {
+      document.querySelectorAll('.controls-panel button').forEach(b => {
+        if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("focusCamera('" + preset + "')")) {
+          b.classList.add('active');
+        } else if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("focusCamera")) {
+          b.classList.remove('active');
+        }
+      });
+
+      if (preset === 'full') {
+        targetAzimuth = 0.45;
+        targetPolar = 1.35;
+        targetDistance = 50;
+        targetLookAt.set(0, 13, 0);
+      } else if (preset === 'helm') {
+        targetAzimuth = 0.25;
+        targetPolar = 1.40;
+        targetDistance = 20;
+        targetLookAt.set(0, 22, 0.5);
+      } else if (preset === 'hammer') {
+        targetAzimuth = -0.65;
+        targetPolar = 1.30;
+        targetDistance = 24;
+        targetLookAt.set(6, 14, 1);
+      } else if (preset === 'shield') {
+        targetAzimuth = 0.75;
+        targetPolar = 1.35;
+        targetDistance = 24;
+        targetLookAt.set(-6, 12, 1);
+      } else if (preset === 'armor') {
+        targetAzimuth = 0.20;
+        targetPolar = 1.38;
+        targetDistance = 26;
+        targetLookAt.set(0, 11, 0);
+      }
+    };
+
+    window.setLighting = function(mode) {
+      document.querySelectorAll('#light-cathedral, #light-dawn, #light-night, #light-wrath').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('light-' + mode);
+      if (btn) btn.classList.add('active');
+
+      if (mode === 'cathedral') {
+        scene.background.setHex(0x080a12);
+        scene.fog.color.setHex(0x080a12);
+        ambientLight.color.setHex(0xdbeafe);
+        ambientLight.intensity = 0.85;
+        dirLight.color.setHex(0xfef08a);
+        dirLight.intensity = 1.8;
+        fillLight.color.setHex(0x38bdf8);
+        rimLight.color.setHex(0xf59e0b);
+        haloGlowLight.intensity = 2.4;
+      } else if (mode === 'dawn') {
+        scene.background.setHex(0x1a1311);
+        scene.fog.color.setHex(0x1a1311);
+        ambientLight.color.setHex(0xfef3c7);
+        ambientLight.intensity = 0.95;
+        dirLight.color.setHex(0xfbbf24);
+        dirLight.intensity = 2.4;
+        fillLight.color.setHex(0xf97316);
+        rimLight.color.setHex(0xfde047);
+        haloGlowLight.intensity = 3.6;
+      } else if (mode === 'night') {
+        scene.background.setHex(0x040509);
+        scene.fog.color.setHex(0x040509);
+        ambientLight.color.setHex(0x1e293b);
+        ambientLight.intensity = 0.45;
+        dirLight.color.setHex(0x60a5fa);
+        dirLight.intensity = 1.2;
+        fillLight.color.setHex(0x1e3a8a);
+        rimLight.color.setHex(0xfacc15);
+        haloGlowLight.intensity = 2.8;
+      } else if (mode === 'wrath') {
+        scene.background.setHex(0x180b08);
+        scene.fog.color.setHex(0x180b08);
+        ambientLight.color.setHex(0x78350f);
+        ambientLight.intensity = 0.7;
+        dirLight.color.setHex(0xf59e0b);
+        dirLight.intensity = 2.6;
+        fillLight.color.setHex(0xdc2626);
+        rimLight.color.setHex(0xfde047);
+        haloGlowLight.intensity = 4.0;
+      }
+    };
+
+    window.setAnimMode = function(mode) {
+      activeAnimMode = mode;
+      document.querySelectorAll('#anim-idle, #anim-walk, #anim-smite, #anim-guard, #anim-pray').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('anim-' + mode);
+      if (btn) btn.classList.add('active');
+
+      if (mode === 'smite') {
+        playHolyImpact();
+      } else if (mode === 'pray') {
+        playCathedralBell();
+      }
+    };
+
+    window.toggleTurntable = function() {
+      autoRotate = !autoRotate;
+      document.getElementById('toggle-turntable').classList.toggle('active', autoRotate);
+    };
+
+    window.toggleSlowMo = function() {
+      slowMo = !slowMo;
+      document.getElementById('toggle-slowmo').classList.toggle('active', slowMo);
+    };
+
+    // Redimensionamento de Janela
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // =========================================================================
+    // LOOP PRINCIPAL DE RENDERIZAÇÃO & CINEMÁTICA
+    // =========================================================================
+    let clock = new THREE.Clock();
+    let animTime = 0;
+    let frameCount = 0;
+    let lastFpsUpdate = performance.now();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = clock.getDelta();
+      const dt = slowMo ? delta * 0.3 : delta;
+      animTime += dt;
+      const t = animTime;
+
+      // Medidor de FPS
+      frameCount++;
+      const now = performance.now();
+      if (now - lastFpsUpdate >= 1000) {
+        document.getElementById('fps-text').textContent = Math.round((frameCount * 1000) / (now - lastFpsUpdate)) + ' FPS';
+        frameCount = 0;
+        lastFpsUpdate = now;
+      }
+
+      // Rotação Turntable
+      if (autoRotate) {
+        targetAzimuth += dt * 0.45;
+      }
+
+      // Interpolação suave da câmera
+      currentAzimuth += (targetAzimuth - currentAzimuth) * 0.1;
+      currentPolar += (targetPolar - currentPolar) * 0.1;
+      currentDistance += (targetDistance - currentDistance) * 0.1;
+      currentLookAt.lerp(targetLookAt, 0.1);
+
+      camera.position.x = currentLookAt.x + currentDistance * Math.sin(currentPolar) * Math.sin(currentAzimuth);
+      camera.position.y = currentLookAt.y + currentDistance * Math.cos(currentPolar);
+      camera.position.z = currentLookAt.z + currentDistance * Math.sin(currentPolar) * Math.cos(currentAzimuth);
+      camera.lookAt(currentLookAt);
+
+      // Rotação da Auréola Solar & Órbita de Motes Sagrados
+      if (paladinAnim.halo) {
+        paladinAnim.halo.rotation.y += dt * 0.8;
+      }
+      if (paladinAnim.holyMotes && paladinAnim.holyMotes.length > 0) {
+        for (let i = 0; i < paladinAnim.holyMotes.length; i++) {
+          const m = paladinAnim.holyMotes[i];
+          m._moteAngle += dt * 2.2;
+          m.position.set(
+            Math.cos(m._moteAngle) * m._moteRadius,
+            Math.sin(m._moteAngle * 3) * 0.6,
+            Math.sin(m._moteAngle) * m._moteRadius
+          );
+        }
+      }
+
+      // Pulso do Núcleo Solar do Martelo
+      if (paladinAnim.hammerCore) {
+        paladinAnim.hammerCore.rotation.y += dt * 1.5;
+        paladinAnim.hammerCore.rotation.x += dt * 0.8;
+        const pulse = 1.0 + Math.sin(t * 5.0) * 0.15;
+        paladinAnim.hammerCore.scale.set(pulse, pulse, pulse);
+      }
+
+      // Cinemática baseada no Modo Ativo
+      if (activeAnimMode === 'idle') {
+        // Vigília Solene: Postura impenetrável de bastião sagrado
+        const breath = Math.sin(t * 1.8);
+        paladinRoot.position.y = 0.5 + breath * 0.3;
+
+        if (paladinAnim.torso) {
+          paladinAnim.torso.rotation.x = breath * 0.015;
+          paladinAnim.torso.rotation.y = Math.sin(t * 0.8) * 0.03;
+          paladinAnim.torso.rotation.z = 0;
+        }
+        if (paladinAnim.head) {
+          paladinAnim.head.rotation.x = -breath * 0.01;
+          paladinAnim.head.rotation.y = -Math.sin(t * 0.8) * 0.03;
+        }
+        if (paladinAnim.leftArm) {
+          // Escudo cobrindo o flanco esquerdo
+          paladinAnim.leftArm.rotation.x = 0.28 + breath * 0.02;
+          paladinAnim.leftArm.rotation.y = 0.42;
+          paladinAnim.leftArm.rotation.z = -0.15;
+        }
+        if (paladinAnim.rightArm) {
+          // Martelo empunhado com firmeza, cabeça voltada para frente
+          paladinAnim.rightArm.rotation.x = -0.32 + breath * 0.02;
+          paladinAnim.rightArm.rotation.y = -0.22;
+          paladinAnim.rightArm.rotation.z = 0.14;
+        }
+        if (paladinAnim.cape) {
+          paladinAnim.cape.rotation.x = 0.16 + Math.sin(t * 2.2) * 0.06;
+          paladinAnim.cape.rotation.z = Math.sin(t * 1.4) * 0.03;
+        }
+        if (paladinAnim.tabard) {
+          paladinAnim.tabard.rotation.x = Math.sin(t * 2.0) * 0.03;
+        }
+        if (paladinAnim.leftLeg) paladinAnim.leftLeg.rotation.x = 0;
+        if (paladinAnim.rightLeg) paladinAnim.rightLeg.rotation.x = 0;
+
+      } else if (activeAnimMode === 'walk') {
+        // Marcha Cruzada: Passada solene, pesada e inabalável
+        const walk = t * 6.5;
+        const swing = Math.sin(walk) * 0.55;
+        paladinRoot.position.y = Math.abs(Math.sin(walk * 2)) * 1.2;
+
+        if (paladinAnim.leftLeg) paladinAnim.leftLeg.rotation.x = swing;
+        if (paladinAnim.rightLeg) paladinAnim.rightLeg.rotation.x = -swing;
+
+        if (paladinAnim.torso) {
+          paladinAnim.torso.rotation.y = Math.sin(walk) * 0.08;
+          paladinAnim.torso.rotation.x = 0.05;
+        }
+        if (paladinAnim.leftArm) {
+          paladinAnim.leftArm.rotation.x = 0.28 - swing * 0.25;
+          paladinAnim.leftArm.rotation.y = 0.38;
+          paladinAnim.leftArm.rotation.z = -0.15;
+        }
+        if (paladinAnim.rightArm) {
+          paladinAnim.rightArm.rotation.x = -0.35 + swing * 0.35;
+          paladinAnim.rightArm.rotation.y = -0.20;
+          paladinAnim.rightArm.rotation.z = 0.14;
+        }
+        if (paladinAnim.cape) {
+          paladinAnim.cape.rotation.x = 0.45 + Math.sin(walk * 2) * 0.15;
+          paladinAnim.cape.rotation.z = Math.sin(walk) * 0.08;
+        }
+        if (paladinAnim.tabard) {
+          paladinAnim.tabard.rotation.x = 0.12 + Math.abs(Math.sin(walk)) * 0.08;
+        }
+
+      } else if (activeAnimMode === 'smite') {
+        // Julgamento Divino: Ergue o martelo para o céu, relâmpago de glória e golpe demolidor no solo
+        const smiteCycle = (t * 1.4) % 1.0;
+
+        if (smiteCycle < 0.40) {
+          // Fase 1: Windup & Carga Celeste (Ergue o martelo com as duas mãos para os céus)
+          const p = smiteCycle / 0.40;
+          const easeIn = p * p;
+          paladinRoot.position.y = 0.5 + easeIn * 1.5;
+
+          if (paladinAnim.rightArm) {
+            paladinAnim.rightArm.rotation.x = -0.32 - easeIn * 1.8;
+            paladinAnim.rightArm.rotation.y = -0.22 + easeIn * 0.5;
+            paladinAnim.rightArm.rotation.z = 0.14 + easeIn * 0.3;
+          }
+          if (paladinAnim.leftArm) {
+            paladinAnim.leftArm.rotation.x = 0.28 - easeIn * 1.2;
+            paladinAnim.leftArm.rotation.y = 0.42 - easeIn * 0.3;
+          }
+          if (paladinAnim.torso) {
+            paladinAnim.torso.rotation.x = -easeIn * 0.22;
+          }
+          if (paladinAnim.cape) {
+            paladinAnim.cape.rotation.x = 0.20 + easeIn * 0.35;
+          }
+        } else if (smiteCycle < 0.65) {
+          // Fase 2: Impacto Devastador no Solo!
+          const p = (smiteCycle - 0.40) / 0.25;
+          const easeOut = 1 - Math.pow(1 - p, 3);
+          paladinRoot.position.y = 2.0 - easeOut * 2.2;
+
+          if (paladinAnim.rightArm) {
+            paladinAnim.rightArm.rotation.x = -2.12 + easeOut * 2.8;
+            paladinAnim.rightArm.rotation.y = 0.28 - easeOut * 0.5;
+            paladinAnim.rightArm.rotation.z = 0.44 - easeOut * 0.3;
+          }
+          if (paladinAnim.leftArm) {
+            paladinAnim.leftArm.rotation.x = -0.92 + easeOut * 1.4;
+          }
+          if (paladinAnim.torso) {
+            paladinAnim.torso.rotation.x = -0.22 + easeOut * 0.48;
+          }
+          if (paladinAnim.cape) {
+            paladinAnim.cape.rotation.x = 0.55 - easeOut * 0.30;
+          }
+        } else {
+          // Fase 3: Retorno majestoso à guarda
+          const p = (smiteCycle - 0.65) / 0.35;
+          const ease = 1 - Math.pow(1 - p, 2);
+          paladinRoot.position.y = -0.2 + ease * 0.7;
+
+          if (paladinAnim.rightArm) {
+            paladinAnim.rightArm.rotation.x = 0.68 - ease * 1.0;
+            paladinAnim.rightArm.rotation.y = -0.22;
+            paladinAnim.rightArm.rotation.z = 0.14;
+          }
+          if (paladinAnim.leftArm) {
+            paladinAnim.leftArm.rotation.x = 0.48 - ease * 0.2;
+            paladinAnim.leftArm.rotation.y = 0.42;
+          }
+          if (paladinAnim.torso) {
+            paladinAnim.torso.rotation.x = 0.26 * (1 - ease);
+          }
+        }
+
+      } else if (activeAnimMode === 'guard') {
+        // Baluarte da Fé: Escudo empurrado firmemente à frente formando uma muralha
+        paladinRoot.position.y = 0.2;
+        if (paladinAnim.leftArm) {
+          paladinAnim.leftArm.rotation.x = -0.35;
+          paladinAnim.leftArm.rotation.y = 0.75;
+          paladinAnim.leftArm.rotation.z = -0.20;
+        }
+        if (paladinAnim.rightArm) {
+          paladinAnim.rightArm.rotation.x = -0.55;
+          paladinAnim.rightArm.rotation.y = -0.35;
+          paladinAnim.rightArm.rotation.z = 0.25;
+        }
+        if (paladinAnim.torso) {
+          paladinAnim.torso.rotation.y = -0.22;
+          paladinAnim.torso.rotation.x = 0.08;
+        }
+        if (paladinAnim.shield) {
+          paladinAnim.shield.rotation.y = 0.15;
+        }
+
+      } else if (activeAnimMode === 'pray') {
+        // Oração da Alvorada: Cabeça abaixada em devoção, martelo apoiado no chão, mãos unidas em prece
+        const breath = Math.sin(t * 1.5);
+        paladinRoot.position.y = 0.3 + breath * 0.15;
+
+        if (paladinAnim.head) {
+          paladinAnim.head.rotation.x = 0.38;
+          paladinAnim.head.rotation.y = 0;
+        }
+        if (paladinAnim.torso) {
+          paladinAnim.torso.rotation.x = 0.14;
+          paladinAnim.torso.rotation.y = 0;
+        }
+        if (paladinAnim.leftArm) {
+          paladinAnim.leftArm.rotation.x = 0.65;
+          paladinAnim.leftArm.rotation.y = 0.60;
+          paladinAnim.leftArm.rotation.z = -0.30;
+        }
+        if (paladinAnim.rightArm) {
+          paladinAnim.rightArm.rotation.x = 0.55;
+          paladinAnim.rightArm.rotation.y = -0.55;
+          paladinAnim.rightArm.rotation.z = 0.25;
+        }
+        if (paladinAnim.halo) {
+          paladinAnim.halo.position.y = 8.5 + breath * 0.5;
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
