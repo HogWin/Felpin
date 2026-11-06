@@ -1341,15 +1341,17 @@ class WaveDirector {
     y = Math.max(-spawnLimit, Math.min(spawnLimit, y));
 
     const t = this.gameTime;
-    const hpScaling = Math.pow(1.0 + (t / 180), 1.35);
-    const dmgScaling = 1.0 + (t / 240);
+    const hpScaling = Math.pow(1.0 + (t / 210), 1.25);
+    const dmgScaling = 1.0 + (t / 260);
 
-    // Enemy pool unlocked over time
-    const pool = ['rat'];
-    if (t > 20) pool.push('skeleton', 'skeleton');
-    if (t > 45) pool.push('villager', 'villager');
-    if (t > 75) pool.push('witch');
-    if (t > 110) pool.push('dark_knight');
+    // Enemy pool unlocked over time - smoothly phasing into full gothic 3D reworked hordes
+    const pool = [];
+    if (t < 35) pool.push('rat', 'rat');
+    if (t > 15) pool.push('skeleton', 'skeleton', 'skeleton');
+    if (t > 40) pool.push('villager', 'villager');
+    if (t > 70) pool.push('witch');
+    if (t > 100) pool.push('dark_knight', 'dark_knight');
+    if (pool.length === 0) pool.push('skeleton');
 
     const choice = pool[Math.floor(Math.random() * pool.length)];
 

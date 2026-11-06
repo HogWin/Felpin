@@ -10,42 +10,42 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
 
   // Shared Materials Palette with stylized gothic/medieval tones
   const materials = {
-    steel: new THREE.MeshStandardMaterial({ color: 0x8a9ba8, metalness: 0.85, roughness: 0.25 }),
-    darkSteel: new THREE.MeshStandardMaterial({ color: 0x2d3748, metalness: 0.9, roughness: 0.3 }),
-    gold: new THREE.MeshStandardMaterial({ color: 0xe5a93b, metalness: 0.88, roughness: 0.28, emissive: 0x3d2800, emissiveIntensity: 0.2 }),
-    royalRed: new THREE.MeshStandardMaterial({ color: 0x9b111e, roughness: 0.6 }),
-    crimsonCloth: new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.7, side: THREE.DoubleSide }),
-    rangerGreen: new THREE.MeshStandardMaterial({ color: 0x226b38, roughness: 0.65 }),
-    leather: new THREE.MeshStandardMaterial({ color: 0x5a3d28, roughness: 0.75 }),
-    darkCloth: new THREE.MeshStandardMaterial({ color: 0x1f192b, roughness: 0.7, side: THREE.DoubleSide }),
-    pyroOrange: new THREE.MeshStandardMaterial({ color: 0xbf360c, roughness: 0.6 }),
+    steel: new THREE.MeshStandardMaterial({ color: 0x9cb0bf, metalness: 0.55, roughness: 0.35, emissive: 0x141820, emissiveIntensity: 0.15 }),
+    darkSteel: new THREE.MeshStandardMaterial({ color: 0x3d4757, metalness: 0.45, roughness: 0.45, emissive: 0x181e28, emissiveIntensity: 0.18 }),
+    gold: new THREE.MeshStandardMaterial({ color: 0xe5a93b, metalness: 0.70, roughness: 0.32, emissive: 0x4d3400, emissiveIntensity: 0.28 }),
+    royalRed: new THREE.MeshStandardMaterial({ color: 0xaa1c29, roughness: 0.6, emissive: 0x30060a, emissiveIntensity: 0.2 }),
+    crimsonCloth: new THREE.MeshStandardMaterial({ color: 0x9b111e, roughness: 0.7, emissive: 0x2e0508, emissiveIntensity: 0.2, side: THREE.DoubleSide }),
+    rangerGreen: new THREE.MeshStandardMaterial({ color: 0x2e7d44, roughness: 0.65, emissive: 0x0a2812, emissiveIntensity: 0.2 }),
+    leather: new THREE.MeshStandardMaterial({ color: 0x6e4a32, roughness: 0.75, emissive: 0x22130a, emissiveIntensity: 0.15 }),
+    darkCloth: new THREE.MeshStandardMaterial({ color: 0x30283d, roughness: 0.7, emissive: 0x161020, emissiveIntensity: 0.2, side: THREE.DoubleSide }),
+    pyroOrange: new THREE.MeshStandardMaterial({ color: 0xd34213, roughness: 0.6, emissive: 0x3d1000, emissiveIntensity: 0.25 }),
     flameGlow: new THREE.MeshBasicMaterial({ color: 0xff6600 }),
-    paladinGold: new THREE.MeshStandardMaterial({ color: 0xf1c40f, metalness: 0.8, roughness: 0.25 }),
+    paladinGold: new THREE.MeshStandardMaterial({ color: 0xf1c40f, metalness: 0.70, roughness: 0.28, emissive: 0x5a3e00, emissiveIntensity: 0.35 }),
     holyGlow: new THREE.MeshBasicMaterial({ color: 0xffea79, transparent: true, opacity: 0.85 }),
-    bone: new THREE.MeshStandardMaterial({ color: 0xe2d9c8, roughness: 0.55 }),
-    boneDark: new THREE.MeshStandardMaterial({ color: 0xa89f8d, roughness: 0.6 }),
-    ratFur: new THREE.MeshStandardMaterial({ color: 0x4a3b32, roughness: 0.85 }),
-    diseasedSkin: new THREE.MeshStandardMaterial({ color: 0x556b2f, roughness: 0.7 }),
+    bone: new THREE.MeshStandardMaterial({ color: 0xeae3d2, roughness: 0.55, emissive: 0x2b2822, emissiveIntensity: 0.18 }),
+    boneDark: new THREE.MeshStandardMaterial({ color: 0xb5ac9a, roughness: 0.6, emissive: 0x22201b, emissiveIntensity: 0.16 }),
+    ratFur: new THREE.MeshStandardMaterial({ color: 0x5a483e, roughness: 0.8, emissive: 0x1c1410, emissiveIntensity: 0.15 }),
+    diseasedSkin: new THREE.MeshStandardMaterial({ color: 0x668038, roughness: 0.7, emissive: 0x1c280e, emissiveIntensity: 0.2 }),
     glowingRed: new THREE.MeshBasicMaterial({ color: 0xff1744 }),
     glowingCyan: new THREE.MeshBasicMaterial({ color: 0x00e5ff }),
     glowingViolet: new THREE.MeshBasicMaterial({ color: 0xbb86fc }),
     glowingGreen: new THREE.MeshBasicMaterial({ color: 0x00e676 }),
-    peasantClothes: new THREE.MeshStandardMaterial({ color: 0x6d5945, roughness: 0.8 }),
-    skinPale: new THREE.MeshStandardMaterial({ color: 0xc8b89e, roughness: 0.6 }),
-    wood: new THREE.MeshStandardMaterial({ color: 0x4e3620, roughness: 0.8 }),
-    stoneGrey: new THREE.MeshStandardMaterial({ color: 0x595e63, roughness: 0.75 }),
-    stoneMoss: new THREE.MeshStandardMaterial({ color: 0x4a5542, roughness: 0.8 }),
-    blackObsidian: new THREE.MeshStandardMaterial({ color: 0x15161a, metalness: 0.8, roughness: 0.35 }),
-    magmaBasalt: new THREE.MeshStandardMaterial({ color: 0x1c1a1e, roughness: 0.85, metalness: 0.15 }),
-    magmaVein: new THREE.MeshStandardMaterial({ color: 0xff3b00, emissive: 0xff5500, emissiveIntensity: 1.35, roughness: 0.25 }),
+    peasantClothes: new THREE.MeshStandardMaterial({ color: 0x7a6550, roughness: 0.8, emissive: 0x231b14, emissiveIntensity: 0.18 }),
+    skinPale: new THREE.MeshStandardMaterial({ color: 0xd4c6af, roughness: 0.6, emissive: 0x2e2920, emissiveIntensity: 0.15 }),
+    wood: new THREE.MeshStandardMaterial({ color: 0x5c4228, roughness: 0.8, emissive: 0x1c1208, emissiveIntensity: 0.15 }),
+    stoneGrey: new THREE.MeshStandardMaterial({ color: 0x6b7278, roughness: 0.75, emissive: 0x1c2024, emissiveIntensity: 0.15 }),
+    stoneMoss: new THREE.MeshStandardMaterial({ color: 0x56634d, roughness: 0.8, emissive: 0x182014, emissiveIntensity: 0.15 }),
+    blackObsidian: new THREE.MeshStandardMaterial({ color: 0x25272e, metalness: 0.5, roughness: 0.4, emissive: 0x101115, emissiveIntensity: 0.2 }),
+    magmaBasalt: new THREE.MeshStandardMaterial({ color: 0x36323c, roughness: 0.8, metalness: 0.15, emissive: 0x181014, emissiveIntensity: 0.22 }),
+    magmaVein: new THREE.MeshStandardMaterial({ color: 0xff3b00, emissive: 0xff5500, emissiveIntensity: 1.6, roughness: 0.25 }),
     magmaCore: new THREE.MeshBasicMaterial({ color: 0xff6a00 }),
-    imperialPurple: new THREE.MeshStandardMaterial({ color: 0x1c002e, roughness: 0.65, side: THREE.DoubleSide }),
-    imperialGold: new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.88, roughness: 0.24, emissive: 0x3d2800, emissiveIntensity: 0.35 }),
-    amethystGem: new THREE.MeshStandardMaterial({ color: 0x6a0dad, metalness: 0.7, roughness: 0.2, emissive: 0x581180, emissiveIntensity: 0.6 }),
-    orcSkin: new THREE.MeshStandardMaterial({ color: 0x2e4f28, roughness: 0.7 }),
-    orcTusk: new THREE.MeshStandardMaterial({ color: 0xf4eedb, roughness: 0.4 }),
-    zombieSkin: new THREE.MeshStandardMaterial({ color: 0x5a6e50, roughness: 0.75 }),
-    spectralShroud: new THREE.MeshStandardMaterial({ color: 0x1e4e58, transparent: true, opacity: 0.82, roughness: 0.4, side: THREE.DoubleSide }),
+    imperialPurple: new THREE.MeshStandardMaterial({ color: 0x381254, roughness: 0.65, emissive: 0x1c0530, emissiveIntensity: 0.35, side: THREE.DoubleSide }),
+    imperialGold: new THREE.MeshStandardMaterial({ color: 0xf1c40f, metalness: 0.75, roughness: 0.26, emissive: 0x5a3e00, emissiveIntensity: 0.4 }),
+    amethystGem: new THREE.MeshStandardMaterial({ color: 0x8e44ad, metalness: 0.5, roughness: 0.2, emissive: 0x732d91, emissiveIntensity: 0.7 }),
+    orcSkin: new THREE.MeshStandardMaterial({ color: 0x3c6633, roughness: 0.68, emissive: 0x152810, emissiveIntensity: 0.2 }),
+    orcTusk: new THREE.MeshStandardMaterial({ color: 0xf7f2e4, roughness: 0.4, emissive: 0x333026, emissiveIntensity: 0.15 }),
+    zombieSkin: new THREE.MeshStandardMaterial({ color: 0x637a56, roughness: 0.75, emissive: 0x1e2b19, emissiveIntensity: 0.2 }),
+    spectralShroud: new THREE.MeshStandardMaterial({ color: 0x266470, transparent: true, opacity: 0.86, roughness: 0.4, emissive: 0x0f3e48, emissiveIntensity: 0.48, side: THREE.DoubleSide }),
     spectralGlow: new THREE.MeshBasicMaterial({ color: 0x00ffcc }),
     hitFlash: new THREE.MeshBasicMaterial({ color: 0xff3333 })
   };
@@ -3584,7 +3584,12 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       uTime: { value: 0.0 }
     };
 
-    const type = enemy.type;
+    let type = enemy.type;
+    if (type === 'zombie') type = 'villager';
+    if (type === 'orc') type = 'dark_knight';
+    if (type === 'ghost' || type === 'specter') type = 'witch';
+    if (type === 'golem') type = 'boss_golem';
+    if (type === 'death_baron' || type === 'lich' || type === 'baron') type = 'boss_death_baron';
 
     if (type === 'rat') {
       buildPlagueRatModel(root, anim);
@@ -3607,16 +3612,19 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       buildSkeletonModel(root, anim);
     }
 
-    // Connect GLSL uniforms to all instantiated materials
-    if (anim.materials && anim.materials.length > 0) {
-      anim.materials.forEach(m => {
-        if (m && m.userData) {
-          m.userData.uHitFlash = anim.uHitFlash;
-          m.userData.uDissolveProgress = anim.uDissolveProgress;
-          m.userData.uTime = anim.uTime;
-        }
-      });
-    }
+    // Connect GLSL uniforms to all instantiated materials (GPU Hit Flash & Ash Dissolve)
+    root.traverse((child: any) => {
+      if (child.isMesh && child.material) {
+        const mats = Array.isArray(child.material) ? child.material : [child.material];
+        mats.forEach((m: any) => {
+          if (m && m.userData && m.userData.uHitFlash) {
+            m.userData.uHitFlash = anim.uHitFlash;
+            m.userData.uDissolveProgress = anim.uDissolveProgress;
+            m.userData.uTime = anim.uTime;
+          }
+        });
+      }
+    });
 
     // 1. Sombra de contato sob o inimigo (Zero-allocation shared unit geometry)
     const sRadius = (enemy.radius || 12) * 0.75;
@@ -3721,31 +3729,17 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         bossOuterRing.scale.set(currentR * 1.25 * pulse, 1, currentR * 1.25 * pulse);
       }
 
-      // GPU GLSL Hit Flash Hook & CPU fallback
+      // GPU GLSL Hit Flash Hook (Hardware uniform transition, zero material swapping)
       const isDamaged = (enemyObj.hp < enemyObj._lastHp);
       enemyObj._lastHp = enemyObj.hp;
       if (isDamaged) {
         anim.uHitFlash.value = 1.0;
-        anim.flashTimer = 0.10;
       }
 
       if (anim.uHitFlash.value > 0.0) {
-        anim.uHitFlash.value = Math.max(0.0, anim.uHitFlash.value - dt * 7.0);
+        anim.uHitFlash.value = Math.max(0.0, anim.uHitFlash.value - dt * 8.0);
       }
       anim.uTime.value += dt;
-
-      if (anim.flashTimer > 0) {
-        anim.flashTimer -= dt;
-        for (let i = 0; i < anim.flashMeshes.length; i++) {
-          anim.flashMeshes[i].material = materials.hitFlash;
-        }
-        anim.wasFlashing = true;
-      } else if (anim.wasFlashing) {
-        for (let i = 0; i < anim.flashMeshes.length; i++) {
-          anim.flashMeshes[i].material = anim.flashMeshes[i]._origMat;
-        }
-        anim.wasFlashing = false;
-      }
 
       // Call customized boss visuals (Magma veins pulsing, royal mantle waving, soul wisps)
       if (anim.updateBossVisuals) {
@@ -4644,55 +4638,105 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   const hordeGeometries = {};
   const hordeMaterials = {};
 
-  function createHordeCompoundGeometry(type) {
+  function createHordeCompoundGeometry(type: string) {
+    if (type === 'zombie') type = 'villager';
+    if (type === 'orc') type = 'dark_knight';
+    if (type === 'ghost' || type === 'specter') type = 'witch';
+
     if (hordeGeometries[type]) return hordeGeometries[type];
 
     let geo = null;
     if (type === 'skeleton') {
       const list = [
-        { geo: new THREE.CylinderGeometry(0.7, 0.7, 9, 6), matrix: new THREE.Matrix4().makeTranslation(0, 12, 0), colorHex: 0xe2d9c8 },
-        { geo: new THREE.BoxGeometry(5.2, 1.8, 3.2), matrix: new THREE.Matrix4().makeTranslation(0, 7.5, 0), colorHex: 0xe2d9c8 },
-        { geo: new THREE.BoxGeometry(6.4, 0.75, 4.2), matrix: new THREE.Matrix4().makeTranslation(0, 13.5, 0), colorHex: 0xe2d9c8 },
-        { geo: new THREE.BoxGeometry(5.6, 0.75, 3.8), matrix: new THREE.Matrix4().makeTranslation(0, 11.5, 0), colorHex: 0xe2d9c8 },
-        { geo: new THREE.BoxGeometry(4.4, 4.4, 4.6), matrix: new THREE.Matrix4().makeTranslation(0, 19, 0), colorHex: 0xe2d9c8 },
-        { geo: new THREE.BoxGeometry(0.75, 0.75, 0.4), matrix: new THREE.Matrix4().makeTranslation(-1.15, 19.3, 2.35), colorHex: 0x00ffff },
-        { geo: new THREE.BoxGeometry(0.75, 0.75, 0.4), matrix: new THREE.Matrix4().makeTranslation(1.15, 19.3, 2.35), colorHex: 0x00ffff },
-        { geo: new THREE.BoxGeometry(1.2, 12, 0.35), matrix: new THREE.Matrix4().makeTranslation(5, 10, 2), colorHex: 0x8a9ba8 },
-        { geo: new THREE.CylinderGeometry(3.6, 3.6, 0.7, 8), matrix: new THREE.Matrix4().makeTranslation(-5, 10, 2), colorHex: 0x4e3620 }
+        // Spine & Pelvis
+        { geo: new THREE.CylinderGeometry(0.7, 0.7, 9, 6), matrix: new THREE.Matrix4().makeTranslation(0, 12, 0), colorHex: 0xeae3d2 },
+        { geo: new THREE.BoxGeometry(5.2, 1.8, 3.2), matrix: new THREE.Matrix4().makeTranslation(0, 7.5, 0), colorHex: 0xeae3d2 },
+        // Anatomical Ribs & Clavicles
+        { geo: new THREE.BoxGeometry(6.4, 0.75, 4.2), matrix: new THREE.Matrix4().makeTranslation(0, 13.5, 0), colorHex: 0xeae3d2 },
+        { geo: new THREE.BoxGeometry(5.8, 0.75, 3.8), matrix: new THREE.Matrix4().makeTranslation(0, 11.5, 0), colorHex: 0xeae3d2 },
+        { geo: new THREE.BoxGeometry(5.0, 0.75, 3.4), matrix: new THREE.Matrix4().makeTranslation(0, 9.5, 0), colorHex: 0xeae3d2 },
+        { geo: new THREE.BoxGeometry(7.8, 0.75, 1.2), matrix: new THREE.Matrix4().makeTranslation(0, 14.8, 0.5), colorHex: 0xeae3d2 },
+        // Cracked Skull & Jaw
+        { geo: new THREE.BoxGeometry(4.4, 4.4, 4.6), matrix: new THREE.Matrix4().makeTranslation(0, 19, 0), colorHex: 0xeae3d2 },
+        { geo: new THREE.BoxGeometry(3.4, 1.4, 2.8), matrix: new THREE.Matrix4().makeTranslation(0, 16.6, 0.8), colorHex: 0xeae3d2 },
+        // Glowing Cyan Soulfire Eye Sockets
+        { geo: new THREE.BoxGeometry(0.75, 0.75, 0.4), matrix: new THREE.Matrix4().makeTranslation(-1.15, 19.3, 2.35), colorHex: 0x00f2fe },
+        { geo: new THREE.BoxGeometry(0.75, 0.75, 0.4), matrix: new THREE.Matrix4().makeTranslation(1.15, 19.3, 2.35), colorHex: 0x00f2fe },
+        // Right Arm & Chipped Medieval Broadsword
+        { geo: new THREE.CylinderGeometry(0.5, 0.4, 7.5, 4), matrix: new THREE.Matrix4().makeTranslation(4.6, 12, 0), colorHex: 0xeae3d2 },
+        { geo: new THREE.BoxGeometry(1.2, 12, 0.35), matrix: new THREE.Matrix4().makeTranslation(5.2, 10, 2.5), colorHex: 0x9cb0bf },
+        { geo: new THREE.BoxGeometry(3.8, 0.8, 0.8), matrix: new THREE.Matrix4().makeTranslation(5.2, 14.5, 2.5), colorHex: 0x3d4757 },
+        // Left Arm & Spiked Iron-Rimmed Wooden Buckler
+        { geo: new THREE.CylinderGeometry(0.5, 0.4, 7.5, 4), matrix: new THREE.Matrix4().makeTranslation(-4.6, 12, 0), colorHex: 0xeae3d2 },
+        { geo: new THREE.CylinderGeometry(3.6, 3.6, 0.7, 8), matrix: new THREE.Matrix4().makeTranslation(-5.2, 10.5, 2.0).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)), colorHex: 0x5c4228 },
+        { geo: new THREE.ConeGeometry(0.75, 2.2, 5), matrix: new THREE.Matrix4().makeTranslation(-5.2, 10.5, 3.2).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2)), colorHex: 0x9cb0bf },
+        // Skeletal Leg Femurs
+        { geo: new THREE.CylinderGeometry(0.55, 0.45, 8.5, 4), matrix: new THREE.Matrix4().makeTranslation(-2.2, 3.8, 0), colorHex: 0xeae3d2 },
+        { geo: new THREE.CylinderGeometry(0.55, 0.45, 8.5, 4), matrix: new THREE.Matrix4().makeTranslation(2.2, 3.8, 0), colorHex: 0xeae3d2 }
       ];
       geo = mergeColoredGeometries(list);
     } else if (type === 'villager') {
       const list = [
-        { geo: new THREE.BoxGeometry(8.6, 10.5, 5.4), matrix: new THREE.Matrix4().makeTranslation(0, 12, 0), colorHex: 0x6d5945 },
-        { geo: new THREE.BoxGeometry(4.8, 5.4, 4.8), matrix: new THREE.Matrix4().makeTranslation(0.6, 19.4, 1.2), colorHex: 0x5a6e50 },
-        { geo: new THREE.SphereGeometry(0.5, 4, 4), matrix: new THREE.Matrix4().makeTranslation(-0.8, 19.8, 3.6), colorHex: 0xc8b89e },
-        { geo: new THREE.CylinderGeometry(1.3, 1.0, 7.5, 5), matrix: new THREE.Matrix4().makeTranslation(5.2, 11, 0), colorHex: 0x5a6e50 },
-        { geo: new THREE.CylinderGeometry(1.3, 1.0, 7.5, 5), matrix: new THREE.Matrix4().makeTranslation(-5.2, 11, 0), colorHex: 0x5a6e50 },
-        { geo: new THREE.CylinderGeometry(0.5, 0.5, 19, 5), matrix: new THREE.Matrix4().makeTranslation(5.2, 10, 5), colorHex: 0x4e3620 }
+        // Hunched Decaying Peasant Torso & Tunic
+        { geo: new THREE.BoxGeometry(8.6, 10.5, 5.4), matrix: new THREE.Matrix4().makeTranslation(0, 12, 0).multiply(new THREE.Matrix4().makeRotationX(0.25)), colorHex: 0x7a6550 },
+        { geo: new THREE.BoxGeometry(9.0, 2.2, 5.8), matrix: new THREE.Matrix4().makeTranslation(0, 6.8, -0.6), colorHex: 0x30283d },
+        // Crooked Rotting Zombie Head with Jaw
+        { geo: new THREE.BoxGeometry(4.8, 5.4, 4.8), matrix: new THREE.Matrix4().makeTranslation(0.6, 19.4, 1.2).multiply(new THREE.Matrix4().makeRotationZ(0.2)), colorHex: 0x637a56 },
+        { geo: new THREE.SphereGeometry(0.55, 4, 4), matrix: new THREE.Matrix4().makeTranslation(-0.8, 19.8, 3.6), colorHex: 0xd4c6af },
+        // Left Outstretched Reaching Rotting Claw Arm
+        { geo: new THREE.CylinderGeometry(1.3, 1.0, 7.5, 5), matrix: new THREE.Matrix4().makeTranslation(-5.2, 12, 1.5).multiply(new THREE.Matrix4().makeRotationX(-0.5)), colorHex: 0x637a56 },
+        { geo: new THREE.BoxGeometry(1.5, 2.0, 1.2), matrix: new THREE.Matrix4().makeTranslation(-5.2, 8.5, 4.5), colorHex: 0x637a56 },
+        // Right Arm holding Rusted Farm Scythe / Cleaver
+        { geo: new THREE.CylinderGeometry(1.3, 1.0, 7.5, 5), matrix: new THREE.Matrix4().makeTranslation(5.2, 11, 0), colorHex: 0x637a56 },
+        { geo: new THREE.CylinderGeometry(0.5, 0.5, 19, 5), matrix: new THREE.Matrix4().makeTranslation(5.2, 10, 4).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 4)), colorHex: 0x5c4228 },
+        { geo: new THREE.BoxGeometry(3.6, 4.0, 0.6), matrix: new THREE.Matrix4().makeTranslation(5.2, 16.5, 9.5), colorHex: 0x3d4757 },
+        // Shambling Decayed Legs
+        { geo: new THREE.CylinderGeometry(1.4, 1.1, 8.5, 5), matrix: new THREE.Matrix4().makeTranslation(-2.6, 4.2, 0), colorHex: 0x7a6550 },
+        { geo: new THREE.CylinderGeometry(1.4, 1.1, 8.5, 5), matrix: new THREE.Matrix4().makeTranslation(2.6, 4.2, 0), colorHex: 0x7a6550 }
       ];
       geo = mergeColoredGeometries(list);
     } else if (type === 'dark_knight') {
       const list = [
-        { geo: new THREE.BoxGeometry(12, 13.5, 8.5), matrix: new THREE.Matrix4().makeTranslation(0, 15, 0), colorHex: 0x2e4f28 },
-        { geo: new THREE.BoxGeometry(12.6, 5, 9.0), matrix: new THREE.Matrix4().makeTranslation(0, 16.5, 0), colorHex: 0x5a3d28 },
-        { geo: new THREE.BoxGeometry(6.8, 6.8, 7.2), matrix: new THREE.Matrix4().makeTranslation(0, 24.5, 0), colorHex: 0x2e4f28 },
-        { geo: new THREE.ConeGeometry(0.7, 3.0, 5), matrix: new THREE.Matrix4().makeTranslation(-2.2, 22, 3.8), colorHex: 0xf4eedb },
-        { geo: new THREE.ConeGeometry(0.7, 3.0, 5), matrix: new THREE.Matrix4().makeTranslation(2.2, 22, 3.8), colorHex: 0xf4eedb },
+        // Heavy Muscular Swamp-Orc Brute Torso
+        { geo: new THREE.BoxGeometry(12, 13.5, 8.5), matrix: new THREE.Matrix4().makeTranslation(0, 15, 0), colorHex: 0x3c6633 },
+        // Studded Hardened Leather War Harness
+        { geo: new THREE.BoxGeometry(12.6, 5, 9.0), matrix: new THREE.Matrix4().makeTranslation(0, 16.5, 0), colorHex: 0x6e4a32 },
+        // Heavy Orc Head & Menacing Visor Slit
+        { geo: new THREE.BoxGeometry(6.8, 6.8, 7.2), matrix: new THREE.Matrix4().makeTranslation(0, 24.5, 0), colorHex: 0x3c6633 },
+        { geo: new THREE.BoxGeometry(7.2, 4.2, 7.6), matrix: new THREE.Matrix4().makeTranslation(0, 26.5, 0), colorHex: 0x3d4757 },
+        // Protruding Upward Curved Tusks
+        { geo: new THREE.ConeGeometry(0.7, 3.0, 5), matrix: new THREE.Matrix4().makeTranslation(-2.2, 22.2, 3.8).multiply(new THREE.Matrix4().makeRotationX(-Math.PI / 4)), colorHex: 0xf7f2e4 },
+        { geo: new THREE.ConeGeometry(0.7, 3.0, 5), matrix: new THREE.Matrix4().makeTranslation(2.2, 22.2, 3.8).multiply(new THREE.Matrix4().makeRotationX(-Math.PI / 4)), colorHex: 0xf7f2e4 },
+        // Crimson Glowing War Visor
         { geo: new THREE.BoxGeometry(5.2, 1.0, 0.4), matrix: new THREE.Matrix4().makeTranslation(0, 25.1, 3.75), colorHex: 0xff1744 },
-        { geo: new THREE.ConeGeometry(3.8, 5.5, 4), matrix: new THREE.Matrix4().makeTranslation(-8.0, 19.5, 0), colorHex: 0x2d3748 },
-        { geo: new THREE.BoxGeometry(4.2, 10, 0.8), matrix: new THREE.Matrix4().makeTranslation(8, 15, 5), colorHex: 0x2d3748 }
+        // Spiked Heavy Pauldrons
+        { geo: new THREE.ConeGeometry(3.8, 5.5, 4), matrix: new THREE.Matrix4().makeTranslation(-8.0, 19.5, 0), colorHex: 0x3d4757 },
+        { geo: new THREE.ConeGeometry(3.8, 5.5, 4), matrix: new THREE.Matrix4().makeTranslation(8.0, 19.5, 0), colorHex: 0x3d4757 },
+        // Colossal Serrated Battleaxe (Shaft, Blade, Polished Razor Cutting Edge)
+        { geo: new THREE.CylinderGeometry(0.8, 0.8, 22, 6), matrix: new THREE.Matrix4().makeTranslation(8, 12, 4).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 3.4)), colorHex: 0x5c4228 },
+        { geo: new THREE.BoxGeometry(4.2, 10, 0.8), matrix: new THREE.Matrix4().makeTranslation(8, 18.5, 8.5), colorHex: 0x3d4757 },
+        { geo: new THREE.BoxGeometry(1.2, 10, 0.9), matrix: new THREE.Matrix4().makeTranslation(10.2, 18.5, 8.5), colorHex: 0x9cb0bf },
+        // Heavy Armored Stomping Legs
+        { geo: new THREE.CylinderGeometry(2.2, 1.9, 10.5, 6), matrix: new THREE.Matrix4().makeTranslation(-3.8, 5.25, 0), colorHex: 0x3d4757 },
+        { geo: new THREE.CylinderGeometry(2.2, 1.9, 10.5, 6), matrix: new THREE.Matrix4().makeTranslation(3.8, 5.25, 0), colorHex: 0x3d4757 }
       ];
       geo = mergeColoredGeometries(list);
     } else if (type === 'witch') {
       const list = [
-        { geo: new THREE.ConeGeometry(5.8, 15, 8), matrix: new THREE.Matrix4().makeTranslation(0, 7.5, 0), colorHex: 0x1e4e58 },
-        { geo: new THREE.ConeGeometry(3.8, 9, 6), matrix: new THREE.Matrix4().makeTranslation(0, 0, -3.2), colorHex: 0x1e4e58 },
-        { geo: new THREE.ConeGeometry(4.2, 8, 8), matrix: new THREE.Matrix4().makeTranslation(0, 20.6, -0.6), colorHex: 0x1e4e58 },
-        { geo: new THREE.SphereGeometry(2.6, 6, 6), matrix: new THREE.Matrix4().makeTranslation(0, 16.8, 0.4), colorHex: 0x1f192b },
-        { geo: new THREE.SphereGeometry(0.55, 4, 4), matrix: new THREE.Matrix4().makeTranslation(-1.05, 17, 2.5), colorHex: 0x00ffcc },
-        { geo: new THREE.SphereGeometry(0.55, 4, 4), matrix: new THREE.Matrix4().makeTranslation(1.05, 17, 2.5), colorHex: 0x00ffcc },
-        { geo: new THREE.BoxGeometry(2.4, 3.6, 2.4), matrix: new THREE.Matrix4().makeTranslation(5, 10, 2.2), colorHex: 0x2d3748 },
-        { geo: new THREE.DodecahedronGeometry(1.1), matrix: new THREE.Matrix4().makeTranslation(5, 10, 2.2), colorHex: 0x00ffcc }
+        // Ethereal Floating Spectral Robe (Flowing down into phantom shroud)
+        { geo: new THREE.ConeGeometry(5.8, 15, 8), matrix: new THREE.Matrix4().makeTranslation(0, 11.5, 0), colorHex: 0x266470 },
+        // Whispering Spectral Tail Curving Backwards
+        { geo: new THREE.ConeGeometry(3.8, 9, 6), matrix: new THREE.Matrix4().makeTranslation(0, 4.0, -3.2).multiply(new THREE.Matrix4().makeRotationX(0.45)), colorHex: 0x266470 },
+        // Deep Shadowy Hood Cowl
+        { geo: new THREE.ConeGeometry(4.2, 8, 8), matrix: new THREE.Matrix4().makeTranslation(0, 24.6, -0.6).multiply(new THREE.Matrix4().makeRotationX(-0.22)), colorHex: 0x266470 },
+        // Faceless Void inside cowl
+        { geo: new THREE.SphereGeometry(2.6, 6, 6), matrix: new THREE.Matrix4().makeTranslation(0, 20.8, 0.4), colorHex: 0x161020 },
+        // Piercing Spectral Soulfire Eyes
+        { geo: new THREE.SphereGeometry(0.55, 4, 4), matrix: new THREE.Matrix4().makeTranslation(-1.05, 21, 2.5), colorHex: 0x00ffcc },
+        { geo: new THREE.SphereGeometry(0.55, 4, 4), matrix: new THREE.Matrix4().makeTranslation(1.05, 21, 2.5), colorHex: 0x00ffcc },
+        // Outstretched Ghostly Hand holding Hovering Mystical Soul Wisp Orb
+        { geo: new THREE.BoxGeometry(2.4, 3.6, 2.4), matrix: new THREE.Matrix4().makeTranslation(5, 14, 2.2), colorHex: 0x266470 },
+        { geo: new THREE.DodecahedronGeometry(1.6), matrix: new THREE.Matrix4().makeTranslation(5, 15, 3.8), colorHex: 0x00e5ff }
       ];
       geo = mergeColoredGeometries(list);
     } else {
@@ -4704,14 +4748,18 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   }
 
   function getHordeMaterial(type: string) {
+    if (type === 'zombie') type = 'villager';
+    if (type === 'orc') type = 'dark_knight';
+    if (type === 'ghost' || type === 'specter') type = 'witch';
+
     if (hordeMaterials[type]) return hordeMaterials[type];
     const isSpectral = (type === 'witch');
     const mat = new THREE.MeshStandardMaterial({
       vertexColors: true,
-      roughness: 0.50,
-      metalness: 0.05,
-      emissive: new THREE.Color(0x353740),
-      emissiveIntensity: 0.38,
+      roughness: 0.55,
+      metalness: 0.10,
+      emissive: new THREE.Color(0x3e404c),
+      emissiveIntensity: 0.45,
       transparent: isSpectral,
       opacity: isSpectral ? 0.88 : 1.0,
       side: THREE.DoubleSide

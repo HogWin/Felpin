@@ -198,12 +198,12 @@ class Player {
     return this.baseHpRegen + this.bonusHpRegen;
   }
 
-  calculateXpForLevel(lvl) {
-    // Steeper mid/late game curve: rapid early level-ups, rewarding pacing throughout 15-minute run
+  calculateXpForLevel(lvl: number) {
+    // Balanced rewarding progression: smooth curve allowing builds to reach fusions by min 5-7
     if (lvl <= 5) {
-      return Math.floor(14 + lvl * 12);
+      return Math.floor(12 + lvl * 10);
     }
-    return Math.floor(20 + Math.pow(lvl, 1.60) * 10);
+    return Math.floor(18 + Math.pow(lvl, 1.42) * 9.5);
   }
 
   addXp(amount) {

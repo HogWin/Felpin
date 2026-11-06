@@ -81,6 +81,7 @@ class GameRenderer {
     this.damageFlashTimer = 0;
     this.projectileMeshMap = new Map(); // projectile -> THREE.Group
     this._projectileMeshPool = new Map(); // typeKey -> Array<THREE.Group>
+    this._gemMeshPool = new Map(); // tier -> Array<THREE.Group>
     this.holyAuraMesh = null;
     this.holyFirePoolsMap = new Map();
     this.dyingEnemyMeshes = [];
@@ -123,6 +124,7 @@ class GameRenderer {
     if (!models3d || !THREE.InstancedMesh) return;
 
     this.hordeTypes = ['skeleton', 'villager', 'dark_knight', 'witch'];
+    this.hordeTypeAliases = { zombie: 'villager', orc: 'dark_knight', ghost: 'witch', specter: 'witch' };
     this.hordeMeshes = {};
     this.hordeCounts = {};
     this.hordeMaxCapacity = 350;
@@ -206,15 +208,67 @@ class GameRenderer {
     }
   }
 
-  // Destroi e libera imediatamente da memoria a malha 3D de um inimigo executado/morto
-  destroyEnemyMesh(enemyId) {
+  // Libera ou inicia dissolucao suave de inimigo executado
+  destroyEnemyMesh(enemyId: number, enemyObj?: any) {
     const mesh = this.enemyMeshMap.get(enemyId);
     if (mesh) {
-      this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0xa81923, 6, 30);
-      this.scene.remove(mesh);
-      this.disposeMesh(mesh);
-      this.enemyMeshMap.delete(enemyId);
+      if (mesh.setDissolveProgress) {
+        this.dyingEnemyMeshes.push({ mesh, progress: 0.0, id: enemyId });
+        this.enemyMeshMap.delete(enemyId);
+      } else {
+        this.spawn3DParticle(mesh.position.x, 10, mesh.position.z, 0xff5500, 4, 18);
+        this.spawn3DParticle(mesh.position.x, 8, mesh.position.z, 0x2a2a2a, 5, 24);
+        this.scene.remove(mesh);
+        this.disposeMesh(mesh);
+        this.enemyMeshMap.delete(enemyId);
+      }
+    } else if (enemyObj) {
+      // Instanced horde enemy death: radiant ash & ember disintegration burst
+      this.spawn3DParticle(enemyObj.x, 10, enemyObj.y, 0xff6600, 3, 14);
+      this.spawn3DParticle(enemyObj.x, 8, enemyObj.y, 0x222222, 4, 18);
     }
+  }
+
+  // Pooling de malhas 3D de gemas de XP para eliminar GC e travamentos ao coletar
+  getGemMesh(value: number) {
+    let tier = 'bronze';
+    if (value >= 100) tier = 'purple';
+    else if (value >= 25) tier = 'gold';
+    else if (value >= 5) tier = 'silver';
+
+    let pool = this._gemMeshPool.get(tier);
+    if (!pool) {
+      pool = [];
+      this._gemMeshPool.set(tier, pool);
+    }
+    if (pool.length > 0) {
+      const mesh = pool.pop();
+      mesh.visible = true;
+      this.scene.add(mesh);
+      return mesh;
+    }
+    const mesh = window.MedievalSurvivors.models3d.createGemModel(value);
+    mesh._gemTier = tier;
+    this.scene.add(mesh);
+    return mesh;
+  }
+
+  recycleGemMesh(mesh: any) {
+    if (!mesh) return;
+    const tier = mesh._gemTier || 'bronze';
+    let pool = this._gemMeshPool.get(tier);
+    if (!pool) {
+      pool = [];
+      this._gemMeshPool.set(tier, pool);
+    }
+    if (pool.length < 80) {
+      mesh.visible = false;
+      this.scene.remove(mesh);
+      pool.push(mesh);
+      return;
+    }
+    this.scene.remove(mesh);
+    this.disposeMesh(mesh);
   }
 
   // Pooling de malhas 3D de projéteis para evitar alocações e descarte frequente na GPU
@@ -461,6 +515,15 @@ class GameRenderer {
         }
       }
       this._projectileMeshPool.clear();
+    }
+
+    if (this._gemMeshPool) {
+      for (let [, pool] of this._gemMeshPool) {
+        for (let mesh of pool) {
+          this.disposeMesh(mesh);
+        }
+      }
+      this._gemMeshPool.clear();
     }
 
     for (let [, mesh] of this.holyFirePoolsMap) {
@@ -777,7 +840,8 @@ class GameRenderer {
       let mesh = this.enemyMeshMap.get(e.id);
 
       // Check if enemy can be batched with THREE.InstancedMesh (Single Draw Call)
-      const isHordeCandidate = !e.isBoss && !e.isChampion && this.hordeMeshes && this.hordeMeshes[e.type];
+      const hordeType = (this.hordeTypeAliases && this.hordeTypeAliases[e.type]) || e.type;
+      const isHordeCandidate = !e.isBoss && !e.isChampion && this.hordeMeshes && this.hordeMeshes[hordeType];
 
       if (isHordeCandidate && inView) {
         // If enemy previously had an individual mesh, clean it up so no duplicate exists
@@ -788,10 +852,10 @@ class GameRenderer {
           mesh = null;
         }
 
-        const im = this.hordeMeshes[e.type];
-        const idx = this.hordeCounts[e.type];
+        const im = this.hordeMeshes[hordeType];
+        const idx = this.hordeCounts[hordeType];
         if (idx < this.hordeMaxCapacity) {
-          this.hordeCounts[e.type]++;
+          this.hordeCounts[hordeType]++;
 
           // 1. Procedural movement & walk sway
           const angle = Math.atan2(e.vy, e.vx) || 0;
@@ -799,7 +863,7 @@ class GameRenderer {
           let bobY = 0;
           let tiltZ = 0;
 
-          if (e.type === 'witch') {
+          if (hordeType === 'witch') {
             bobY = 4.0 + Math.sin(walk * 2.0) * 2.5;
             tiltZ = Math.sin(walk) * 0.12;
           } else {
@@ -975,8 +1039,7 @@ class GameRenderer {
 
       if (inView) {
         if (!mesh) {
-          mesh = window.MedievalSurvivors.models3d.createGemModel(gem.value || 1);
-          this.scene.add(mesh);
+          mesh = this.getGemMesh(gem.value || 1);
           this.gemMeshMap.set(gem, mesh);
         }
         mesh.visible = true;
@@ -993,9 +1056,8 @@ class GameRenderer {
     for (const [gem, mesh] of this.gemMeshMap.entries()) {
       if (!this._activeGems.has(gem)) {
         // Golden sparkling collection particle
-        this.spawn3DParticle(mesh.position.x, 12, mesh.position.z, 0xf0c05a, 5, 20);
-        this.scene.remove(mesh);
-        this.disposeMesh(mesh);
+        this.spawn3DParticle(mesh.position.x, 12, mesh.position.z, 0xf0c05a, 4, 18);
+        this.recycleGemMesh(mesh);
         this.gemMeshMap.delete(gem);
       }
     }

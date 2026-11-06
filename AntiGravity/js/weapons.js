@@ -368,8 +368,10 @@ class CrossbowBolt {
       particles.createSpark(this.x - (this.vx / this.speed) * 8, this.y - (this.vy / this.speed) * 8, this.isEvolved ? '#ff4500' : '#ffeaa7');
     }
 
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const enemy = enemies[i];
+    const searchR = (this.radius || 6) + 32;
+    const nearby = getNearbyEnemiesForCollision(this.x, this.y, searchR, enemies);
+    for (let i = 0, len = nearby.length; i < len; i++) {
+      const enemy = nearby[i];
       if (!enemy.alive || this.hitEnemies.has(enemy.id)) continue;
       const dx = enemy.x - this.x;
       const dy = enemy.y - this.y;
@@ -537,8 +539,9 @@ class HolyFireFlask {
 
     if (this.tickTimer >= this.tickRate) {
       this.tickTimer = 0;
-      for (let i = 0, len = enemies.length; i < len; i++) {
-        const enemy = enemies[i];
+      const targets = getNearbyEnemiesForCollision(this.x, this.y, this.radius + 32, enemies);
+      for (let i = 0, len = targets.length; i < len; i++) {
+        const enemy = targets[i];
         if (!enemy.alive) continue;
         const dx = enemy.x - this.x;
         const dy = enemy.y - this.y;
@@ -687,8 +690,10 @@ class ThrownAxe {
       else this.hitCooldowns.set(id, time - dt);
     }
 
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const enemy = enemies[i];
+    const searchR = (this.size || 18) + 32;
+    const targets = getNearbyEnemiesForCollision(this.x, this.y, searchR, enemies);
+    for (let i = 0, len = targets.length; i < len; i++) {
+      const enemy = targets[i];
       if (!enemy.alive || this.hitCooldowns.has(enemy.id)) continue;
       const dx = enemy.x - this.x;
       const dy = enemy.y - this.y;
@@ -989,8 +994,9 @@ class GuardianSpearWeapon extends BaseWeapon {
       }));
 
       // Line hit detection with Tip Sweetspot (1.5x damage on outer 35% of spear!)
-      for (let i = 0, len = enemies.length; i < len; i++) {
-        const enemy = enemies[i];
+      const targets = getNearbyEnemiesForCollision(player.x + cosA * (reach * 0.5), player.y + sinA * (reach * 0.5), reach * 0.65 + 32, enemies);
+      for (let i = 0, len = targets.length; i < len; i++) {
+        const enemy = targets[i];
         if (!enemy.alive) continue;
         const d = distToSegment(enemy.x, enemy.y, player.x, player.y, spearTipX, spearTipY);
         if (d <= enemy.radius + thickness / 2) {
@@ -1115,8 +1121,9 @@ class SpearShockwave {
       particles.createSpark(this.x, this.y, this.isEvolved ? '#ffd700' : '#00e5ff');
     }
 
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const enemy = enemies[i];
+    const targets = getNearbyEnemiesForCollision(this.x, this.y, this.radius + 32, enemies);
+    for (let i = 0, len = targets.length; i < len; i++) {
+      const enemy = targets[i];
       if (!enemy.alive || this.hitEnemies.has(enemy.id)) continue;
       const dx = enemy.x - this.x;
       const dy = enemy.y - this.y;
@@ -1244,9 +1251,10 @@ class SpectralOrb {
     // Homing steering logic
     if (!this.target || !this.target.alive) {
       let nearest = null;
-      let nearDistSq = 450 * 450;
-      for (let i = 0, len = enemies.length; i < len; i++) {
-        const e = enemies[i];
+      let nearDistSq = 380 * 380;
+      const candidates = getNearbyEnemiesForCollision(this.x, this.y, 380, enemies);
+      for (let i = 0, len = candidates.length; i < len; i++) {
+        const e = candidates[i];
         if (!e.alive || this.hitEnemies.has(e.id)) continue;
         const dSq = (e.x - this.x) * (e.x - this.x) + (e.y - this.y) * (e.y - this.y);
         if (dSq < nearDistSq) {
@@ -1275,8 +1283,9 @@ class SpectralOrb {
     }
 
     // Hit detection
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const enemy = enemies[i];
+    const targets = getNearbyEnemiesForCollision(this.x, this.y, this.radius + 32, enemies);
+    for (let i = 0, len = targets.length; i < len; i++) {
+      const enemy = targets[i];
       if (!enemy.alive || this.hitEnemies.has(enemy.id)) continue;
       const dx = enemy.x - this.x;
       const dy = enemy.y - this.y;
@@ -2075,8 +2084,9 @@ class BlunderbussPellet {
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
 
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const e = enemies[i];
+    const targets = getNearbyEnemiesForCollision(this.x, this.y, this.radius + 32, enemies);
+    for (let i = 0, len = targets.length; i < len; i++) {
+      const e = targets[i];
       if (!e.alive || this.hitEnemies.has(e.id)) continue;
 
       const dx = e.x - this.x;
@@ -2546,8 +2556,9 @@ class ViperDart {
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
 
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const e = enemies[i];
+    const targets = getNearbyEnemiesForCollision(this.x, this.y, this.radius + 32, enemies);
+    for (let i = 0, len = targets.length; i < len; i++) {
+      const e = targets[i];
       if (!e.alive || this.hitEnemies.has(e.id)) continue;
 
       const dx = e.x - this.x;
@@ -2765,8 +2776,9 @@ class FrostLance {
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
 
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const e = enemies[i];
+    const targets = getNearbyEnemiesForCollision(this.x, this.y, this.radius + 32, enemies);
+    for (let i = 0, len = targets.length; i < len; i++) {
+      const e = targets[i];
       if (!e.alive || this.hitEnemies.has(e.id)) continue;
 
       const dx = e.x - this.x;
@@ -2905,8 +2917,9 @@ class RetributionShieldOrbiter {
       else this.hitCooldowns.set(id, timer - dt);
     }
 
-    for (let i = 0, len = enemies.length; i < len; i++) {
-      const e = enemies[i];
+    const targets = getNearbyEnemiesForCollision(this.x, this.y, this.radius + 32, enemies);
+    for (let i = 0, len = targets.length; i < len; i++) {
+      const e = targets[i];
       if (!e.alive || this.hitCooldowns.has(e.id)) continue;
 
       const dx = e.x - this.x;
@@ -3004,8 +3017,9 @@ class HellfireCauldron {
     if (this.tickTimer >= 0.28) {
       this.tickTimer = 0;
       const tickDamage = Math.max(1, Math.round(this.damage * 0.4));
-      for (let i = 0, len = enemies.length; i < len; i++) {
-        const e = enemies[i];
+      const targets = getNearbyEnemiesForCollision(this.x, this.y, this.poolRadius + 32, enemies);
+      for (let i = 0, len = targets.length; i < len; i++) {
+        const e = targets[i];
         if (!e.alive) continue;
         const dx = e.x - this.x;
         const dy = e.y - this.y;

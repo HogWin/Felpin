@@ -11,7 +11,7 @@ class SpatialGrid {
   }
 
   _getKey(cellX, cellY) {
-    return (cellX << 16) ^ (cellY & 0xffff);
+    return ((cellX + 32768) << 16) | ((cellY + 32768) & 0xffff);
   }
 
   clear() {
@@ -923,7 +923,7 @@ class Game {
 
         // Liberacao imediata de memoria e malha 3D do inimigo executado
         if (this.renderer && this.renderer.destroyEnemyMesh) {
-          this.renderer.destroyEnemyMesh(enemy.id);
+          this.renderer.destroyEnemyMesh(enemy.id, enemy);
         }
         if (enemy.destroy) {
           enemy.destroy();
