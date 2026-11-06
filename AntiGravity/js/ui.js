@@ -1706,6 +1706,31 @@ class UIController {
             <button class="btn-primary btn-hero-select ${isSelected ? 'active-hero-btn' : (!isUnlocked ? 'btn-hero-locked' : '')}" ${!isUnlocked ? 'disabled' : ''}>
               ${!isUnlocked ? 'Bloqueado por Conquista' : (isSelected ? 'Combatente Selecionado' : 'Escolher Combatente')}
             </button>
+
+            ${c.id === 'knight' ? `
+            <a href="knight_showcase.html" target="_blank" class="btn-royal btn-sm"
+               style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; text-decoration:none; padding:6px 10px; font-size:0.78rem; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); border-radius:4px;"
+               onclick="event.stopPropagation();">
+              <span>🔍 Ver Modelo 3D 360° ↗</span>
+            </a>` : ''}
+            ${c.id === 'archer' ? `
+            <a href="archer_showcase.html" target="_blank" class="btn-royal btn-sm"
+               style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; text-decoration:none; padding:6px 10px; font-size:0.78rem; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); border-radius:4px;"
+               onclick="event.stopPropagation();">
+              <span>🔍 Ver Modelo 3D 360° ↗</span>
+            </a>` : ''}
+            ${c.id === 'alchemist' ? `
+            <a href="alchemist_showcase.html" target="_blank" class="btn-royal btn-sm"
+               style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; text-decoration:none; padding:6px 10px; font-size:0.78rem; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); border-radius:4px;"
+               onclick="event.stopPropagation();">
+              <span>🔍 Ver Modelo 3D 360° ↗</span>
+            </a>` : ''}
+            ${c.id === 'pyromancer' ? `
+            <a href="pyromancer_showcase.html" target="_blank" class="btn-royal btn-sm"
+               style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; text-decoration:none; padding:6px 10px; font-size:0.78rem; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); border-radius:4px;"
+               onclick="event.stopPropagation();">
+              <span>🔍 Ver Modelo 3D 360° ↗</span>
+            </a>` : ''}
           </div>
           `;
         }).join('')}
@@ -3598,6 +3623,11 @@ class UIController {
             <div class="updates-title-badge">📜 DECRETOS REAIS & HISTÓRICO DE VALORIA</div>
             <h3>CRÔNICAS DE ATUALIZAÇÕES & EXPANSÕES</h3>
             <p>Acompanhe a evolução de Valoria — novas mecânicas, balanceamentos, classes e melhorias contínuas forjadas no reino.</p>
+            <div style="margin-top:10px;">
+              <a href="map_showcase.html" target="_blank" class="btn-royal" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:6px 14px; font-size:0.82rem; background:rgba(212,175,55,0.18); border:1px solid rgba(212,175,55,0.5); border-radius:5px;">
+                <span>🏛️ Abrir Showcase 3D do Cenário & Biomas ↗</span>
+              </a>
+            </div>
           </div>
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
