@@ -244,6 +244,11 @@ class GameRenderer {
     this.dirLight.color.setHex(biome.dirLightColor);
     this.dirLight.intensity = Math.min(0.70, biome.dirLightIntensity || 0.65);
 
+    // Synchronize physical static obstacles with game engine
+    if (game) {
+      game.mapObstacles = this.map3D.obstacles || [];
+    }
+
     // Clear old tracked meshes
     this.clearMeshPools();
 

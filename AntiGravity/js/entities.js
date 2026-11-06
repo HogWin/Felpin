@@ -340,7 +340,62 @@ class Player {
     this.hp = Math.min(this.maxHp, this.hp + amount);
   }
 
-  update(dt, inputDir, enemies, projectiles, particles) {
+  // Smooth sliding collision against physical 3D map objects and destructibles
+  resolveObstacleCollisions(game) {
+    const activeGame = game || (window.MedievalSurvivors && window.MedievalSurvivors.game);
+    if (!activeGame) return;
+
+    const pr = this.radius || 21;
+
+    // 1. Static 3D Map Architectural Obstacles (Pillars, Walls, Menhirs, Trees, Shrines, Altars, Monuments)
+    const staticObstacles = activeGame.mapObstacles || (activeGame.renderer && activeGame.renderer.map3D && activeGame.renderer.map3D.obstacles);
+    if (staticObstacles && staticObstacles.length > 0) {
+      for (let pass = 0; pass < 2; pass++) {
+        for (let i = 0, len = staticObstacles.length; i < len; i++) {
+          const obs = staticObstacles[i];
+          const minDistance = pr + obs.radius;
+          const dx = this.x - obs.x;
+          if (dx > minDistance || dx < -minDistance) continue;
+          const dy = this.y - obs.y;
+          if (dy > minDistance || dy < -minDistance) continue;
+
+          const distSq = dx * dx + dy * dy;
+          if (distSq < minDistance * minDistance && distSq > 0.0001) {
+            const dist = Math.sqrt(distSq);
+            const overlap = minDistance - dist;
+            this.x += (dx / dist) * overlap;
+            this.y += (dy / dist) * overlap;
+          }
+        }
+      }
+    }
+
+    // 2. Destructible World Objects (Barrels, Crates, Sarcophagi)
+    const destructibles = activeGame.destructibles;
+    if (destructibles && destructibles.length > 0) {
+      for (let pass = 0; pass < 2; pass++) {
+        for (let i = 0, len = destructibles.length; i < len; i++) {
+          const d = destructibles[i];
+          if (!d || !d.alive) continue;
+          const minDistance = pr + d.radius;
+          const dx = this.x - d.x;
+          if (dx > minDistance || dx < -minDistance) continue;
+          const dy = this.y - d.y;
+          if (dy > minDistance || dy < -minDistance) continue;
+
+          const distSq = dx * dx + dy * dy;
+          if (distSq < minDistance * minDistance && distSq > 0.0001) {
+            const dist = Math.sqrt(distSq);
+            const overlap = minDistance - dist;
+            this.x += (dx / dist) * overlap;
+            this.y += (dy / dist) * overlap;
+          }
+        }
+      }
+    }
+  }
+
+  update(dt, inputDir, enemies, projectiles, particles, game = null) {
     if (!this.alive) return;
 
     if (this.shadowBurstTimer > 0) {
@@ -372,6 +427,9 @@ class Player {
       if (Math.cos(this.facingAngle) > 0.1) this.facingDir = 1;
       else if (Math.cos(this.facingAngle) < -0.1) this.facingDir = -1;
     }
+
+    // Solid Map Obstacle & Destructible Collision Resolution (Higher tactical difficulty!)
+    this.resolveObstacleCollisions(game);
 
     // Bounded Square Arena Constraint: player stays firmly within the gothic fortress arena
     const arenaLimit = (window.MedievalSurvivors && window.MedievalSurvivors.ARENA_HALF_LIMIT) || 1525;

@@ -106,6 +106,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       this.prng = createPRNG(this.seed);
       this.activeTorches = [];
       this.animatedProps = [];
+      this.obstacles = [];
       this._time = 0;
 
       // Shared Prop Geometries & Materials for high-performance instancing / cloning
@@ -445,6 +446,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       this.towers = [];
       this.interiorProps = [];
       this.animatedProps = [];
+      this.obstacles = [];
 
       const step = 50;
       const count = Math.floor((this.arenaSize) / step);
@@ -560,6 +562,8 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             this.interiorProps.push(landmark);
             this.arenaGroup.add(landmark);
 
+            this.registerObstacleColliders(landmarkType, lx, lz, landmark.rotation.y, 1.0);
+
             if (landmark._light && this.activeTorches.length < 2) {
               this.activeTorches.push(landmark._light);
             }
@@ -586,6 +590,8 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
               this.freezeMatrix(medProp);
               this.interiorProps.push(medProp);
               this.arenaGroup.add(medProp);
+
+              this.registerObstacleColliders(medType, mx, mz, medProp.rotation.y, sc);
 
               if (medProp._light && this.activeTorches.length < 2) {
                 this.activeTorches.push(medProp._light);
@@ -696,6 +702,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         this.freezeMatrix(monument);
         this.interiorProps.push(monument);
         this.arenaGroup.add(monument);
+        this.obstacles.push({ x: gx, y: gz, radius: 14, type: 'plaza_guardian' });
 
         if (brazier._light && this.activeTorches.length < 2) {
           this.activeTorches.push(brazier._light);
@@ -731,6 +738,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         this.freezeMatrix(bench);
         this.interiorProps.push(bench);
         this.arenaGroup.add(bench);
+        this.obstacles.push({ x: bx, y: bz, radius: 12, type: 'plaza_bench' });
       });
 
       // 6. Four Heraldic Banners flanking Plaza approaches
@@ -744,6 +752,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         this.freezeMatrix(banner);
         this.interiorProps.push(banner);
         this.arenaGroup.add(banner);
+        this.obstacles.push({ x: px, y: pz, radius: 7, type: 'plaza_banner' });
       });
     }
 
@@ -826,6 +835,147 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             ap._waterMesh.rotation.z += 0.002;
           }
         }
+      }
+    }
+
+    // Registers physical 2D/3D collision footprints for solid map props
+    registerObstacleColliders(type, x, z, rotY = 0, scale = 1.0) {
+      if (!this.obstacles) this.obstacles = [];
+      const cos = Math.cos(rotY);
+      const sin = Math.sin(rotY);
+
+      switch (type) {
+        // --- 1. Landmark Structures ---
+        case 'gothic_arch': {
+          // 2 solid piers at local x = -20 and +20, rotated by rotY
+          // Allows player to walk cleanly through the center opening!
+          const r = 9 * scale;
+          this.obstacles.push(
+            { x: x - 20 * cos * scale, y: z + 20 * sin * scale, radius: r, type: 'arch_pier' },
+            { x: x + 20 * cos * scale, y: z - 20 * sin * scale, radius: r, type: 'arch_pier' }
+          );
+          break;
+        }
+        case 'colonnade': {
+          // 3 standing fluted columns at local x = -24, 0, 24
+          const r = 8.5 * scale;
+          this.obstacles.push(
+            { x: x - 24 * cos * scale, y: z + 24 * sin * scale, radius: r, type: 'colonnade_col' },
+            { x: x, y: z, radius: r, type: 'colonnade_col' },
+            { x: x + 24 * cos * scale, y: z - 24 * sin * scale, radius: r, type: 'colonnade_col' }
+          );
+          break;
+        }
+        case 'cathedral_wall': {
+          // 3 wall collider segments along length
+          const r = 11 * scale;
+          this.obstacles.push(
+            { x: x - 18 * cos * scale, y: z + 18 * sin * scale, radius: r, type: 'cathedral_wall' },
+            { x: x, y: z, radius: r, type: 'cathedral_wall' },
+            { x: x + 18 * cos * scale, y: z - 18 * sin * scale, radius: r, type: 'cathedral_wall' }
+          );
+          break;
+        }
+        case 'imperial_mausoleum': {
+          // Grand crypt chapel
+          this.obstacles.push({ x, y: z, radius: 26 * scale, type: 'mausoleum' });
+          break;
+        }
+        case 'ancient_fountain': {
+          // Octagonal stone basin
+          this.obstacles.push({ x, y: z, radius: 24 * scale, type: 'fountain' });
+          break;
+        }
+        case 'gallows_gibbet': {
+          // Raised timber scaffold
+          this.obstacles.push({ x, y: z, radius: 18 * scale, type: 'gallows' });
+          break;
+        }
+        case 'megalith_circle': {
+          // Central sacrificial altar slab
+          this.obstacles.push({ x, y: z, radius: 12 * scale, type: 'megalith_altar' });
+          // 5 standing menhirs around the ring
+          for (let i = 0; i < 5; i++) {
+            const ang = rotY + (i / 5) * Math.PI * 2;
+            const dist = 30 * scale;
+            this.obstacles.push({
+              x: x + Math.cos(ang) * dist,
+              y: z + Math.sin(ang) * dist,
+              radius: 7 * scale,
+              type: 'megalith_stone'
+            });
+          }
+          break;
+        }
+        case 'graveyard_plot': {
+          // Enclosed stone curb and graves
+          this.obstacles.push({ x, y: z, radius: 20 * scale, type: 'graveyard_plot' });
+          break;
+        }
+
+        // --- 2. Medium Architectural & Environmental Props ---
+        case 'pillar':
+        case 'broken_pillar':
+        case 'crypt_pillar': {
+          this.obstacles.push({ x, y: z, radius: 11 * scale, type: 'pillar' });
+          break;
+        }
+        case 'sarcophagus': {
+          this.obstacles.push({ x, y: z, radius: 15 * scale, type: 'sarcophagus' });
+          break;
+        }
+        case 'dead_tree': {
+          this.obstacles.push({ x, y: z, radius: 12 * scale, type: 'dead_tree' });
+          break;
+        }
+        case 'stone_menhir': {
+          this.obstacles.push({ x, y: z, radius: 13 * scale, type: 'menhir' });
+          break;
+        }
+        case 'gargoyle_pedestal': {
+          this.obstacles.push({ x, y: z, radius: 13 * scale, type: 'gargoyle_pedestal' });
+          break;
+        }
+        case 'wayside_shrine': {
+          this.obstacles.push({ x, y: z, radius: 14 * scale, type: 'wayside_shrine' });
+          break;
+        }
+        case 'battlefield_memorial': {
+          this.obstacles.push({ x, y: z, radius: 13 * scale, type: 'battlefield_memorial' });
+          break;
+        }
+        case 'brazier':
+        case 'brazier_green':
+        case 'brazier_red': {
+          this.obstacles.push({ x, y: z, radius: 10 * scale, type: 'brazier' });
+          break;
+        }
+        case 'street_lamp':
+        case 'street_lamp_green': {
+          this.obstacles.push({ x, y: z, radius: 9 * scale, type: 'street_lamp' });
+          break;
+        }
+        case 'tombstone': {
+          this.obstacles.push({ x, y: z, radius: 9 * scale, type: 'tombstone' });
+          break;
+        }
+        case 'barricade':
+        case 'fence': {
+          this.obstacles.push({ x, y: z, radius: 15 * scale, type: 'fence' });
+          break;
+        }
+        case 'altar_blood': {
+          this.obstacles.push({ x, y: z, radius: 17 * scale, type: 'altar' });
+          break;
+        }
+        case 'banner_post': {
+          this.obstacles.push({ x, y: z, radius: 8 * scale, type: 'banner_post' });
+          break;
+        }
+
+        // Clutter props (rubble_pile, bone_pile, ground_mist, fallen_pillar) are non-blocking ground scatter
+        default:
+          break;
       }
     }
 
@@ -2374,7 +2524,9 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       this.towers = [];
       this.interiorProps = [];
       this.animatedProps = [];
+      this.obstacles = [];
       this.activeTorches = [];
+      this.obstacles = [];
     }
   }
 

@@ -3203,10 +3203,31 @@ class UIController {
 
     const updatesData = [
       {
+        version: 'v2.4.3',
+        eraName: 'Labirinto de Valoria: Física e Colisão Sólida de Cenário & Destrutíveis',
+        date: '6 de Novembro de 2026',
+        isLatest: true,
+        summary: 'Elevação tática e mecânica do campo de batalha: estruturas arquitetônicas 3D (pilares, fontes góticas, mausoléus imperiais, árvores secas, arcos memoriais, santuários de beira de estrada e altares) e objetos destrutíveis (barris, caixas e sarcófagos) agora possuem física e corpos de colisão sólidos! O jogador não mais atravessa o mundo como um fantasma, transformando a navegação em uma experiência desafiadora e tensa de sobrevivência onde chokepoints e cantos podem ser fatais.',
+        categories: [
+          {
+            type: 'feature',
+            badge: 'FÍSICA DE CENÁRIO',
+            title: 'Colisão Sólida e Deslizamento Físico de Obstáculos',
+            desc: 'O herói colide de forma tangencial suave contra todos os elementos arquitetônicos e decorativos do mapa 3D gerados proceduralmente (com passagens reais sob arcadas e entre colunas de colunatas). Kiting cego e fugas em linha reta agora exigem atenção máxima ao terreno para não ser encurralado pela horda!'
+          },
+          {
+            type: 'balance',
+            badge: 'TÁTICA ROGUELITE',
+            title: 'Bloqueio Físico por Barris e Esmagamento de Chefes',
+            desc: 'Barris, caixas de munição e sarcófagos impedem a passagem do jogador enquanto intactos, forçando o uso de ataques e projéteis para abrir rotas de fuga. Em contrapartida, Chefes colossais (O Carrasco, O Golem de Ferro e o Barão da Morte) esmagam barris e caixas sob seus passos com estrondo e estilhaços!'
+          }
+        ]
+      },
+      {
         version: 'v2.4.2',
         eraName: 'Luz & Chamas: Reworks Visuais 3D da Piromante e do Paladino',
         date: '6 de Novembro de 2026',
-        isLatest: true,
+        isLatest: false,
         summary: 'Reformulação monumental em alta fidelidade gráfica 3D da Feiticeira das Cinzas (Piromante) e do Paladino da Alvorada: anatomia escultural refinada, novas vestes e armaduras de placas góticas, animações fluidas de conjuração e golpe devocional, novos efeitos de auréola solar, brasas e chamas orbitantes, além dos novos Showcases 3D interativos dedicados!',
         categories: [
           {
@@ -3675,7 +3696,7 @@ class UIController {
           <div class="updates-meta-pills">
             <div class="update-meta-pill">
               <span>Versão Atual:</span>
-              <strong class="text-gold">v2.4.2 (Luz & Chamas: Reworks Visuais 3D da Piromante e do Paladino)</strong>
+              <strong class="text-gold">v2.4.3 (Labirinto de Valoria: Física e Colisão Sólida de Cenário)</strong>
             </div>
             <div class="update-meta-pill">
               <span>Serviços:</span>

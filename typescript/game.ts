@@ -104,6 +104,7 @@ class Game {
     this.chests = [];
     this.destructibles = [];
     this.collectibles = [];
+    this.mapObstacles = [];
     this.floatingTexts = [];
     this.floatingTextPool = new MedievalSurvivors.FloatingTextPool(160);
     this.frameCount = 0;
@@ -320,6 +321,7 @@ class Game {
     this.chests = [];
     this.destructibles = [];
     this.collectibles = [];
+    this.mapObstacles = [];
     this.floatingTexts = [];
     this.floatingTextPool = new MedievalSurvivors.FloatingTextPool(160);
     this.frameCount = 0;
@@ -341,6 +343,7 @@ class Game {
     if (this.renderer && this.renderer.startNewRun) {
       this.renderer.startNewRun(this);
     }
+    this.mapObstacles = (this.renderer && this.renderer.map3D && this.renderer.map3D.obstacles) || [];
 
     this.ui.updateHUD(this.player, this.gameTime);
     this.ui.updateMouseAimButton();
@@ -392,6 +395,7 @@ class Game {
     this.chests.length = 0;
     this.destructibles.length = 0;
     this.collectibles.length = 0;
+    this.mapObstacles = [];
     this.floatingTexts.length = 0;
 
     // 3. Esvazia a grade espacial e particulas 2D
@@ -596,7 +600,23 @@ class Game {
         }
       }
 
-      // REGRA: Objetos do mapa SÓ podem ser quebrados por armas e projéteis (NÃO pelo corpo do personagem)
+      // Bosses (Executioner, Golem, Death Baron) crush destructibles with colossal force!
+      if (d.alive && this.enemies && this.enemies.length > 0) {
+        for (let eIdx = 0; eIdx < this.enemies.length; eIdx++) {
+          const e = this.enemies[eIdx];
+          if (!e || !e.alive || !e.isBoss) continue;
+          const bdx = e.x - d.x;
+          const bdy = e.y - d.y;
+          const hitDist = (e.radius || 32) + d.radius;
+          if (bdx * bdx + bdy * bdy <= hitDist * hitDist) {
+            d.takeDamage(999, this);
+            if (this.renderer && this.renderer.triggerShake) {
+              this.renderer.triggerShake(4, 0.2);
+            }
+            break;
+          }
+        }
+      }
 
       if (!d.alive) {
         this.destructibles.splice(i, 1);
@@ -788,7 +808,7 @@ class Game {
 
     // 2. Update Player
     const inputDir = this.getInputDirection();
-    this.player.update(dt, inputDir, this.enemies, this.projectiles, this.particles);
+    this.player.update(dt, inputDir, this.enemies, this.projectiles, this.particles, this);
 
     // Camera follow
     this.renderer.updateCamera(this.player, dt);
