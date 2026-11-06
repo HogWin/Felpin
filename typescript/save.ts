@@ -1,8 +1,3 @@
-/// <reference path="./types.d.ts" />
-/**
- * The Fallen Kingdom - save.ts (TypeScript Source)
- */
-
 /**
  * Medieval Survivors - Save & Meta-Progression System
  * Handles persistent gold, permanent stat and weapon upgrades, settings, and run history.
@@ -459,7 +454,7 @@ class SaveManager {
         if (!this.data.skillTrees || typeof this.data.skillTrees !== 'object' || Array.isArray(this.data.skillTrees)) {
           this.data.skillTrees = {};
         }
-        const classIds = ['knight', 'ranger', 'pyromancer', 'paladin', 'berserker', 'necromancer', 'assassin', 'dark_knight', 'plague_alchemist'];
+        const classIds = ['knight', 'ranger', 'pyromancer', 'paladin', 'plague_alchemist'];
         classIds.forEach(cid => {
           const origId = cid + '_orig';
           if (!Array.isArray(this.data.skillTrees[cid]) || this.data.skillTrees[cid].length === 0) {

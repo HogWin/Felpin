@@ -454,7 +454,7 @@ class SaveManager {
         if (!this.data.skillTrees || typeof this.data.skillTrees !== 'object' || Array.isArray(this.data.skillTrees)) {
           this.data.skillTrees = {};
         }
-        const classIds = ['knight', 'ranger', 'pyromancer', 'paladin', 'berserker', 'necromancer', 'assassin', 'dark_knight', 'plague_alchemist'];
+        const classIds = ['knight', 'ranger', 'pyromancer', 'paladin', 'plague_alchemist'];
         classIds.forEach(cid => {
           const origId = cid + '_orig';
           if (!Array.isArray(this.data.skillTrees[cid]) || this.data.skillTrees[cid].length === 0) {

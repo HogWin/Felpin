@@ -1637,6 +1637,10 @@ class UIController {
   renderHeroesTab() {
     const sm = window.MedievalSurvivors.saveManager;
     const classes = window.MedievalSurvivors.classRegistry.getAllClasses();
+    if (!classes.some(c => c.id === this._menuSelectedClass)) {
+      this._menuSelectedClass = 'knight';
+      if (this.game) this.game.selectedClassId = 'knight';
+    }
 
     this.menuTabContent.innerHTML = `
       <div class="heroes-header-banner">
@@ -1713,13 +1717,13 @@ class UIController {
                onclick="event.stopPropagation();">
               <span>🔍 Ver Modelo 3D 360° ↗</span>
             </a>` : ''}
-            ${c.id === 'archer' ? `
+            ${(c.id === 'archer' || c.id === 'ranger') ? `
             <a href="archer_showcase.html" target="_blank" class="btn-royal btn-sm"
                style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; text-decoration:none; padding:6px 10px; font-size:0.78rem; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); border-radius:4px;"
                onclick="event.stopPropagation();">
               <span>🔍 Ver Modelo 3D 360° ↗</span>
             </a>` : ''}
-            ${c.id === 'alchemist' ? `
+            ${(c.id === 'alchemist' || c.id === 'plague_alchemist') ? `
             <a href="alchemist_showcase.html" target="_blank" class="btn-royal btn-sm"
                style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; text-decoration:none; padding:6px 10px; font-size:0.78rem; background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); border-radius:4px;"
                onclick="event.stopPropagation();">

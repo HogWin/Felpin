@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Showcase 3D — Berserker do Norte | The Fallen Kingdom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Cinzel+Decorative:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0606;
+      font-family: 'Inter', sans-serif;
+      color: #e2e8f0;
+    }
+
+    #viewport-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 35%, #240c0b 0%, #100606 65%, #050202 100%);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .ui-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 28px;
+    }
+
+    .interactive {
+      pointer-events: auto;
+    }
+
+    .header-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .title-box {
+      background: rgba(18, 9, 9, 0.90);
+      border: 1px solid #7f1d1d;
+      border-left: 4px solid #ef4444;
+      backdrop-filter: blur(14px);
+      padding: 16px 22px;
+      border-radius: 8px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.7), 0 0 24px rgba(239, 68, 68, 0.2);
+      max-width: 600px;
+    }
+
+    .badge-era {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: #fee2e2;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.9), 0 0 16px rgba(239, 68, 68, 0.5);
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .subtitle strong {
+      color: #ef4444;
+    }
+
+    .controls-panel {
+      background: rgba(18, 9, 9, 0.92);
+      border: 1px solid #7f1d1d;
+      backdrop-filter: blur(14px);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.75), 0 0 20px rgba(127, 29, 29, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 320px;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+
+    .controls-panel::-webkit-scrollbar {
+      width: 5px;
+    }
+    .controls-panel::-webkit-scrollbar-thumb {
+      background: #7f1d1d;
+      border-radius: 3px;
+    }
+
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #ef4444;
+      border-bottom: 1px solid rgba(239, 68, 68, 0.25);
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-group.full {
+      grid-template-columns: 1fr;
+    }
+
+    button.btn-ctrl {
+      background: #18090a;
+      border: 1px solid #581c1c;
+      color: #cbd5e1;
+      padding: 9px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    button.btn-ctrl:hover {
+      background: #7f1d1d;
+      color: #ffffff;
+      border-color: #ef4444;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+      transform: translateY(-1px);
+    }
+
+    button.btn-ctrl.active {
+      background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%);
+      border-color: #ef4444;
+      color: #fee2e2;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-action {
+      background: rgba(18, 9, 9, 0.90);
+      border: 1px solid #7f1d1d;
+      color: #e2e8f0;
+      padding: 10px 16px;
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-action:hover {
+      background: #7f1d1d;
+      border-color: #ef4444;
+      color: #fee2e2;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .feature-item {
+      font-size: 11px;
+      color: #94a3b8;
+      background: rgba(24, 10, 11, 0.6);
+      border: 1px solid rgba(127, 29, 29, 0.4);
+      padding: 7px 9px;
+      border-radius: 5px;
+      line-height: 1.4;
+    }
+
+    .feature-item strong {
+      color: #fee2e2;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 20px;
+    }
+
+    .specs-card {
+      background: rgba(18, 9, 9, 0.90);
+      border: 1px solid #7f1d1d;
+      backdrop-filter: blur(10px);
+      padding: 12px 18px;
+      border-radius: 8px;
+      display: flex;
+      gap: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+
+    .spec-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .spec-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .spec-val {
+      font-family: 'Cinzel', serif;
+      font-size: 14px;
+      color: #ef4444;
+      font-weight: 700;
+    }
+
+    .legend-card {
+      background: rgba(18, 9, 9, 0.90);
+      border: 1px solid #7f1d1d;
+      backdrop-filter: blur(10px);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      gap: 16px;
+    }
+
+    .legend-item span {
+      color: #ef4444;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="viewport-container">
+    <canvas id="webgl-canvas"></canvas>
+  </div>
+
+  <div class="ui-layer">
+
+    <!-- Header Banner & Actions -->
+    <div class="header-banner">
+      <div class="title-box interactive">
+        <div class="badge-era">✦ Rework Visual 3D em Alta Fidelidade (v2.4.2)</div>
+        <h1>Berserker do Norte</h1>
+        <div class="subtitle">
+          Colosso implacável das cordilheiras de gelo eterno. Forjado em <strong>músculos, peles de lobo e ferro gélido</strong>, empunha o titânico <strong>Machado Duplo Winterfang</strong> e o machado de arremesso, com olhos ardendo na mais pura fúria sangrenta tribal.
+        </div>
+      </div>
+
+      <div class="top-actions interactive">
+        <button class="btn-action" id="sound-btn" onclick="toggleAudio()">
+          <span id="sound-icon">🔊</span> Rugido de Fúria
+        </button>
+        <a href="index.html" class="btn-action">
+          <span>⚔️</span> Voltar ao Jogo
+        </a>
+      </div>
+    </div>
+
+    <!-- Controls Panel -->
+    <div style="align-self: flex-end;">
+      <div class="controls-panel interactive">
+
+        <!-- Modos de Animação -->
+        <div>
+          <div class="section-title">🎭 Posturas & Fúria Selvagem</div>
+          <div class="btn-group">
+            <button class="btn-ctrl active" id="anim-idle" onclick="setAnimMode('idle')">🪓 Vigília Feroz</button>
+            <button class="btn-ctrl" id="anim-run" onclick="setAnimMode('run')">🏃 Carga de Combate</button>
+            <button class="btn-ctrl" id="anim-cleave" onclick="setAnimMode('cleave')">💥 Talho Esmagador</button>
+            <button class="btn-ctrl" id="anim-spin" onclick="setAnimMode('spin')">🌪️ Redemoinho Feroz</button>
+          </div>
+          <div style="margin-top: 8px;">
+            <button class="btn-ctrl" id="anim-warcry" onclick="setAnimMode('warcry')" style="width: 100%;">🔥 Grito de Guerra Sangrento</button>
+          </div>
+        </div>
+
+        <!-- Presets de Câmera -->
+        <div>
+          <div class="section-title">🎥 Enquadramentos de Detalhe</div>
+          <div class="btn-group">
+            <button class="btn-ctrl active" onclick="focusCamera('full')">👁️ Visão Geral</button>
+            <button class="btn-ctrl" onclick="focusCamera('helm')">🐂 Elmo & Chifres</button>
+            <button class="btn-ctrl" onclick="focusCamera('axe')">🪓 Machado Winterfang</button>
+            <button class="btn-ctrl" onclick="focusCamera('fur')">🐺 Peles de Lobo</button>
+            <button class="btn-ctrl" onclick="focusCamera('runes')" style="grid-column: span 2;">🩸 Pinturas de Guerra & Músculos</button>
+          </div>
+        </div>
+
+        <!-- Iluminação Nórdica -->
+        <div>
+          <div class="section-title">💡 Clima & Atmosfera</div>
+          <div class="btn-group">
+            <button class="btn-ctrl active" id="light-blizzard" onclick="setLighting('blizzard')">❄️ Nevasca Polar</button>
+            <button class="btn-ctrl" id="light-bonfire" onclick="setLighting('bonfire')">🔥 Fogueira de Sangue</button>
+            <button class="btn-ctrl" id="light-aurora" onclick="setLighting('aurora')">🌌 Aurora Boreal</button>
+            <button class="btn-ctrl" id="light-fury" onclick="setLighting('fury')">🩸 Frenesi Carmesim</button>
+          </div>
+        </div>
+
+        <!-- Modificadores -->
+        <div>
+          <div class="section-title">⚙️ Ferramentas de Exibição</div>
+          <div class="btn-group full">
+            <button class="btn-ctrl" id="toggle-turntable" onclick="toggleTurntable()">🔄 Giro Automático (Turntable)</button>
+            <button class="btn-ctrl" id="toggle-slowmo" onclick="toggleSlowMo()">⏱️ Câmera Lenta (Slow-Mo)</button>
+          </div>
+        </div>
+
+        <!-- Destaques Esculpidos -->
+        <div>
+          <div class="section-title">🔍 Detalhes Esculpidos</div>
+          <div class="feature-list">
+            <div class="feature-item">
+              <strong>1. Elmo Nórdico & Chifres Retorcidos:</strong>
+              Elmo cônico de ferro martelado com guarda nasal em T, barba trançada com argolas e chifres maciços pontiagudos.
+            </div>
+            <div class="feature-item">
+              <strong>2. Pinturas Rúnicas & Cicatrizes de Batalha:</strong>
+              Musculatura poderosa riscada por runas tribais de sangue e correias de couro cruzadas com cravos de aço.
+            </div>
+            <div class="feature-item">
+              <strong>3. Machado Colossal Winterfang:</strong>
+              Lâmina dupla em meia-lua de aço frio com fio afiado polido, runas glaciais gravadas e cabo longo de carvalho encordoado.
+            </div>
+            <div class="feature-item">
+              <strong>4. Pelame de Lobo Montês & Crânio no Ombro:</strong>
+              Gola espessa de peles árticas, ombreira com crânio de besta feroz e capa assimétrica rústica esvoaçante.
+            </div>
+            <div class="feature-item">
+              <strong>5. Machado de Mão & Brasa de Fúria:</strong>
+              Arma secundária de arremesso no punho esquerdo e partículas de fúria sangrenta emanando dos olhos.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bottom Specs & Legend -->
+    <div class="bottom-bar">
+      <div class="specs-card">
+        <div class="spec-item">
+          <span class="spec-label">Resolução PBR</span>
+          <span class="spec-val">3.480 Tris</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Motor Gráfico</span>
+          <span class="spec-val">Three.js WebGL</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Partículas Ativas</span>
+          <span class="spec-val">6 Brasas de Fúria</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Taxa de Quadros</span>
+          <span class="spec-val" style="color: #38ef7d;" id="fps-text">60 FPS</span>
+        </div>
+      </div>
+
+      <div class="legend-card interactive">
+        <div class="legend-item">🖱️ <span>Botão Esquerdo:</span> Girar 360°</div>
+        <div class="legend-item">🖱️ <span>Scroll:</span> Zoom</div>
+        <div class="legend-item">🖱️ <span>Botão Direito:</span> Pan</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/three.min.js"></script>
+
+  <script>
+    let audioCtx = null;
+    let audioEnabled = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleAudio() {
+      initAudio();
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('sound-btn');
+      const icon = document.getElementById('sound-icon');
+      if (audioEnabled) {
+        btn.classList.add('active');
+        icon.textContent = '🔊';
+        playWarHorn();
+      } else {
+        btn.classList.remove('active');
+        icon.textContent = '🔇';
+      }
+    }
+
+    function playWarHorn() {
+      if (!audioEnabled || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      [110, 164.81, 220].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.05, now + 1.8);
+        gain.gain.setValueAtTime(0.08 / (i + 1), now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 2.6);
+      });
+    }
+
+    function playAxeImpact() {
+      if (!audioEnabled || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(90, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.4);
+    }
+
+    // =========================================================================
+    // MODELAGEM PROCEDURAL DO BERSERKER DO NORTE (REWORK 3D)
+    // =========================================================================
+    function createFlashable(mat) {
+      mat._origEmissive = mat.emissive ? mat.emissive.getHex() : 0x000000;
+      mat._origEmissiveInt = mat.emissiveIntensity || 0;
+      return mat;
+    }
+
+    function buildBerserkerReworkModel(group, anim) {
+      anim.isBerserker = true;
+      anim.furyParticles = [];
+      anim.materials = [];
+
+      // Materiais PBR Bárbaros & Nórdicos
+      const muscleSkinMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0xc8987b,
+        roughness: 0.65,
+        flatShading: true
+      }));
+
+      const warpaintMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x991b1b,
+        emissive: 0x7f1d1d,
+        emissiveIntensity: 0.65,
+        roughness: 0.50,
+        flatShading: true
+      }));
+
+      const furMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x47423d,
+        roughness: 0.90,
+        flatShading: true
+      }));
+
+      const darkLeatherMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x271912,
+        roughness: 0.82,
+        flatShading: true
+      }));
+
+      const forgedIronMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x333b47,
+        metalness: 0.90,
+        roughness: 0.32,
+        flatShading: true
+      }));
+
+      const sharpSteelMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0xd1d5db,
+        metalness: 0.95,
+        roughness: 0.16,
+        flatShading: true
+      }));
+
+      const hornBoneMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0xd6cbb8,
+        roughness: 0.55,
+        flatShading: true
+      }));
+
+      const bloodGlowMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0xef4444,
+        emissive: 0xdc2626,
+        emissiveIntensity: 1.8,
+        roughness: 0.20
+      }));
+
+      const oakWoodMat = createFlashable(new THREE.MeshStandardMaterial({
+        color: 0x3d2719,
+        roughness: 0.85,
+        flatShading: true
+      }));
+
+      anim.materials.push(
+        muscleSkinMat, warpaintMat, furMat, darkLeatherMat, forgedIronMat,
+        sharpSteelMat, hornBoneMat, bloodGlowMat, oakWoodMat
+      );
+
+      // 1. TORSO BÁRBARO MONUMENTAL, MÚSCULOS & PINTURAS RÚNICAS
+      const torsoGroup = new THREE.Group();
+      torsoGroup.position.y = 15;
+      group.add(torsoGroup);
+      anim.torso = torsoGroup;
+
+      // Caixa torácica maciça e peitorais musculares em V
+      const chestGeo = new THREE.CylinderGeometry(6.4, 4.6, 10.2, 8);
+      const chestMesh = new THREE.Mesh(chestGeo, muscleSkinMat);
+      torsoGroup.add(chestMesh);
+
+      // Definição dos peitorais em placas musculares
+      [-1.8, 1.8].forEach(px => {
+        const pec = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.4, 1.2), muscleSkinMat);
+        pec.position.set(px, 2.0, 4.2);
+        pec.rotation.y = px > 0 ? -0.1 : 0.1;
+        torsoGroup.add(pec);
+      });
+
+      // Tatuagens / Pinturas Rúnicas de Sangue no Peito
+      const runeStripe1 = new THREE.Mesh(new THREE.BoxGeometry(1.4, 8.5, 0.4), warpaintMat);
+      runeStripe1.position.set(-1.2, 1.0, 4.6);
+      runeStripe1.rotation.z = 0.4;
+      const runeStripe2 = new THREE.Mesh(new THREE.BoxGeometry(1.4, 8.5, 0.4), warpaintMat);
+      runeStripe2.position.set(1.4, 0.5, 4.6);
+      runeStripe2.rotation.z = -0.35;
+      torsoGroup.add(runeStripe1, runeStripe2);
+
+      // Correias de couro cruzadas de suporte de armas
+      const strap1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 12.0, 0.6), darkLeatherMat);
+      strap1.position.set(0, 0.8, 4.5);
+      strap1.rotation.z = 0.55;
+      const strap2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 12.0, 0.6), darkLeatherMat);
+      strap2.position.set(0, 0.8, 4.5);
+      strap2.rotation.z = -0.55;
+      torsoGroup.add(strap1, strap2);
+
+      // Fivela central de ferro nas correias
+      const strapBuckle = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.6, 6), forgedIronMat);
+      strapBuckle.rotation.x = Math.PI / 2;
+      strapBuckle.position.set(0, 1.0, 4.9);
+      torsoGroup.add(strapBuckle);
+
+      // Cinto Largo Bárbaro com Crânio de Fera na Fivela
+      const belt = new THREE.Mesh(new THREE.CylinderGeometry(4.9, 5.0, 2.2, 10), darkLeatherMat);
+      belt.position.y = -4.8;
+      torsoGroup.add(belt);
+
+      // Crânio decorativo na fivela
+      const beastSkull = new THREE.Mesh(new THREE.ConeGeometry(1.5, 2.4, 5), hornBoneMat);
+      beastSkull.rotation.x = Math.PI;
+      beastSkull.position.set(0, -4.8, 4.8);
+      torsoGroup.add(beastSkull);
+
+      // Saia de Peles & Tiras de Couro com Contas
+      const loinGroup = new THREE.Group();
+      loinGroup.position.set(0, -5.2, 0);
+      torsoGroup.add(loinGroup);
+      anim.loincloth = loinGroup;
+
+      const furSkirt = new THREE.Mesh(new THREE.CylinderGeometry(4.9, 6.2, 6.5, 8, 1, true), furMat);
+      furSkirt.position.y = -2.8;
+      loinGroup.add(furSkirt);
+
+      // Aba frontal de couro com tachas de ferro
+      const loinFlap = new THREE.Mesh(new THREE.BoxGeometry(3.6, 7.5, 0.5), darkLeatherMat);
+      loinFlap.position.set(0, -3.4, 4.6);
+      loinFlap.rotation.x = 0.12;
+      loinGroup.add(loinFlap);
+
+      // 2. CABEÇA BÁRBARA, ELMO NÓRDICO & CHIFRES MACIÇOS
+      const headGroup = new THREE.Group();
+      headGroup.position.y = 8.5;
+      torsoGroup.add(headGroup);
+      anim.head = headGroup;
+
+      // Rosto forte e queixo coberto por barba
+      const headGeo = new THREE.BoxGeometry(4.4, 4.8, 4.4);
+      headGroup.add(new THREE.Mesh(headGeo, muscleSkinMat));
+
+      // Barba volumosa e trançada descendo pelo queixo
+      const beardBase = new THREE.Mesh(new THREE.ConeGeometry(2.4, 5.5, 5), furMat);
+      beardBase.rotation.x = -Math.PI;
+      beardBase.position.set(0, -2.8, 1.6);
+      headGroup.add(beardBase);
+
+      // Elmo Cônico Nórdico de Ferro
+      const helmDome = new THREE.Mesh(new THREE.ConeGeometry(3.6, 4.8, 8), forgedIronMat);
+      helmDome.position.set(0, 3.2, 0);
+      headGroup.add(helmDome);
+
+      // Guarda Nasal em T (Spectacle Mask)
+      const nasalV = new THREE.Mesh(new THREE.BoxGeometry(0.7, 3.2, 0.5), forgedIronMat);
+      nasalV.position.set(0, 0.2, 2.5);
+      const nasalH = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.7, 0.5), forgedIronMat);
+      nasalH.position.set(0, 1.4, 2.5);
+      headGroup.add(nasalV, nasalH);
+
+      // Olhos em Brasa Vermelha de Fúria (Glowing Fury Eyes)
+      const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, 0.4), bloodGlowMat);
+      eyeL.position.set(-1.1, 1.0, 2.3);
+      const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, 0.4), bloodGlowMat);
+      eyeR.position.set(1.1, 1.0, 2.3);
+      headGroup.add(eyeL, eyeR);
+
+      // 6 Partículas de fúria saindo dos olhos
+      for (let f = 0; f < 6; f++) {
+        const mote = new THREE.Mesh(new THREE.OctahedronGeometry(0.3, 0), bloodGlowMat);
+        mote._phase = (f * Math.PI * 2) / 6;
+        mote._side = f % 2 === 0 ? -1 : 1;
+        headGroup.add(mote);
+        anim.furyParticles.push(mote);
+      }
+
+      // DOIS CHIFRES RETORCIDOS DE CARNEIRO DAS NEVES
+      [-1, 1].forEach(side => {
+        const hornBase = new THREE.Mesh(new THREE.ConeGeometry(1.1, 4.2, 5), hornBoneMat);
+        hornBase.position.set(side * 3.4, 2.8, 0);
+        hornBase.rotation.z = side * -Math.PI / 3;
+        hornBase.rotation.x = -0.3;
+
+        const hornTip = new THREE.Mesh(new THREE.ConeGeometry(0.75, 3.6, 5), hornBoneMat);
+        hornTip.position.set(side * 5.2, 4.8, 0.8);
+        hornTip.rotation.z = side * -Math.PI / 6;
+        hornTip.rotation.x = 0.4;
+
+        headGroup.add(hornBase, hornTip);
+      });
+
+      // 3. OMBREIRAS DE FERA & MANTO DE PELES ASSIMÉTRICO
+      // Gola espessa de peles de lobo ao redor do pescoço
+      const neckFur = new THREE.Mesh(new THREE.TorusGeometry(4.4, 1.8, 6, 12), furMat);
+      neckFur.rotation.x = Math.PI / 2;
+      neckFur.position.y = 5.2;
+      torsoGroup.add(neckFur);
+
+      // Ombreira Esquerda com Crânio de Urso das Neves
+      const pauldronL = new THREE.Group();
+      pauldronL.position.set(-6.8, 4.6, 0);
+      const bearSkull = new THREE.Mesh(new THREE.ConeGeometry(2.4, 4.5, 6), hornBoneMat);
+      bearSkull.rotation.z = Math.PI / 2.8;
+      bearSkull.rotation.x = 0.2;
+      pauldronL.add(bearSkull);
+      torsoGroup.add(pauldronL);
+
+      // Ombreira Direita de Placas de Ferro com Cravos
+      const pauldronR = new THREE.Group();
+      pauldronR.position.set(6.8, 4.6, 0);
+      const ironPlate = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.8, 3.8, 6), forgedIronMat);
+      ironPlate.rotation.z = -Math.PI / 3.5;
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.6, 4), sharpSteelMat);
+      spike.rotation.z = -Math.PI / 2;
+      spike.position.set(1.4, 1.2, 0);
+      pauldronR.add(ironPlate, spike);
+      torsoGroup.add(pauldronR);
+
+      // Capa Assimétrica de Caçador Bárbaro
+      const capeGroup = new THREE.Group();
+      capeGroup.position.set(0, 4.8, -4.2);
+      const capeGeo = new THREE.PlaneGeometry(10.5, 18.0, 3, 3);
+      capeGeo.translate(0, -8.5, 0);
+      const capeMesh = new THREE.Mesh(capeGeo, furMat);
+      capeMesh.rotation.x = 0.18;
+      capeGroup.add(capeMesh);
+      torsoGroup.add(capeGroup);
+      anim.cape = capeGroup;
+
+      // 4. BRAÇO DIREITO & MACHADO DUPLO WINTERFANG (TITANIC GREATAXE)
+      const rightArmGroup = new THREE.Group();
+      rightArmGroup.position.set(6.6, 3.4, 0);
+      torsoGroup.add(rightArmGroup);
+      anim.rightArm = rightArmGroup;
+
+      // Braço hipertrofiado com ataduras de couro
+      const armGeo = new THREE.CylinderGeometry(1.9, 1.5, 8.2, 6);
+      armGeo.translate(0, -4.1, 0);
+      rightArmGroup.add(new THREE.Mesh(armGeo, muscleSkinMat));
+
+      const bracer = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.4, 3.4, 6), darkLeatherMat);
+      bracer.position.y = -5.4;
+      rightArmGroup.add(bracer);
+
+      // MACHADO WINTERFANG
+      const axeGroup = new THREE.Group();
+      axeGroup.position.set(0, -7.8, 0.8);
+      axeGroup.rotation.x = Math.PI / 10;
+      rightArmGroup.add(axeGroup);
+      anim.weapon = axeGroup;
+
+      // Cabo de carvalho escuro longo
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.75, 27, 8), oakWoodMat);
+      shaft.position.y = 2.5;
+      axeGroup.add(shaft);
+
+      // Ponteira de ferro inferior
+      const axeSpur = new THREE.Mesh(new THREE.ConeGeometry(0.8, 2.5, 5), forgedIronMat);
+      axeSpur.position.y = -11.5;
+      axeSpur.rotation.x = Math.PI;
+      axeGroup.add(axeSpur);
+
+      // Cabeça do Machado Duplo (Lâmina em Meia-Lua Dupla)
+      const axeHeadGroup = new THREE.Group();
+      axeHeadGroup.position.y = 13.0;
+      axeGroup.add(axeHeadGroup);
+
+      const socket = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 4.0, 6), forgedIronMat);
+      axeHeadGroup.add(socket);
+
+      // Lâmina Dianteira (Larga & Feroz)
+      const bladeFront = new THREE.Mesh(new THREE.BoxGeometry(0.4, 11.5, 6.2), sharpSteelMat);
+      bladeFront.position.set(0, 0.5, 3.8);
+      // Runas gravadas no aço
+      const bladeRuneF = new THREE.Mesh(new THREE.BoxGeometry(0.5, 6.5, 0.6), bloodGlowMat);
+      bladeRuneF.position.set(0, 0.5, 3.2);
+
+      // Lâmina Traseira (Contra-Corte)
+      const bladeBack = new THREE.Mesh(new THREE.BoxGeometry(0.4, 9.5, 5.0), sharpSteelMat);
+      bladeBack.position.set(0, 0.2, -3.2);
+
+      axeHeadGroup.add(bladeFront, bladeRuneF, bladeBack);
+
+      // 5. BRAÇO ESQUERDO & MACHADO DE ARREMESSO (FROSTBITE HATCHET)
+      const leftArmGroup = new THREE.Group();
+      leftArmGroup.position.set(-6.6, 3.4, 0);
+      torsoGroup.add(leftArmGroup);
+      anim.leftArm = leftArmGroup;
+
+      const lArm = new THREE.Mesh(armGeo, muscleSkinMat);
+      leftArmGroup.add(lArm);
+
+      const lBracer = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.4, 3.4, 6), darkLeatherMat);
+      lBracer.position.y = -5.4;
+      leftArmGroup.add(lBracer);
+
+      // Machadinha secundária na mão esquerda
+      const offhandAxe = new THREE.Group();
+      offhandAxe.position.set(0, -7.8, 0.8);
+      offhandAxe.rotation.x = -Math.PI / 6;
+      leftArmGroup.add(offhandAxe);
+
+      const sShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 12, 6), oakWoodMat);
+      sShaft.position.y = 1.0;
+      const sBlade = new THREE.Mesh(new THREE.BoxGeometry(0.3, 5.5, 3.5), sharpSteelMat);
+      sBlade.position.set(0, 5.5, 1.8);
+      offhandAxe.add(sShaft, sBlade);
+
+      // 6. PERNAS ROBUSTAS, CALÇAS DE PELE & BOTAS DE LOBO
+      [-3.0, 3.0].forEach((x, idx) => {
+        const legGroup = new THREE.Group();
+        legGroup.position.set(x, 9.5, 0);
+
+        const thigh = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 1.6, 6.5, 6), darkLeatherMat);
+        thigh.position.y = -3.2;
+        legGroup.add(thigh);
+
+        const knee = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.2, 1.4), forgedIronMat);
+        knee.position.set(0, -6.5, 1.4);
+        legGroup.add(knee);
+
+        // Bota forrada de peles
+        const boot = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.5, 6.2, 6), furMat);
+        boot.position.y = -9.6;
+        legGroup.add(boot);
+
+        const shoe = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.0, 4.4), darkLeatherMat);
+        shoe.position.set(0, -12.5, 1.0);
+        legGroup.add(shoe);
+
+        group.add(legGroup);
+        if (idx === 0) anim.leftLeg = legGroup;
+        else anim.rightLeg = legGroup;
+      });
+    }
+
+    // =========================================================================
+    // CENA THREE.JS, ILUMINAÇÃO & RENDERER
+    // =========================================================================
+    const canvas = document.getElementById('webgl-canvas');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0606);
+    scene.fog = new THREE.FogExp2(0x0a0606, 0.007);
+
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.set(28, 22, 52);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+
+    // Pedestal de Rocha Glacial e Sangue
+    const pedestalGroup = new THREE.Group();
+    const pedGeo = new THREE.CylinderGeometry(16, 18, 2.5, 24);
+    const pedMat = new THREE.MeshStandardMaterial({
+      color: 0x1f191a,
+      roughness: 0.85
+    });
+    const pedMesh = new THREE.Mesh(pedGeo, pedMat);
+    pedMesh.position.y = -1.25;
+    pedMesh.receiveShadow = true;
+    pedestalGroup.add(pedMesh);
+
+    const pedRing = new THREE.Mesh(new THREE.TorusGeometry(15.5, 0.35, 6, 32), new THREE.MeshStandardMaterial({
+      color: 0xef4444,
+      metalness: 0.8,
+      roughness: 0.2
+    }));
+    pedRing.rotation.x = Math.PI / 2;
+    pedRing.position.y = 0.05;
+    pedestalGroup.add(pedRing);
+    scene.add(pedestalGroup);
+
+    // Luzes
+    const ambientLight = new THREE.AmbientLight(0xffedd5, 0.8);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xfef2f2, 1.8);
+    dirLight.position.set(30, 45, 35);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    const fillLight = new THREE.DirectionalLight(0xef4444, 1.2);
+    fillLight.position.set(-35, 20, -20);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xf97316, 1.4);
+    rimLight.position.set(0, 30, -35);
+    scene.add(rimLight);
+
+    const furyGlowLight = new THREE.PointLight(0xef4444, 2.2, 50);
+    furyGlowLight.position.set(0, 24, 2);
+    scene.add(furyGlowLight);
+
+    // Instanciação do Berserker
+    const berserkerRoot = new THREE.Group();
+    const berserkerAnim = {};
+    buildBerserkerReworkModel(berserkerRoot, berserkerAnim);
+    scene.add(berserkerRoot);
+
+    // =========================================================================
+    // CONTROLES DE CÂMERA & PRESETS
+    // =========================================================================
+    let isDragging = false;
+    let prevMouseX = 0;
+    let prevMouseY = 0;
+    let targetAzimuth = 0.45;
+    let currentAzimuth = 0.45;
+    let targetPolar = 1.35;
+    let currentPolar = 1.35;
+    let targetDistance = 50;
+    let currentDistance = 50;
+    let targetLookAt = new THREE.Vector3(0, 13, 0);
+    let currentLookAt = new THREE.Vector3(0, 13, 0);
+    let autoRotate = false;
+    let slowMo = false;
+    let activeAnimMode = 'idle';
+
+    canvas.addEventListener('mousedown', e => {
+      isDragging = true;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+
+    window.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      const dx = e.clientX - prevMouseX;
+      const dy = e.clientY - prevMouseY;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+
+      targetAzimuth -= dx * 0.008;
+      targetPolar = Math.max(0.2, Math.min(Math.PI / 2 + 0.1, targetPolar - dy * 0.008));
+    });
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      targetDistance = Math.max(14, Math.min(100, targetDistance + e.deltaY * 0.04));
+    }, { passive: false });
+
+    window.focusCamera = function(preset) {
+      document.querySelectorAll('.controls-panel button').forEach(b => {
+        if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("focusCamera('" + preset + "')")) {
+          b.classList.add('active');
+        } else if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("focusCamera")) {
+          b.classList.remove('active');
+        }
+      });
+
+      if (preset === 'full') {
+        targetAzimuth = 0.45;
+        targetPolar = 1.35;
+        targetDistance = 50;
+        targetLookAt.set(0, 13, 0);
+      } else if (preset === 'helm') {
+        targetAzimuth = 0.25;
+        targetPolar = 1.40;
+        targetDistance = 20;
+        targetLookAt.set(0, 22, 0.5);
+      } else if (preset === 'axe') {
+        targetAzimuth = -0.65;
+        targetPolar = 1.30;
+        targetDistance = 24;
+        targetLookAt.set(6, 14, 1);
+      } else if (preset === 'fur') {
+        targetAzimuth = -2.4;
+        targetPolar = 1.32;
+        targetDistance = 24;
+        targetLookAt.set(0, 15, -2);
+      } else if (preset === 'runes') {
+        targetAzimuth = 0.20;
+        targetPolar = 1.38;
+        targetDistance = 24;
+        targetLookAt.set(0, 14, 2);
+      }
+    };
+
+    window.setLighting = function(mode) {
+      document.querySelectorAll('#light-blizzard, #light-bonfire, #light-aurora, #light-fury').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('light-' + mode);
+      if (btn) btn.classList.add('active');
+
+      if (mode === 'blizzard') {
+        scene.background.setHex(0x0a0c14);
+        scene.fog.color.setHex(0x0a0c14);
+        ambientLight.color.setHex(0xe0f2fe);
+        dirLight.color.setHex(0xf8fafc);
+        fillLight.color.setHex(0x38bdf8);
+        rimLight.color.setHex(0xef4444);
+        furyGlowLight.intensity = 2.0;
+      } else if (mode === 'bonfire') {
+        scene.background.setHex(0x160806);
+        scene.fog.color.setHex(0x160806);
+        ambientLight.color.setHex(0xfef3c7);
+        dirLight.color.setHex(0xf97316);
+        fillLight.color.setHex(0xdc2626);
+        rimLight.color.setHex(0xfacc15);
+        furyGlowLight.intensity = 3.2;
+      } else if (mode === 'aurora') {
+        scene.background.setHex(0x050c0c);
+        scene.fog.color.setHex(0x050c0c);
+        ambientLight.color.setHex(0x134e4a);
+        dirLight.color.setHex(0x2dd4bf);
+        fillLight.color.setHex(0x818cf8);
+        rimLight.color.setHex(0xef4444);
+        furyGlowLight.intensity = 2.5;
+      } else if (mode === 'fury') {
+        scene.background.setHex(0x1c0505);
+        scene.fog.color.setHex(0x1c0505);
+        ambientLight.color.setHex(0x7f1d1d);
+        dirLight.color.setHex(0xef4444);
+        fillLight.color.setHex(0x991b1b);
+        rimLight.color.setHex(0xf87171);
+        furyGlowLight.intensity = 4.5;
+      }
+    };
+
+    window.setAnimMode = function(mode) {
+      activeAnimMode = mode;
+      document.querySelectorAll('#anim-idle, #anim-run, #anim-cleave, #anim-spin, #anim-warcry').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('anim-' + mode);
+      if (btn) btn.classList.add('active');
+
+      if (mode === 'cleave') {
+        playAxeImpact();
+      } else if (mode === 'warcry') {
+        playWarHorn();
+      }
+    };
+
+    window.toggleTurntable = function() {
+      autoRotate = !autoRotate;
+      document.getElementById('toggle-turntable').classList.toggle('active', autoRotate);
+    };
+
+    window.toggleSlowMo = function() {
+      slowMo = !slowMo;
+      document.getElementById('toggle-slowmo').classList.toggle('active', slowMo);
+    };
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // =========================================================================
+    // LOOP PRINCIPAL DE RENDERIZAÇÃO
+    // =========================================================================
+    let clock = new THREE.Clock();
+    let animTime = 0;
+    let frameCount = 0;
+    let lastFpsUpdate = performance.now();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = clock.getDelta();
+      const dt = slowMo ? delta * 0.3 : delta;
+      animTime += dt;
+      const t = animTime;
+
+      frameCount++;
+      const now = performance.now();
+      if (now - lastFpsUpdate >= 1000) {
+        document.getElementById('fps-text').textContent = Math.round((frameCount * 1000) / (now - lastFpsUpdate)) + ' FPS';
+        frameCount = 0;
+        lastFpsUpdate = now;
+      }
+
+      if (autoRotate) {
+        targetAzimuth += dt * 0.45;
+      }
+
+      currentAzimuth += (targetAzimuth - currentAzimuth) * 0.1;
+      currentPolar += (targetPolar - currentPolar) * 0.1;
+      currentDistance += (targetDistance - currentDistance) * 0.1;
+      currentLookAt.lerp(targetLookAt, 0.1);
+
+      camera.position.x = currentLookAt.x + currentDistance * Math.sin(currentPolar) * Math.sin(currentAzimuth);
+      camera.position.y = currentLookAt.y + currentDistance * Math.cos(currentPolar);
+      camera.position.z = currentLookAt.z + currentDistance * Math.sin(currentPolar) * Math.cos(currentAzimuth);
+      camera.lookAt(currentLookAt);
+
+      // Partículas de fúria saindo dos olhos
+      if (berserkerAnim.furyParticles && berserkerAnim.furyParticles.length > 0) {
+        for (let i = 0; i < berserkerAnim.furyParticles.length; i++) {
+          const p = berserkerAnim.furyParticles[i];
+          const cycle = (t * 2.5 + p._phase) % 1.0;
+          p.position.set(
+            p._side * 1.1 + Math.cos(t * 3.0 + p._phase) * 0.3,
+            1.0 + cycle * 1.8,
+            2.3 + cycle * 0.8
+          );
+          p.scale.setScalar((1 - cycle) * 0.8);
+        }
+      }
+
+      // Modos de Animação
+      if (activeAnimMode === 'idle') {
+        // Vigília Feroz: Respiração ofegante e ombros pesados
+        const breath = Math.sin(t * 2.2);
+        berserkerRoot.position.y = 0.5 + breath * 0.35;
+
+        if (berserkerAnim.torso) {
+          berserkerAnim.torso.rotation.x = breath * 0.025;
+          berserkerAnim.torso.rotation.y = Math.sin(t * 1.0) * 0.04;
+        }
+        if (berserkerAnim.rightArm) {
+          berserkerAnim.rightArm.rotation.x = -0.32 + breath * 0.03;
+          berserkerAnim.rightArm.rotation.y = -0.25;
+          berserkerAnim.rightArm.rotation.z = 0.18;
+        }
+        if (berserkerAnim.leftArm) {
+          berserkerAnim.leftArm.rotation.x = 0.22 + breath * 0.02;
+          berserkerAnim.leftArm.rotation.y = 0.35;
+          berserkerAnim.leftArm.rotation.z = -0.15;
+        }
+        if (berserkerAnim.cape) {
+          berserkerAnim.cape.rotation.x = 0.18 + Math.sin(t * 2.5) * 0.06;
+        }
+        if (berserkerAnim.leftLeg) berserkerAnim.leftLeg.rotation.x = 0;
+        if (berserkerAnim.rightLeg) berserkerAnim.rightLeg.rotation.x = 0;
+
+      } else if (activeAnimMode === 'run') {
+        // Carga Selvagem
+        const walk = t * 7.5;
+        const swing = Math.sin(walk) * 0.75;
+        berserkerRoot.position.y = Math.abs(Math.sin(walk * 2)) * 1.6;
+
+        if (berserkerAnim.leftLeg) berserkerAnim.leftLeg.rotation.x = swing;
+        if (berserkerAnim.rightLeg) berserkerAnim.rightLeg.rotation.x = -swing;
+
+        if (berserkerAnim.torso) {
+          berserkerAnim.torso.rotation.y = Math.sin(walk) * 0.15;
+          berserkerAnim.torso.rotation.x = 0.15; // Inclinado para frente
+        }
+        if (berserkerAnim.rightArm) {
+          berserkerAnim.rightArm.rotation.x = -0.35 + swing * 0.65;
+        }
+        if (berserkerAnim.leftArm) {
+          berserkerAnim.leftArm.rotation.x = 0.25 - swing * 0.55;
+        }
+        if (berserkerAnim.cape) {
+          berserkerAnim.cape.rotation.x = 0.55 + Math.sin(walk * 2) * 0.2;
+        }
+
+      } else if (activeAnimMode === 'cleave') {
+        // Talho Esmagador
+        const cycle = (t * 1.5) % 1.0;
+        if (cycle < 0.35) {
+          const p = cycle / 0.35;
+          const ease = p * p;
+          berserkerRoot.position.y = 0.5 + ease * 1.4;
+          if (berserkerAnim.rightArm) {
+            berserkerAnim.rightArm.rotation.x = -0.32 - ease * 1.9;
+          }
+          if (berserkerAnim.leftArm) {
+            berserkerAnim.leftArm.rotation.x = 0.22 - ease * 1.4;
+          }
+          if (berserkerAnim.torso) berserkerAnim.torso.rotation.x = -ease * 0.25;
+        } else if (cycle < 0.60) {
+          const p = (cycle - 0.35) / 0.25;
+          const ease = 1 - Math.pow(1 - p, 3);
+          berserkerRoot.position.y = 1.9 - ease * 2.2;
+          if (berserkerAnim.rightArm) {
+            berserkerAnim.rightArm.rotation.x = -2.22 + ease * 3.2;
+          }
+          if (berserkerAnim.leftArm) {
+            berserkerAnim.leftArm.rotation.x = -1.18 + ease * 1.8;
+          }
+          if (berserkerAnim.torso) berserkerAnim.torso.rotation.x = -0.25 + ease * 0.55;
+        } else {
+          const p = (cycle - 0.60) / 0.40;
+          const ease = 1 - Math.pow(1 - p, 2);
+          berserkerRoot.position.y = -0.3 + ease * 0.8;
+          if (berserkerAnim.rightArm) {
+            berserkerAnim.rightArm.rotation.x = 0.98 - ease * 1.3;
+          }
+          if (berserkerAnim.leftArm) {
+            berserkerAnim.leftArm.rotation.x = 0.62 - ease * 0.4;
+          }
+          if (berserkerAnim.torso) berserkerAnim.torso.rotation.x = 0.30 * (1 - ease);
+        }
+
+      } else if (activeAnimMode === 'spin') {
+        // Redemoinho Feroz (Giro 360°)
+        berserkerRoot.rotation.y = t * 12.0;
+        if (berserkerAnim.rightArm) {
+          berserkerAnim.rightArm.rotation.x = -Math.PI / 2;
+          berserkerAnim.rightArm.rotation.z = Math.PI / 4;
+        }
+        if (berserkerAnim.leftArm) {
+          berserkerAnim.leftArm.rotation.x = -Math.PI / 2;
+          berserkerAnim.leftArm.rotation.z = -Math.PI / 4;
+        }
+
+      } else if (activeAnimMode === 'warcry') {
+        // Grito de Guerra
+        const breath = Math.sin(t * 3.0);
+        berserkerRoot.position.y = 0.8 + breath * 0.2;
+        if (berserkerAnim.head) {
+          berserkerAnim.head.rotation.x = -0.45;
+        }
+        if (berserkerAnim.torso) {
+          berserkerAnim.torso.rotation.x = -0.25;
+        }
+        if (berserkerAnim.rightArm) {
+          berserkerAnim.rightArm.rotation.x = -1.8;
+          berserkerAnim.rightArm.rotation.z = 0.45;
+        }
+        if (berserkerAnim.leftArm) {
+          berserkerAnim.leftArm.rotation.x = -1.8;
+          berserkerAnim.leftArm.rotation.z = -0.45;
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
