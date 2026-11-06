@@ -19,10 +19,10 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       subtitle: 'Antiga Cidadela dos Reis Caídos',
       icon: '🏛️',
       fogColor: 0x181324,
-      fogDensity: 0.00065,
+      fogDensity: 0.00035,
       ambientColor: 0x5a526c,
       dirLightColor: 0xc8d2ff,
-      dirLightIntensity: 0.65,
+      dirLightIntensity: 0.70,
       groundTones: ['#282236', '#342b44', '#1e1a2b', '#3e3450'],
       mortarColor: '#120f1b',
       landmarkProps: ['gothic_arch', 'colonnade', 'cathedral_wall', 'imperial_mausoleum', 'ancient_fountain'],
@@ -34,11 +34,11 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       name: 'Necrópole Imperial',
       subtitle: 'Catacumbas Antigas e Mausoléus Profanados',
       icon: '💀',
-      fogColor: 0x06120e,
-      fogDensity: 0.0008,
-      ambientColor: 0x142620,
-      dirLightColor: 0x6ca39a,
-      dirLightIntensity: 0.32,
+      fogColor: 0x14201c,
+      fogDensity: 0.00035,
+      ambientColor: 0x3d544b,
+      dirLightColor: 0x8ed2c4,
+      dirLightIntensity: 0.65,
       groundTones: ['#0b1614', '#10201d', '#07100e', '#162824'],
       mortarColor: '#040b09',
       landmarkProps: ['imperial_mausoleum', 'graveyard_plot', 'cathedral_wall', 'gothic_arch'],
@@ -50,11 +50,11 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       name: 'Floresta das Sombras',
       subtitle: 'Bosque Amaldiçoado pela Névoa Eterna',
       icon: '🌲',
-      fogColor: 0x071107,
-      fogDensity: 0.0008,
-      ambientColor: 0x162615,
-      dirLightColor: 0x769b78,
-      dirLightIntensity: 0.30,
+      fogColor: 0x142214,
+      fogDensity: 0.00035,
+      ambientColor: 0x3a5438,
+      dirLightColor: 0x96c498,
+      dirLightIntensity: 0.65,
       groundTones: ['#0c170b', '#112210', '#071107', '#172b16'],
       mortarColor: '#040b04',
       landmarkProps: ['megalith_circle', 'colonnade', 'ancient_fountain', 'gothic_arch'],
@@ -67,10 +67,10 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       subtitle: 'Bastião das Sombras e Cinzas',
       icon: '🏰',
       fogColor: 0x271216,
-      fogDensity: 0.0007,
-      ambientColor: 0x66363c,
+      fogDensity: 0.00035,
+      ambientColor: 0x6e454b,
       dirLightColor: 0xffc2b0,
-      dirLightIntensity: 0.65,
+      dirLightIntensity: 0.70,
       groundTones: ['#321b1f', '#422429', '#241316', '#4e2c32'],
       mortarColor: '#170a0d',
       landmarkProps: ['gallows_gibbet', 'cathedral_wall', 'colonnade', 'gothic_arch'],
@@ -702,7 +702,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         this.freezeMatrix(monument);
         this.interiorProps.push(monument);
         this.arenaGroup.add(monument);
-        this.obstacles.push({ x: gx, y: gz, radius: 14, type: 'plaza_guardian' });
+        this.obstacles.push({ x: gx, y: gz, radius: 9, type: 'plaza_guardian' });
 
         if (brazier._light && this.activeTorches.length < 2) {
           this.activeTorches.push(brazier._light);
@@ -738,7 +738,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         this.freezeMatrix(bench);
         this.interiorProps.push(bench);
         this.arenaGroup.add(bench);
-        this.obstacles.push({ x: bx, y: bz, radius: 12, type: 'plaza_bench' });
+        this.obstacles.push({ x: bx, y: bz, radius: 7, type: 'plaza_bench' });
       });
 
       // 6. Four Heraldic Banners flanking Plaza approaches
@@ -752,7 +752,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         this.freezeMatrix(banner);
         this.interiorProps.push(banner);
         this.arenaGroup.add(banner);
-        this.obstacles.push({ x: px, y: pz, radius: 7, type: 'plaza_banner' });
+        this.obstacles.push({ x: px, y: pz, radius: 3.5, type: 'plaza_banner' });
       });
     }
 
@@ -849,7 +849,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         case 'gothic_arch': {
           // 2 solid piers at local x = -20 and +20, rotated by rotY
           // Allows player to walk cleanly through the center opening!
-          const r = 9 * scale;
+          const r = 7 * scale;
           this.obstacles.push(
             { x: x - 20 * cos * scale, y: z + 20 * sin * scale, radius: r, type: 'arch_pier' },
             { x: x + 20 * cos * scale, y: z - 20 * sin * scale, radius: r, type: 'arch_pier' }
@@ -858,7 +858,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         }
         case 'colonnade': {
           // 3 standing fluted columns at local x = -24, 0, 24
-          const r = 8.5 * scale;
+          const r = 6.5 * scale;
           this.obstacles.push(
             { x: x - 24 * cos * scale, y: z + 24 * sin * scale, radius: r, type: 'colonnade_col' },
             { x: x, y: z, radius: r, type: 'colonnade_col' },
@@ -868,7 +868,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         }
         case 'cathedral_wall': {
           // 3 wall collider segments along length
-          const r = 11 * scale;
+          const r = 8 * scale;
           this.obstacles.push(
             { x: x - 18 * cos * scale, y: z + 18 * sin * scale, radius: r, type: 'cathedral_wall' },
             { x: x, y: z, radius: r, type: 'cathedral_wall' },
@@ -878,22 +878,22 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         }
         case 'imperial_mausoleum': {
           // Grand crypt chapel
-          this.obstacles.push({ x, y: z, radius: 26 * scale, type: 'mausoleum' });
+          this.obstacles.push({ x, y: z, radius: 19 * scale, type: 'mausoleum' });
           break;
         }
         case 'ancient_fountain': {
           // Octagonal stone basin
-          this.obstacles.push({ x, y: z, radius: 24 * scale, type: 'fountain' });
+          this.obstacles.push({ x, y: z, radius: 17.5 * scale, type: 'fountain' });
           break;
         }
         case 'gallows_gibbet': {
           // Raised timber scaffold
-          this.obstacles.push({ x, y: z, radius: 18 * scale, type: 'gallows' });
+          this.obstacles.push({ x, y: z, radius: 14 * scale, type: 'gallows' });
           break;
         }
         case 'megalith_circle': {
           // Central sacrificial altar slab
-          this.obstacles.push({ x, y: z, radius: 12 * scale, type: 'megalith_altar' });
+          this.obstacles.push({ x, y: z, radius: 9 * scale, type: 'megalith_altar' });
           // 5 standing menhirs around the ring
           for (let i = 0; i < 5; i++) {
             const ang = rotY + (i / 5) * Math.PI * 2;
@@ -901,7 +901,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
             this.obstacles.push({
               x: x + Math.cos(ang) * dist,
               y: z + Math.sin(ang) * dist,
-              radius: 7 * scale,
+              radius: 5.5 * scale,
               type: 'megalith_stone'
             });
           }
@@ -909,7 +909,7 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         }
         case 'graveyard_plot': {
           // Enclosed stone curb and graves
-          this.obstacles.push({ x, y: z, radius: 20 * scale, type: 'graveyard_plot' });
+          this.obstacles.push({ x, y: z, radius: 16 * scale, type: 'graveyard_plot' });
           break;
         }
 
@@ -917,59 +917,59 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         case 'pillar':
         case 'broken_pillar':
         case 'crypt_pillar': {
-          this.obstacles.push({ x, y: z, radius: 11 * scale, type: 'pillar' });
+          this.obstacles.push({ x, y: z, radius: 7 * scale, type: 'pillar' });
           break;
         }
         case 'sarcophagus': {
-          this.obstacles.push({ x, y: z, radius: 15 * scale, type: 'sarcophagus' });
+          this.obstacles.push({ x, y: z, radius: 8.5 * scale, type: 'sarcophagus' });
           break;
         }
         case 'dead_tree': {
-          this.obstacles.push({ x, y: z, radius: 12 * scale, type: 'dead_tree' });
+          this.obstacles.push({ x, y: z, radius: 5.5 * scale, type: 'dead_tree' });
           break;
         }
         case 'stone_menhir': {
-          this.obstacles.push({ x, y: z, radius: 13 * scale, type: 'menhir' });
+          this.obstacles.push({ x, y: z, radius: 7.5 * scale, type: 'menhir' });
           break;
         }
         case 'gargoyle_pedestal': {
-          this.obstacles.push({ x, y: z, radius: 13 * scale, type: 'gargoyle_pedestal' });
+          this.obstacles.push({ x, y: z, radius: 7.5 * scale, type: 'gargoyle_pedestal' });
           break;
         }
         case 'wayside_shrine': {
-          this.obstacles.push({ x, y: z, radius: 14 * scale, type: 'wayside_shrine' });
+          this.obstacles.push({ x, y: z, radius: 8.5 * scale, type: 'wayside_shrine' });
           break;
         }
         case 'battlefield_memorial': {
-          this.obstacles.push({ x, y: z, radius: 13 * scale, type: 'battlefield_memorial' });
+          this.obstacles.push({ x, y: z, radius: 8 * scale, type: 'battlefield_memorial' });
           break;
         }
         case 'brazier':
         case 'brazier_green':
         case 'brazier_red': {
-          this.obstacles.push({ x, y: z, radius: 10 * scale, type: 'brazier' });
+          this.obstacles.push({ x, y: z, radius: 5 * scale, type: 'brazier' });
           break;
         }
         case 'street_lamp':
         case 'street_lamp_green': {
-          this.obstacles.push({ x, y: z, radius: 9 * scale, type: 'street_lamp' });
+          this.obstacles.push({ x, y: z, radius: 3.5 * scale, type: 'street_lamp' });
           break;
         }
         case 'tombstone': {
-          this.obstacles.push({ x, y: z, radius: 9 * scale, type: 'tombstone' });
+          this.obstacles.push({ x, y: z, radius: 4 * scale, type: 'tombstone' });
           break;
         }
         case 'barricade':
         case 'fence': {
-          this.obstacles.push({ x, y: z, radius: 15 * scale, type: 'fence' });
+          this.obstacles.push({ x, y: z, radius: 7.5 * scale, type: 'fence' });
           break;
         }
         case 'altar_blood': {
-          this.obstacles.push({ x, y: z, radius: 17 * scale, type: 'altar' });
+          this.obstacles.push({ x, y: z, radius: 9 * scale, type: 'altar' });
           break;
         }
         case 'banner_post': {
-          this.obstacles.push({ x, y: z, radius: 8 * scale, type: 'banner_post' });
+          this.obstacles.push({ x, y: z, radius: 3.5 * scale, type: 'banner_post' });
           break;
         }
 

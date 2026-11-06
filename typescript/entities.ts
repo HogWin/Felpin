@@ -11,6 +11,7 @@ class Player {
     this.vx = 0;
     this.vy = 0;
     this.radius = 21;
+    this.collisionRadius = 9.5;
     this.facingAngle = 0;
     this.facingDir = 1; // 1 for right, -1 for left
     this.aimingWithMouse = true;
@@ -384,16 +385,16 @@ class Player {
   }
 
   // Smooth sliding collision against physical 3D map objects and destructibles
-  resolveObstacleCollisions(game) {
+  resolveObstacleCollisions(game: any) {
     const activeGame = game || (window.MedievalSurvivors && window.MedievalSurvivors.game);
     if (!activeGame) return;
 
-    const pr = this.radius || 21;
+    const pr = this.collisionRadius || 9.5;
 
     // 1. Static 3D Map Architectural Obstacles (Pillars, Walls, Menhirs, Trees, Shrines, Altars, Monuments)
     const staticObstacles = activeGame.mapObstacles || (activeGame.renderer && activeGame.renderer.map3D && activeGame.renderer.map3D.obstacles);
     if (staticObstacles && staticObstacles.length > 0) {
-      for (let pass = 0; pass < 2; pass++) {
+      for (let pass = 0; pass < 3; pass++) {
         for (let i = 0, len = staticObstacles.length; i < len; i++) {
           const obs = staticObstacles[i];
           const minDistance = pr + obs.radius;
@@ -405,9 +406,18 @@ class Player {
           const distSq = dx * dx + dy * dy;
           if (distSq < minDistance * minDistance && distSq > 0.0001) {
             const dist = Math.sqrt(distSq);
-            const overlap = minDistance - dist;
-            this.x += (dx / dist) * overlap;
-            this.y += (dy / dist) * overlap;
+            const nx = dx / dist;
+            const ny = dy / dist;
+            const overlap = (minDistance - dist) + 0.05;
+            this.x += nx * overlap;
+            this.y += ny * overlap;
+
+            // Tangential sliding: cancel velocity component directed into the obstacle
+            const vDotN = this.vx * nx + this.vy * ny;
+            if (vDotN < 0) {
+              this.vx -= vDotN * nx;
+              this.vy -= vDotN * ny;
+            }
           }
         }
       }
@@ -416,11 +426,12 @@ class Player {
     // 2. Destructible World Objects (Barrels, Crates, Sarcophagi)
     const destructibles = activeGame.destructibles;
     if (destructibles && destructibles.length > 0) {
-      for (let pass = 0; pass < 2; pass++) {
+      for (let pass = 0; pass < 3; pass++) {
         for (let i = 0, len = destructibles.length; i < len; i++) {
           const d = destructibles[i];
           if (!d || !d.alive) continue;
-          const minDistance = pr + d.radius;
+          const dr = d.collisionRadius || (d.type === 'sarcophagus' ? 12 : 9);
+          const minDistance = pr + dr;
           const dx = this.x - d.x;
           if (dx > minDistance || dx < -minDistance) continue;
           const dy = this.y - d.y;
@@ -429,9 +440,18 @@ class Player {
           const distSq = dx * dx + dy * dy;
           if (distSq < minDistance * minDistance && distSq > 0.0001) {
             const dist = Math.sqrt(distSq);
-            const overlap = minDistance - dist;
-            this.x += (dx / dist) * overlap;
-            this.y += (dy / dist) * overlap;
+            const nx = dx / dist;
+            const ny = dy / dist;
+            const overlap = (minDistance - dist) + 0.05;
+            this.x += nx * overlap;
+            this.y += ny * overlap;
+
+            // Tangential sliding
+            const vDotN = this.vx * nx + this.vy * ny;
+            if (vDotN < 0) {
+              this.vx -= vDotN * nx;
+              this.vy -= vDotN * ny;
+            }
           }
         }
       }
@@ -1010,6 +1030,7 @@ class DestructibleObject {
     this.y = y;
     this.type = type; // 'barrel', 'crate', 'sarcophagus'
     this.radius = type === 'sarcophagus' ? 22 : 16;
+    this.collisionRadius = type === 'sarcophagus' ? 12 : 9;
     this.hp = type === 'sarcophagus' ? 2 : 1;
     this.maxHp = this.hp;
     this.alive = true;

@@ -122,12 +122,19 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
   // =========================================================================
   // GLSL SHADER HOOKS: GPU Hit Flash & Death Dissolve Progress
   // =========================================================================
+  let _glslHookCounter = 0;
   function applyGLSLHooks(mat) {
     if (!mat) return mat;
     mat.userData = mat.userData || {};
     if (!mat.userData.uHitFlash) mat.userData.uHitFlash = { value: 0.0 };
     if (!mat.userData.uDissolveProgress) mat.userData.uDissolveProgress = { value: 0.0 };
     if (!mat.userData.uTime) mat.userData.uTime = { value: 0.0 };
+
+    // Unique program cache key per material instance to prevent uniform cross-contamination
+    const hookId = ++_glslHookCounter;
+    mat.customProgramCacheKey = function() {
+      return 'glsl_hook_inst_' + hookId;
+    };
 
     const oldOnBeforeCompile = mat.onBeforeCompile;
     mat.onBeforeCompile = function(shader, renderer) {
@@ -140,9 +147,9 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
       // Pass world position from vertex shader to fragment shader
       shader.vertexShader = 'varying vec3 vGpuWorldPos;\n' + shader.vertexShader;
       shader.vertexShader = shader.vertexShader.replace(
-        '#include <worldpos_vertex>',
-        `#include <worldpos_vertex>
-        vGpuWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;`
+        'void main() {',
+        `void main() {
+        vGpuWorldPos = (modelMatrix * vec4(position, 1.0)).xyz;`
       );
 
       // Fragment shader: GPU Hit Flash & Death Dissolve
@@ -151,24 +158,25 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
         '#include <dithering_fragment>',
         `#include <dithering_fragment>
 
-        // --- GLSL DISSOLVE EFFECT ON DEATH ---
-        if (uDissolveProgress > 0.001) {
-          float n1 = fract(sin(dot(vGpuWorldPos.xz * 0.12, vec2(12.9898, 78.233))) * 43758.5453);
-          float n2 = fract(sin(dot(vGpuWorldPos.yx * 0.18, vec2(93.9898, 67.345))) * 24634.6345);
+        // --- GLSL DISSOLVE EFFECT ON DEATH (Ash/Ember Disintegration) ---
+        if (uDissolveProgress > 0.03) {
+          float n1 = fract(sin(dot(vGpuWorldPos.xz * 0.14, vec2(12.9898, 78.233))) * 43758.5453);
+          float n2 = fract(sin(dot(vGpuWorldPos.yx * 0.20, vec2(93.9898, 67.345))) * 24634.6345);
           float noise = (n1 + n2) * 0.5;
-          float threshold = uDissolveProgress * 1.30;
+          float threshold = uDissolveProgress * 1.25;
           float edge = threshold - noise;
-          if (edge > 0.12) {
+          if (edge > 0.10) {
             discard;
           } else if (edge > 0.0) {
-            vec3 ember = mix(vec3(1.0, 0.45, 0.05) * 2.5, vec3(0.12, 0.12, 0.12), edge / 0.12);
+            // Radiant golden-orange ember edge, never black
+            vec3 ember = mix(vec3(1.2, 0.65, 0.15) * 2.2, vec3(0.9, 0.3, 0.05), edge / 0.10);
             gl_FragColor.rgb = ember;
           }
         }
 
         // --- GLSL GPU HIT FLASH ---
         if (uHitFlash > 0.001) {
-          vec3 flashColor = vec3(1.0, 0.22, 0.22);
+          vec3 flashColor = vec3(1.0, 0.35, 0.35);
           gl_FragColor.rgb = mix(gl_FragColor.rgb, flashColor, clamp(uHitFlash * 0.85, 0.0, 0.85));
         }`
       );
@@ -4700,14 +4708,15 @@ window.MedievalSurvivors = window.MedievalSurvivors || {};
     const isSpectral = (type === 'witch');
     const mat = new THREE.MeshStandardMaterial({
       vertexColors: true,
-      roughness: 0.65,
-      metalness: 0.25,
+      roughness: 0.50,
+      metalness: 0.05,
+      emissive: new THREE.Color(0x353740),
+      emissiveIntensity: 0.38,
       transparent: isSpectral,
       opacity: isSpectral ? 0.88 : 1.0,
       side: THREE.DoubleSide
     });
     mat._isShared = true;
-    applyGLSLHooks(mat);
     hordeMaterials[type] = mat;
     return mat;
   }

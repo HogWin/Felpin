@@ -44,21 +44,24 @@ class GameRenderer {
     this.shakeDuration = 0;
     this.shakeIntensity = 0;
 
-    // 3. Dynamic Scene Lighting (Brighter, clearer visibility)
-    this.ambientLight = new THREE.AmbientLight(0x181a22, 0.24);
+    // 3. Dynamic Scene Lighting (Brighter, atmospheric gothic visibility)
+    this.ambientLight = new THREE.AmbientLight(0x404555, 0.78);
     this.scene.add(this.ambientLight);
 
-    this.dirLight = new THREE.DirectionalLight(0x5a6688, 0.32);
+    this.hemiLight = new THREE.HemisphereLight(0xdde5f4, 0x443838, 0.70);
+    this.scene.add(this.hemiLight);
+
+    this.dirLight = new THREE.DirectionalLight(0xc8d4ee, 0.72);
     this.dirLight.position.set(150, 420, 200);
     this.scene.add(this.dirLight);
 
-    // Player Torchlight (Wider, warmer, brighter radiant glow)
-    this.playerLight = new THREE.PointLight(0xffa544, 2.9, 310, 1.4);
+    // Player Torchlight (Wider, warmer, brighter radiant glow that prevents dark silhouettes)
+    this.playerLight = new THREE.PointLight(0xffa544, 2.6, 480, 1.2);
     this.playerLight.position.set(0, 22, 0);
     this.scene.add(this.playerLight);
 
-    // 4. Fog (Soft distance atmosphere, doesn't hide the battlefield)
-    this.scene.fog = new THREE.FogExp2(0x1a162b, 0.0007);
+    // 4. Fog (Soft distance atmosphere, doesn't hide or black out the battlefield)
+    this.scene.fog = new THREE.FogExp2(0x1a162b, 0.00035);
 
     // 5. Generative 3D Map
     this.map3D = new window.MedievalSurvivors.GenerativeMap3D(this.scene);
@@ -139,6 +142,12 @@ class GameRenderer {
       const im = new THREE.InstancedMesh(geo, mat, this.hordeMaxCapacity);
       im.count = 0;
       im.frustumCulled = false;
+      // Pre-initialize instance colors to pure white so unwritten buffer indices are never black
+      const white = new THREE.Color(1.0, 1.0, 1.0);
+      for (let i = 0; i < this.hordeMaxCapacity; i++) {
+        im.setColorAt(i, white);
+      }
+      if (im.instanceColor) im.instanceColor.needsUpdate = true;
       this.scene.add(im);
       this.hordeMeshes[type] = im;
       this.hordeCounts[type] = 0;
@@ -291,13 +300,17 @@ class GameRenderer {
     const runInfo = this.map3D.generateNewRun();
     const biome = runInfo.biome;
 
-    // Apply biome lighting and fog
+    // Apply biome lighting and fog with balanced ambient levels to prevent dark silhouettes
     this.scene.fog.color.setHex(biome.fogColor);
-    this.scene.fog.density = biome.fogDensity;
+    this.scene.fog.density = Math.min(0.00045, biome.fogDensity || 0.00035);
     this.ambientLight.color.setHex(biome.ambientColor);
-    this.ambientLight.intensity = 0.48;
+    this.ambientLight.intensity = Math.max(0.72, biome.ambientIntensity || 0.75);
     this.dirLight.color.setHex(biome.dirLightColor);
-    this.dirLight.intensity = Math.min(0.70, biome.dirLightIntensity || 0.65);
+    this.dirLight.intensity = Math.max(0.65, Math.min(0.85, biome.dirLightIntensity || 0.70));
+    if (this.hemiLight) {
+      this.hemiLight.color.setHex(biome.dirLightColor || 0xdde5f4);
+      this.hemiLight.intensity = 0.65;
+    }
 
     // Synchronize physical static obstacles with game engine
     if (game) {
